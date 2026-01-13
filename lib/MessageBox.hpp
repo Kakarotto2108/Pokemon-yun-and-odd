@@ -1,0 +1,72 @@
+#ifndef MESSAGEBOX_HPP
+#define MESSAGEBOX_HPP
+
+#include "Item.hpp"
+#include <SFML/Graphics.hpp>
+#include <string>
+
+class MessageBox
+{
+public:
+    // Constructeur
+    MessageBox(const sf::Vector2f& windowSize, const sf::Vector2f& position);
+
+    // Boucle de jeu
+    void draw(sf::RenderWindow& window, std::string& playerName);
+
+    // Visibilité
+    bool isVisible() const;
+    void show();
+    void hide(sf::RenderWindow& window);
+
+    // Texte
+    void setText(const std::string& dialog);
+    void CutText(const std::string& text, size_t maxLength);
+
+    // Pagination
+    bool hasNextPage() const;
+    void nextPage();
+    void setNbrPages(const std::string& text, size_t maxLength);
+    int  getNbrPages() const;
+
+    // Objet
+    void hasObj();
+    void setObj(const std::string& name);
+    void getPocketName(ItemPocket pocket);
+
+private:
+    // --- Ressources ---
+    sf::Font    m_font;
+    sf::Texture m_dialogTex;
+    sf::Texture m_dialogObjTex;
+    sf::RectangleShape m_whiteFrame;
+    sf::Sprite  m_dialogSprite;
+
+    // --- Texte ---
+    std::string m_dialogue;
+    std::string m_text1;
+    std::string m_text2;
+
+    // --- Objet ---
+    std::string m_objectName;
+    std::string m_pocketName;
+    bool m_haveObj = false;
+
+    // --- État ---
+    bool m_visible   = false;
+    bool m_canGoNext = false;
+    int  m_nbrPage   = 0;
+
+    void drawColoredTextLine(
+    sf::RenderWindow& window,
+    const std::string& line,
+    float y,
+    const std::string& objectName,
+    const sf::Color& normalColor,
+    const sf::Color& highlightColor
+    );
+
+
+};
+
+#endif // MESSAGEBOX_HPP

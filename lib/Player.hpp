@@ -1,0 +1,41 @@
+#pragma once
+#include <SFML/Graphics.hpp>
+#include <vector>
+#include <string>
+#include "MessageBox.hpp"
+#include "Pnj.hpp"
+#include "Item.hpp"
+#include "Inventory.hpp"
+#include "Zone.hpp"
+
+class Player {
+public:
+    Player(const std::string& downTexPath,
+           const std::string& leftTexPath,
+           const std::string& rightTexPath,
+           const std::string& upTexPath,
+           const std::string& name
+            );
+
+    void changeZone(std::vector<std::string> collisionMap, Zone& zone);
+    void handleInput(sf::RenderWindow& window, Zone& zone, float delay, MessageBox& messageBox);
+    void update();
+    void draw(sf::RenderWindow& window);
+    
+    std::string m_name;
+    sf::Vector2i getPosition() const;       // position logique (tile)
+    sf::Vector2i getFacingTile() const;     // tile devant le joueur
+    sf::Vector2f getDrawPosition() const;   // position en pixels (sprite)
+    sf::Vector2i logicalPos;   // position sur la grille
+    int getCurrentZone() const;
+    int m_currentZone = 2;
+
+private:
+    sf::Texture texDown, texLeft, texRight, texUp;
+    sf::Sprite sprite;
+    Inventory m_inventory;
+
+    int orientation;           // 0: down, 1: left, 2: right, 3: up
+
+    sf::Vector2f targetPos;    // position pixel cible pour déplacement fluide
+};

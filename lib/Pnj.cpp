@@ -1,0 +1,92 @@
+#include "Pnj.hpp"
+#include <iostream>
+
+const float TILE_SIZE_F = 32.f;
+
+// ------ CONSTRUCTEUR ------
+Pnj::Pnj(const std::string& textureLeftPath,
+         const std::string& textureFacePath,
+         const sf::Vector2i& position,
+         int orientation,
+         const std::string& dialogueText,
+         std::optional<Item> item)
+    : m_sprite(m_textureFace),         // IMPORTANT: SFML 3 → Sprite doit être construit avec une texture !
+      m_position(position),
+      m_return(false),
+      m_orientation(orientation),
+      m_dialogue(dialogueText),
+      m_item(item)
+{
+    // Charger les textures
+    if (!m_textureLeft.loadFromFile(textureLeftPath))
+        std::cerr << "Erreur chargement texture gauche\n";
+
+    if (!m_textureFace.loadFromFile(textureFacePath))
+        std::cerr << "Erreur chargement texture face\n";
+
+    // Choisir la texture initiale
+    if (m_orientation == 0)
+        m_sprite.setTexture(m_textureFace, true);
+    else
+        m_sprite.setTexture(m_textureLeft, true);
+
+    // Origine (SFML 3 : setOrigin(Vector2f))
+    sf::Vector2u size = m_sprite.getTexture().getSize();
+    m_sprite.setOrigin(sf::Vector2f(size.x * 0.5f, size.y * 0.5f));
+
+    // Échelle (SFML 3 : setScale(Vector2f))
+    m_sprite.setScale(sf::Vector2f(2.f, 2.f));
+
+    // Position
+    m_sprite.setPosition(sf::Vector2f(
+        position.x * TILE_SIZE_F + TILE_SIZE_F / 2.f,
+        position.y * TILE_SIZE_F + TILE_SIZE_F / 2.f
+    ));
+}
+
+// ------ DESSIN ------
+void Pnj::draw(sf::RenderWindow& window) const {
+    window.draw(m_sprite);
+}
+
+// ------ UPDATE ------
+void Pnj::update(sf::RenderWindow& window, int orientation) {
+    // Exemple : si orientation change ailleurs dans ton code
+    if (orientation == 0) {
+        m_sprite.setTexture(m_textureFace, true);
+    }
+    else if (orientation == 2) {
+        m_sprite.setTexture(m_textureLeft, true);
+        m_sprite.setScale({-2.f, 2.f}); // Miroir horizontal
+        m_return = true;
+    }
+    else {
+        m_sprite.setTexture(m_textureLeft, true);
+        if (m_return) {
+            m_sprite.setScale({2.f, 2.f}); // Remet à l'échelle normale
+            m_return = false;
+        }
+    }
+    // Ajouter d'autres comportements ici
+}
+
+// ------ DIALOGUE / ITEM ------
+bool Pnj::isInZone(const sf::Vector2f&) const {
+    return false;
+}
+
+std::string Pnj::getDialogue() const {
+    return m_dialogue;
+}
+
+sf::Vector2i Pnj::getPosition() const {
+    return m_position;
+}
+
+std::optional<Item> Pnj::getItem() const {
+    return m_item;
+}
+
+void Pnj::setItemGiven() {
+    m_item = std::nullopt;
+}
