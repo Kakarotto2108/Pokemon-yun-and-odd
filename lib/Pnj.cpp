@@ -10,31 +10,34 @@ Pnj::Pnj(const std::string& textureLeftPath,
          int orientation,
          const std::string& dialogueText,
          std::optional<Item> item)
-    : m_sprite(m_textureFace),         // IMPORTANT: SFML 3 → Sprite doit être construit avec une texture !
-      m_position(position),
+    : m_position(position),
       m_return(false),
       m_orientation(orientation),
       m_dialogue(dialogueText),
       m_item(item)
 {
-    // Charger les textures
+    // ⚠ Toujours charger les textures avant de les assigner au sprite
     if (!m_textureLeft.loadFromFile(textureLeftPath))
         std::cerr << "Erreur chargement texture gauche\n";
 
     if (!m_textureFace.loadFromFile(textureFacePath))
         std::cerr << "Erreur chargement texture face\n";
 
-    // Choisir la texture initiale
-    if (m_orientation == 0)
-        m_sprite.setTexture(m_textureFace, true);
-    else
-        m_sprite.setTexture(m_textureLeft, true);
+    // ⚠ Construire le sprite "vide", puis assigner la texture
+    m_sprite.setTexture(
+        (m_orientation == 0 ? m_textureFace : m_textureLeft),
+        true
+    );
 
-    // Origine (SFML 3 : setOrigin(Vector2f))
-    sf::Vector2u size = m_sprite.getTexture().getSize();
-    m_sprite.setOrigin(sf::Vector2f(size.x * 0.5f, size.y * 0.5f));
+    // Origine
+    const sf::Texture* tex = m_sprite.getTexture(); // SFML 2 compatible
+    if (tex)
+    {
+        sf::Vector2u size = tex->getSize();
+        m_sprite.setOrigin(sf::Vector2f(size.x * 0.5f, size.y * 0.5f));
+    }
 
-    // Échelle (SFML 3 : setScale(Vector2f))
+    // Échelle
     m_sprite.setScale(sf::Vector2f(2.f, 2.f));
 
     // Position
@@ -54,6 +57,8 @@ void Pnj::update(sf::RenderWindow& window, int orientation) {
     // Exemple : si orientation change ailleurs dans ton code
     if (orientation == 0) {
         m_sprite.setTexture(m_textureFace, true);
+        m_sprite.setScale({2.f, 2.f});
+        m_return = false;
     }
     else if (orientation == 2) {
         m_sprite.setTexture(m_textureLeft, true);
@@ -67,7 +72,6 @@ void Pnj::update(sf::RenderWindow& window, int orientation) {
             m_return = false;
         }
     }
-    // Ajouter d'autres comportements ici
 }
 
 // ------ DIALOGUE / ITEM ------

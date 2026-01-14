@@ -1,11 +1,11 @@
 #include "MessageBox.hpp"
 #include <iostream>
 
-
 MessageBox::MessageBox(const sf::Vector2f& windowSize, const sf::Vector2f& position)
     : m_dialogSprite(m_dialogTex)
 {
-    if (!m_font.openFromFile("assets/write/write2.otf")) {
+    // ⚠ SFML 2 : loadFromFile au lieu de openFromFile
+    if (!m_font.loadFromFile("assets/write/write2.otf")) {
         std::cerr << "Erreur chargement police\n";
     }
 
@@ -21,11 +21,11 @@ MessageBox::MessageBox(const sf::Vector2f& windowSize, const sf::Vector2f& posit
     m_dialogSprite.setScale({0.8f, 0.8f});
 
     sf::Vector2f dialogSize(
-    m_dialogTex.getSize().x * 0.85f,
-    m_dialogTex.getSize().y * 0.5f
+        m_dialogTex.getSize().x * 0.85f,
+        m_dialogTex.getSize().y * 0.5f
     );
 
-    m_whiteFrame.setSize(dialogSize*0.8f);
+    m_whiteFrame.setSize(dialogSize * 0.8f);
     m_whiteFrame.setFillColor(sf::Color::Transparent);
     m_whiteFrame.setOutlineColor(sf::Color::White);
     m_whiteFrame.setOutlineThickness(4.f);
@@ -82,13 +82,10 @@ void MessageBox::drawColoredTextLine(
     const sf::Color& highlightColor
 )
 {
-    sf::Text left(m_font), obj(m_font), right(m_font), poche(m_font), point(m_font);
-
-    left.setCharacterSize(30);
-    obj.setCharacterSize(30);
-    right.setCharacterSize(30);
-    poche.setCharacterSize(30);
-    point.setCharacterSize(30);
+    // ⚠ SFML 2 : construire texte vide puis setFont
+    sf::Text left, obj, right, poche, point;
+    left.setFont(m_font); obj.setFont(m_font); right.setFont(m_font); poche.setFont(m_font); point.setFont(m_font);
+    left.setCharacterSize(30); obj.setCharacterSize(30); right.setCharacterSize(30); poche.setCharacterSize(30); point.setCharacterSize(30);
 
     left.setFillColor(normalColor);
     obj.setFillColor(highlightColor);
@@ -108,17 +105,17 @@ void MessageBox::drawColoredTextLine(
         left.setString(sf::String::fromUtf8(leftStr.begin(), leftStr.end()));
         left.setPosition({x, y});
         window.draw(left);
-        x += left.getGlobalBounds().size.x;
+        x += left.getGlobalBounds().width; // SFML 2 compatible
 
         obj.setString(sf::String::fromUtf8(objStr.begin(), objStr.end()));
         obj.setPosition({x, y});
         window.draw(obj);
-        x += obj.getGlobalBounds().size.x;
+        x += obj.getGlobalBounds().width;
 
         right.setString(sf::String::fromUtf8(rightStr.begin(), rightStr.end()));
         right.setPosition({x, y});
         window.draw(right);
-        x += right.getGlobalBounds().size.x;
+        x += right.getGlobalBounds().width;
     }
     else {
         left.setString(sf::String::fromUtf8(line.begin(), line.end()));
@@ -138,13 +135,11 @@ void MessageBox::getPocketName(ItemPocket pocket)
     }
 }
 
-
 void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
 {
     if (!m_visible)
         return;
 
-    // --- Position commune ---
     sf::Vector2f dialogPos(
         -52.f,
         window.getSize().y - m_dialogTex.getSize().y + 150.f
@@ -152,13 +147,6 @@ void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
     m_dialogSprite.setPosition(dialogPos);
     m_whiteFrame.setPosition(dialogPos + sf::Vector2f(80.f, 5.f));
 
-    // --- Pagination ---
-    if (m_canGoNext && !m_dialogue.empty()) {
-        CutText(m_dialogue, 35);
-        m_canGoNext = false;
-    }
-
-    // --- Cas objet ---
     bool showObjectText = m_haveObj && (m_nbrPage <= 2);
 
     if (showObjectText) {
@@ -172,27 +160,17 @@ void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
         m_dialogSprite.setColor(sf::Color::White);
     }
 
-    // --- Dessin du fond ---
     if (showObjectText) {
         window.draw(m_whiteFrame);
     }
 
     window.draw(m_dialogSprite);
 
-    // --- Texte ---
     if (showObjectText) {
+        std::string fullText = (m_nbrPage == 2)
+            ? playerName + " reçoit : " + m_objectName + " !"
+            : playerName + " a mis l'objet " + m_objectName + " dans la poche " + m_pocketName + ".";
 
-        // Construction texte complet
-        std::string fullText;
-
-        if (m_nbrPage == 2) {
-            fullText = playerName + " reçoit : " + m_objectName + " !";
-        } else {
-            fullText =
-                playerName + " a mis l'objet " + m_objectName + " dans la poche " + m_pocketName + ".";
-        }
-
-        // Découpe en 2 lignes max
         std::string line1, line2;
 
         if (fullText.size() <= 35) {
@@ -204,49 +182,25 @@ void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
                 if (lastSpace != std::string::npos)
                     cutPos = lastSpace;
             }
-
             line1 = fullText.substr(0, cutPos);
-
             size_t start = cutPos;
             if (start < fullText.size() && fullText[start] == ' ')
                 start++;
-
             line2 = fullText.substr(start);
         }
 
-        // Dessin lignes colorées
-        drawColoredTextLine(
-            window, line1, 370.f,
-            m_objectName,
-            sf::Color::White,
-            sf::Color(80, 160, 255)
-        );
-
-        if (!line2.empty()) {
-            drawColoredTextLine(
-                window, line2, 410.f,
-                m_pocketName,
-                sf::Color::White,
-                sf::Color(80, 160, 255)
-            );
-        }
+        drawColoredTextLine(window, line1, 370.f, m_objectName, sf::Color::White, sf::Color(80, 160, 255));
+        if (!line2.empty())
+            drawColoredTextLine(window, line2, 410.f, m_pocketName, sf::Color::White, sf::Color(80, 160, 255));
     }
     else {
-        // Texte normal (sans objet)
-        sf::Text text(m_font), text2(m_font);
-
-        text.setCharacterSize(30);
-        text2.setCharacterSize(30);
-
-        text.setFillColor(sf::Color::Black);
-        text2.setFillColor(sf::Color::Black);
-
-        text.setPosition({40.f, 370.f});
-        text2.setPosition({40.f, 410.f});
-
+        sf::Text text, text2;
+        text.setFont(m_font); text2.setFont(m_font);
+        text.setCharacterSize(30); text2.setCharacterSize(30);
+        text.setFillColor(sf::Color::Black); text2.setFillColor(sf::Color::Black);
+        text.setPosition({40.f, 370.f}); text2.setPosition({40.f, 410.f});
         text.setString(sf::String::fromUtf8(m_text1.begin(), m_text1.end()));
         text2.setString(sf::String::fromUtf8(m_text2.begin(), m_text2.end()));
-
         window.draw(text);
         window.draw(text2);
     }
