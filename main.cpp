@@ -74,12 +74,12 @@ int main() {
                 break; // on a trouvé la zone, inutile de continuer
             }
         }
-        
+        sf::Event event;
         // CORRECTION SFML 3: pollEvent retourne un std::optional<sf::Event> et ne prend pas d'argument.
-        while (const auto event = window.pollEvent()) {
+        while (window.pollEvent(event)) {
             
             // CORRECTION SFML 3: La vérification du type d'événement se fait avec event->is<type>()
-            if (event->is<sf::Event::Closed>())
+            if (event.type == sf::Event::Closed)
                 window.close();
         }
         
