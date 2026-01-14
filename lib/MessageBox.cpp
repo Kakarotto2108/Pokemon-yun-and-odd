@@ -135,6 +135,18 @@ void MessageBox::getPocketName(ItemPocket pocket)
     }
 }
 
+void MessageBox::drawText(sf::RenderWindow& window, const std::string& line1, const std::string& line2) {
+    sf::Text text1("", m_font, 30), text2("", m_font, 30);
+    text1.setFillColor(sf::Color::Black);
+    text2.setFillColor(sf::Color::Black);
+    text1.setPosition(40.f, 370.f);
+    text2.setPosition(40.f, 410.f);
+    text1.setString(sf::String::fromUtf8(line1.begin(), line1.end()));
+    text2.setString(sf::String::fromUtf8(line2.begin(), line2.end()));
+    window.draw(text1);
+    window.draw(text2);
+}
+
 void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
 {
     if (!m_visible)
@@ -158,6 +170,11 @@ void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
     else {
         m_dialogSprite.setTexture(m_dialogTex);
         m_dialogSprite.setColor(sf::Color::White);
+    }
+    
+    if (m_canGoNext && !m_dialogue.empty()) {
+        CutText(m_dialogue, 35);
+        m_canGoNext = false;
     }
 
     if (showObjectText) {

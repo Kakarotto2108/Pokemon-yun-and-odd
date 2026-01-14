@@ -33,6 +33,7 @@ public:
     void hasObj();
     void setObj(const std::string& name);
     void getPocketName(ItemPocket pocket);
+    void drawText(sf::RenderWindow& window, const std::string& line1, const std::string& line2);
 
 private:
     // --- Ressources ---

@@ -17,20 +17,15 @@ LDFLAGS =
 LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
 # =========================
-# macOS (Apple Silicon)
+# macOS (iMac) SFML 2
 # =========================
 ifeq ($(UNAME_S),Darwin)
     CXXFLAGS += -arch arm64
-    SFML_PATH = /opt/homebrew/Cellar/sfml/3.0.2
+
+    # <-- mettre à jour le chemin SFML 2 exact selon ton Homebrew -->
+    SFML_PATH = /opt/homebrew/Cellar/sfml@2/2.6.2_1
     CPPFLAGS += -I$(SFML_PATH)/include
     LDFLAGS  += -L$(SFML_PATH)/lib
-endif
-
-# =========================
-# Linux (Codespaces)
-# =========================
-ifeq ($(UNAME_S),Linux)
-    # SFML installed via apt (standard paths)
 endif
 
 # =========================
