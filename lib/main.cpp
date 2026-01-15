@@ -44,9 +44,8 @@ int main() {
 
     objects.push_back(std::make_unique<Obj>(
         "assets/sprite/obj/IMG_1338.png",
-        sf::Vector2i(5,0),
-        "Cette télé est un cadeau de maman.",
-        pokeball
+        sf::Vector2i(10,5),
+        "",
     ));
 
     pnjs.push_back(std::make_unique<Pnj>(

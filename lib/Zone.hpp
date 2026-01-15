@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include "Pnj.hpp"
 #include "TileMap.hpp"
+#include "Obj.hpp"
 
 
 class Player;  // 👈 déclaration anticipée
@@ -17,13 +18,15 @@ struct ZoneTransition {
 class Zone {
 public:
     Zone(const int id,
-         std::vector<std::unique_ptr<Pnj>> pnjs, 
-         TileMap tileMap = TileMap()
+        std::vector<std::unique_ptr<Pnj>> pnjs, 
+        std::vector<std::unique_ptr<Obj>> objs,
+        TileMap tileMap = TileMap()
         );
 
     int getId() const;
     std::vector<std::string> getCollisionMap() const;
     std::vector<std::unique_ptr<Pnj>>& getPnjs();   
+    std::vector<std::unique_ptr<Obj>>& getObjs();
     sf::Vector2i getPlayerStartPos() const;
     void drawAll(sf::RenderWindow& window, Player& player);
     const std::vector<ZoneTransition>& getTransitions() const;
@@ -33,6 +36,7 @@ public:
 private:
     int m_id;
     std::vector<std::unique_ptr<Pnj>> m_pnjs;
+    std::vector<std::unique_ptr<Obj>> m_objs;
     std::vector<std::string> m_visualMap;
     TileMap m_tileMap;
     std::vector<ZoneTransition> m_transitions;  

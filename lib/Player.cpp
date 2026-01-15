@@ -166,6 +166,30 @@ void Player::handleInput(sf::RenderWindow& window, Zone& zone, float delay, Mess
                     break;
                 }
             }
+            // --- Interaction OBJET ---
+            for (auto& obj : zone.getObjs()) {
+                if (facingTile == obj->getPosition()) {
+                    if (messageBox.isVisible()) {
+                        if (messageBox.getNbrPages() > 1) {
+                            messageBox.nextPage();
+                        } else {
+                            messageBox.hide(window);
+                            obj->setItemGiven();
+                        }
+                    } else {
+                        if (obj->getItem().has_value()) {
+                            messageBox.hasObj();
+                            messageBox.setObj(obj->getItem()->getName());
+                            messageBox.getPocketName(obj->getItem()->getPocket());
+                            m_inventory.addItem(*(obj->getItem()));
+                        }
+                        messageBox.setNbrPages(obj->getDialogue(), 33);
+                        messageBox.show();
+                        messageBox.setText(obj->getDialogue());
+                    }
+                    break;
+                }
+            }
         }
     }
     else {

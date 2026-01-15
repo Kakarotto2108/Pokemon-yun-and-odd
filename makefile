@@ -31,7 +31,7 @@ endif
 # =========================
 # Project files
 # =========================
-OBJ = main.o Player.o Pnj.o TileMap.o MessageBox.o Inventory.o Item.o Zone.o
+OBJ = main.o Player.o Pnj.o TileMap.o MessageBox.o Inventory.o Item.o Zone.o Obj.o
 TARGET = game
 
 # =========================
@@ -65,6 +65,9 @@ Item.o: lib/Item.cpp lib/Item.hpp
 
 Zone.o: lib/Zone.cpp lib/Zone.hpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c lib/Zone.cpp -o Zone.o
+
+Obj.o: lib/Obj.cpp lib/Obj.hpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c lib/Obj.cpp -o Obj.o
 
 # =========================
 # Clean

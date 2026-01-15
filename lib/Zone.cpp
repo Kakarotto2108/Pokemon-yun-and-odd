@@ -5,8 +5,8 @@
 
 const int TILE_SIZE = 32;
 
-Zone::Zone(const int id, std::vector<std::unique_ptr<Pnj>> pnjs, TileMap tileMap)
-    : m_id(id), m_pnjs(std::move(pnjs)), m_tileMap(std::move(tileMap)) {
+Zone::Zone(const int id, std::vector<std::unique_ptr<Pnj>> pnjs, std::vector<std::unique_ptr<Obj>> objs, TileMap tileMap)
+    : m_id(id), m_pnjs(std::move(pnjs)), m_objs(std::move(objs)), m_tileMap(std::move(tileMap)) {
 
     std::ifstream file("assets/zone/zone" + std::to_string(m_id) + "/collisionMap.txt");
      if (!file) {
@@ -55,6 +55,10 @@ std::vector<std::unique_ptr<Pnj>>& Zone::getPnjs() {
     return m_pnjs;
 }
 
+std::vector<std::unique_ptr<Obj>>& Zone::getObjs() {
+    return m_objs;
+}
+
 const std::vector<ZoneTransition>& Zone::getTransitions() const {
     return m_transitions;
 }
@@ -69,6 +73,12 @@ void Zone::drawAll(sf::RenderWindow& window, Player& player)
         }
     }
 
+    for (const auto& obj : m_objs) {
+        if (obj->m_position.y <= player.logicalPos.y) {
+            obj->draw(window);
+        }
+    }
+
     // 2. Puis le joueur
     player.draw(window);
 
@@ -76,6 +86,13 @@ void Zone::drawAll(sf::RenderWindow& window, Player& player)
     for (const auto& pnj : m_pnjs) {
         if (pnj->m_position.y > player.logicalPos.y) {
             pnj->draw(window);
+        }
+    }
+
+    // 4. Puis tout ce qui est EN-DESSOUS du joueur
+    for (const auto& obj : m_objs) {
+        if (obj->m_position.y > player.logicalPos.y) {
+            obj->draw(window);
         }
     }
 }
