@@ -2,11 +2,11 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <string>
-#include "MessageBox.hpp"
-#include "Pnj.hpp"
 #include "Item.hpp"
 #include "Inventory.hpp"
 #include "Zone.hpp"
+#include "EntiteMonde.hpp"
+#include "Interactable.hpp"
 
 class Player : public EntiteMonde {
 public:
@@ -18,7 +18,7 @@ public:
             );
 
     void changeZone(std::vector<std::string> collisionMap, Zone& zone);
-    void handleInput(sf::RenderWindow& window, Zone& zone, float delay, MessageBox& messageBox);
+    void handleInput(sf::RenderWindow& window, Zone& zone, float delay);
     void update();
     
     std::string m_name;
@@ -28,7 +28,7 @@ public:
     sf::Vector2f getDrawPosition() const;   // position en pixels (sprite)
     sf::Vector2i logicalPos;   // position sur la grille
     int getCurrentZone() const;
-    int m_currentZone = 2;
+    void setLogicalPos(const sf::Vector2i& pos);
 
 private:
     sf::Texture texDown, texLeft, texRight, texUp;

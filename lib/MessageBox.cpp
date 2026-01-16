@@ -26,6 +26,7 @@ MessageBox::MessageBox(const sf::Vector2f& windowSize, const sf::Vector2f& posit
     );
 
     m_whiteFrame.setSize(dialogSize * 0.8f);
+    
     m_whiteFrame.setFillColor(sf::Color::Transparent);
     m_whiteFrame.setOutlineColor(sf::Color::White);
     m_whiteFrame.setOutlineThickness(4.f);

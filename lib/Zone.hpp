@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 #include <SFML/Graphics.hpp>
 
 #include "EntiteMonde.hpp"   // ✅ MANQUANT
@@ -33,14 +34,17 @@ public:
     void drawAll(sf::RenderWindow& window, const EntiteMonde& player);
 
     const std::vector<ZoneTransition>& getTransitions() const;
+    Interactable* getInteractableAt(int x, int y) const;
 
     std::vector<std::string> m_collisionMap;
+    std::vector<ZoneTransition> m_transitions; 
 
 private:
     int m_id;
     std::vector<std::unique_ptr<Pnj>> m_pnjs;
     std::vector<std::unique_ptr<Obj>> m_objs;
     std::vector<std::string> m_visualMap;
-    TileMap m_tileMap;
-    std::vector<ZoneTransition> m_transitions;  
+    TileMap m_tileMap; 
+    std::vector<std::vector<Interactable*>> m_interactables;
+
 };

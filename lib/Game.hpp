@@ -21,6 +21,7 @@ private:
     sf::RenderWindow m_window;
     sf::View m_cameraView;
     sf::View m_uiView;
+    bool hasSeenZero = false;
 
     Player m_player;
     Monde m_world;

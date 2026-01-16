@@ -1,5 +1,4 @@
 #include "Player.hpp"
-#include "Zone.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
@@ -70,131 +69,46 @@ int PnjOrientation(sf::Vector2i pnjPos, sf::Vector2i playerPos) {
         return 3; // up
 }
 
-void Player::changeZone(std::vector<std::string> collisionMap, Zone& zone) {
-    int x = logicalPos.x;
-    int y = logicalPos.y;
-    
-    if (collisionMap[y][x] != '0' && collisionMap[y][x] != '*') {
-        m_currentZone = collisionMap[y][x] - '0'; // Conversion char -> int
-        for (const auto& transition : zone.getTransitions()) {
-            if (transition.targetZoneId == m_currentZone) {
-                logicalPos = transition.spawnPos;
-                break;
-            }
-        }
-    }
-}
-
-void Player::handleInput(sf::RenderWindow& window, Zone& zone, float delay, MessageBox& messageBox) {
+void Player::handleInput(sf::RenderWindow& window, Zone& zone, float delay) {
     int x = logicalPos.x;
     int y = logicalPos.y;
     std::vector<std::string> collisionMap = zone.getCollisionMap();
 
-    // --- MOUVEMENT ---
-    if (!messageBox.isVisible()) {
-        // Stocke la position logique actuelle (avant le mouvement)
-        sf::Vector2i oldLogicalPos = logicalPos;
 
-        // SFML 3: Les touches sont sf::Keyboard::Key::*
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
-            orientation = 1;
-            sprite.setTexture(texLeft, true); // true = reset rect
-            if (x > 0 && collisionMap[y][x - 1] != '*') {
-                logicalPos.x--;
-            }
-            changeZone(collisionMap, zone);
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
-            orientation = 2;
-            sprite.setTexture(texRight, true);
-            if (x < (int)collisionMap[y].size() - 2 && collisionMap[y][x + 1] != '*') {
-                logicalPos.x++;
-            }
-            changeZone(collisionMap, zone);
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
-            orientation = 3;
-            sprite.setTexture(texUp, true);
-            if (y > 0 && collisionMap[y - 1][x] != '*') {
-                logicalPos.y--;
-            }
-            changeZone(collisionMap, zone);
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
-            orientation = 0;
-            sprite.setTexture(texDown, true);
-            if (y + 1 < (int)collisionMap.size() && collisionMap[y + 1][x] != '*') {
-                logicalPos.y++;
-            }
-            changeZone(collisionMap, zone);
+    // Stocke la position logique actuelle (avant le mouvement)
+    sf::Vector2i oldLogicalPos = logicalPos;
+
+    // SFML 3: Les touches sont sf::Keyboard::Key::*
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+        orientation = 1;
+        sprite.setTexture(texLeft, true); // true = reset rect
+        if (x > 0 && collisionMap[y][x - 1] != '*') {
+            logicalPos.x--;
         }
+    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+        orientation = 2;
+        sprite.setTexture(texRight, true);
+        if (x < (int)collisionMap[y].size() - 2 && collisionMap[y][x + 1] != '*') {
+            logicalPos.x++;
+        }
+    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+        orientation = 3;
+        sprite.setTexture(texUp, true);
+        if (y > 0 && collisionMap[y - 1][x] != '*') {
+            logicalPos.y--;
+        }
+    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+        orientation = 0;
+        sprite.setTexture(texDown, true);
+        if (y + 1 < (int)collisionMap.size() && collisionMap[y + 1][x] != '*') {
+            logicalPos.y++;
+        }
+    }
         
-        // Si la position logique a changé, mettez à jour la position cible.
-        if (oldLogicalPos != logicalPos) {
-             targetPos = sf::Vector2f(logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, logicalPos.y * TILE_SIZE + TILE_SIZE / 2.f - 15.f);
-        }
-    }
-
-
-    // --- INTERACTION ("E") ---
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E)) {
-        if (!eWasPressed) {
-            eWasPressed = true;
-            // --- Interaction PNJ ---
-            sf::Vector2i facingTile = getFacingTile();
-            // Utilisation de la méthode statique pour obtenir tous les PNJ
-            for (auto& pnj : zone.getPnjs()) {
-                if (facingTile == pnj->getPosition()) {
-                    if (messageBox.isVisible()) {
-                        if (messageBox.getNbrPages() > 1) {
-                            messageBox.nextPage();
-                        } else {
-                            messageBox.hide(window);
-                            pnj->setItemGiven(); // Réinitialiser l'objet Item
-                        }
-                    } else {
-                        if (pnj->getItem().has_value()) {
-                            messageBox.hasObj();
-                            messageBox.setObj(pnj->getItem()->getName());
-                            messageBox.getPocketName(pnj->getItem()->getPocket());
-                            m_inventory.addItem(*(pnj->getItem()));
-                        }
-                        messageBox.setNbrPages(pnj->getDialogue(), 33);
-                        messageBox.show();
-                        messageBox.setText(pnj->getDialogue());
-                    }
-                    if (pnj != nullptr) {
-                        pnj->update(window, PnjOrientation(pnj->getPosition(), logicalPos));
-                    }
-                    break;
-                }
-            }
-            // --- Interaction OBJET ---
-            for (auto& obj : zone.getObjs()) {
-                if (facingTile == obj->getPosition()) {
-                    if (messageBox.isVisible()) {
-                        if (messageBox.getNbrPages() > 1) {
-                            messageBox.nextPage();
-                        } else {
-                            messageBox.hide(window);
-                            obj->setItemGiven();
-                        }
-                    } else {
-                        if (obj->getItem().has_value()) {
-                            messageBox.hasObj();
-                            messageBox.setObj(obj->getItem()->getName());
-                            messageBox.getPocketName(obj->getItem()->getPocket());
-                            m_inventory.addItem(*(obj->getItem()));
-                        }
-                        messageBox.setNbrPages(obj->getDialogue(), 33);
-                        messageBox.show();
-                        messageBox.setText(obj->getDialogue());
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    else {
-        eWasPressed = false;
-    }
+    // Si la position logique a changé, mettez à jour la position cible.
+    if (oldLogicalPos != logicalPos) {
+        targetPos = sf::Vector2f(logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, logicalPos.y * TILE_SIZE + TILE_SIZE / 2.f - 15.f);
+    }    
 }
 
 
@@ -229,7 +143,11 @@ sf::Vector2f Player::getDrawPosition() const {
     return sprite.getPosition();
 }
 
-int Player::getCurrentZone() const {
-    return m_currentZone;
+void Player::setLogicalPos(const sf::Vector2i& pos) {
+    logicalPos = pos;
+    targetPos = sf::Vector2f(logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f,
+                             logicalPos.y * TILE_SIZE + TILE_SIZE / 2.f - 15.f);
+
+    sprite.setPosition(targetPos);
 }
 
