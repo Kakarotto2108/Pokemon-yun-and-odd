@@ -6,10 +6,14 @@
 #include "Item.hpp"
 #include "Interactable.hpp"
 #include "EntiteMonde.hpp"
+#include "Event.hpp"
 #include <optional>
 
 class Obj : public Interactable, public EntiteMonde {
 public:
+
+    Event<const Item&> onItemGiven;
+    Event<const std::string&> onDialogue;
     // Constructeur
     Obj(const std::string& texture,
         const sf::Vector2i& position,
@@ -20,6 +24,7 @@ public:
     bool isInZone(const sf::Vector2f& playerPos) const;
     std::string getDialogue() const;
     sf::Vector2i getPosition() const override;
+    void interact() override;
     void draw(sf::RenderWindow& window) const override;
     std::optional<Item> getItem() const;
     void setItemGiven();

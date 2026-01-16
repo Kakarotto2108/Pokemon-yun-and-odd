@@ -79,9 +79,6 @@ void Pnj::interact()
     onDialogue.notify(m_dialogue);
 }
 
-
-
-
 // ------ DIALOGUE / ITEM ------
 bool Pnj::isInZone(const sf::Vector2f&) const {
     return false;
@@ -101,4 +98,8 @@ std::optional<Item> Pnj::getItem() const {
 
 void Pnj::setItemGiven() {
     m_item = std::nullopt;
+}
+
+void Pnj::draw(sf::RenderWindow& window) const {
+    window.draw(m_sprite);
 }

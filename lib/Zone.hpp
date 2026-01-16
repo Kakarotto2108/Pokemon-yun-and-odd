@@ -3,32 +3,35 @@
 #include <vector>
 #include <memory>
 #include <SFML/Graphics.hpp>
+
+#include "EntiteMonde.hpp"   // ✅ MANQUANT
 #include "Pnj.hpp"
 #include "TileMap.hpp"
 #include "Obj.hpp"
 
-
-class Player;  // 👈 déclaration anticipée
+class Player;  // OK si utilisé ailleurs (pas nécessaire ici)
 
 struct ZoneTransition {
-    int targetZoneId;        // ID de la zone cible
-    sf::Vector2i spawnPos;   // Position du joueur dans la nouvelle zone
+    int targetZoneId;
+    sf::Vector2i spawnPos;
 };
 
 class Zone {
 public:
     Zone(const int id,
-        std::vector<std::unique_ptr<Pnj>> pnjs, 
-        std::vector<std::unique_ptr<Obj>> objs,
-        TileMap tileMap = TileMap()
-        );
+         std::vector<std::unique_ptr<Pnj>> pnjs, 
+         std::vector<std::unique_ptr<Obj>> objs,
+         TileMap tileMap = TileMap()
+    );
 
     int getId() const;
     std::vector<std::string> getCollisionMap() const;
+
     std::vector<std::unique_ptr<Pnj>>& getPnjs();   
     std::vector<std::unique_ptr<Obj>>& getObjs();
-    sf::Vector2i getPlayerStartPos() const;
-    void drawAll(sf::RenderWindow& window, Player& player);
+
+    void drawAll(sf::RenderWindow& window, const EntiteMonde& player);
+
     const std::vector<ZoneTransition>& getTransitions() const;
 
     std::vector<std::string> m_collisionMap;

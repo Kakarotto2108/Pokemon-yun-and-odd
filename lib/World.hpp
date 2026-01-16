@@ -1,6 +1,7 @@
 #pragma once
+
+#include <vector>
 #include <memory>
-#include <unordered_map>
 #include "Zone.hpp"
 
 class Monde {
@@ -9,11 +10,13 @@ public:
 
     void addZone(std::unique_ptr<Zone> zone);
     Zone& getZoneActuelle();
-    void changerZone(int id, sf::Vector2i nouvellePos);
+    void changerZone(int zoneId, const sf::Vector2i& spawn);
 
-    void draw(sf::RenderWindow& window, Player& player);
+    void update(Player& player);
+    void draw(sf::RenderWindow& window, const EntiteMonde& focus);
+    void init();
 
 private:
-    std::unordered_map<int, std::unique_ptr<Zone>> m_zones;
-    int m_zoneActuelleId;
+    std::vector<std::unique_ptr<Zone>> m_zones;
+    int m_currentZoneId;
 };

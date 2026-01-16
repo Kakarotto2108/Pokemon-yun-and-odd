@@ -53,10 +53,24 @@ sf::Vector2i Obj::getPosition() const {
     return m_position;
 }
 
+void Obj::interact()
+{
+    if (m_item.has_value()) {
+        onItemGiven.notify(*m_item);
+        m_item.reset();
+    }
+
+    onDialogue.notify(m_dialogue);
+}
+
 std::optional<Item> Obj::getItem() const {
     return m_item;
 }
 
 void Obj::setItemGiven() {
     m_item = std::nullopt;
+}
+
+void Obj::draw(sf::RenderWindow& window) const {
+    window.draw(m_sprite);
 }

@@ -2,7 +2,7 @@
 #include <fstream>
 #include "Zone.hpp"
 #include "Player.hpp"
-#include "EntiteeMonde.hpp"
+#include "EntiteMonde.hpp"
 
 const int TILE_SIZE = 32;
 

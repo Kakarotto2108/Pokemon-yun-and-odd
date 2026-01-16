@@ -205,7 +205,7 @@ void Player::update() {
 
 }
 
-void Player::draw(sf::RenderWindow& window) {
+void Player::draw(sf::RenderWindow& window) const {
     // Dessine le sprite du joueur
     window.draw(sprite);
 }

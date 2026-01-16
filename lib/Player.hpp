@@ -20,7 +20,6 @@ public:
     void changeZone(std::vector<std::string> collisionMap, Zone& zone);
     void handleInput(sf::RenderWindow& window, Zone& zone, float delay, MessageBox& messageBox);
     void update();
-    void draw(sf::RenderWindow& window);
     
     std::string m_name;
     sf::Vector2i getPosition() const override;       // position logique (tile)
