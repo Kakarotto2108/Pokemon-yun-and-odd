@@ -2,12 +2,18 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <vector>
-#include "Item.hpp"
 #include <optional>
+#include "Item.hpp"
+#include "Interactable.hpp"
+#include "EntiteMonde.hpp"
+#include "Event.hpp"
 
-class Pnj {
+class Pnj : public Interactable, public EntiteMonde {
 public:
+    // Events
+    Event<const Item&> onItemGiven;
+    Event<const std::string&> onDialogue;
+
     // Constructeur
     Pnj(const std::string& textureLeftPath,
         const std::string& textureFacePath,
@@ -17,26 +23,24 @@ public:
         std::optional<Item> item = std::nullopt);
 
     // Méthodes
-    void draw(sf::RenderWindow& window) const;
     void update(sf::RenderWindow& window, int orientation);
-
     bool isInZone(const sf::Vector2f& playerPos) const;
+    sf::Vector2i getPosition() const override;
     std::string getDialogue() const;
-    sf::Vector2i getPosition() const;
+    void draw(sf::RenderWindow& window) const override;
+    void interact() override;
     std::optional<Item> getItem() const;
     void setItemGiven();
 
-    // Public pour accéder directement au sprite
+private:
     sf::Sprite m_sprite;
     sf::Vector2i m_position;
-    bool m_return;
 
-private:
-    // ⚠ Important : textures doivent être déclarées AVANT le sprite
     sf::Texture m_textureLeft;
     sf::Texture m_textureFace;
-
+    bool m_return = false;
     int m_orientation;
     std::string m_dialogue;
     std::optional<Item> m_item;
 };
+ 

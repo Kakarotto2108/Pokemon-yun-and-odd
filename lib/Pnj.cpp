@@ -47,11 +47,6 @@ Pnj::Pnj(const std::string& textureLeftPath,
     ));
 }
 
-// ------ DESSIN ------
-void Pnj::draw(sf::RenderWindow& window) const {
-    window.draw(m_sprite);
-}
-
 // ------ UPDATE ------
 void Pnj::update(sf::RenderWindow& window, int orientation) {
     // Exemple : si orientation change ailleurs dans ton code
@@ -73,6 +68,19 @@ void Pnj::update(sf::RenderWindow& window, int orientation) {
         }
     }
 }
+
+void Pnj::interact()
+{
+    if (m_item.has_value()) {
+        onItemGiven.notify(*m_item);
+        m_item.reset();
+    }
+
+    onDialogue.notify(m_dialogue);
+}
+
+
+
 
 // ------ DIALOGUE / ITEM ------
 bool Pnj::isInZone(const sf::Vector2f&) const {

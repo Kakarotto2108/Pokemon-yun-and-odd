@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include "Zone.hpp"
-#include "Player.hpp"   
+#include "Player.hpp"
+#include "EntiteeMonde.hpp"
 
 const int TILE_SIZE = 32;
 
@@ -63,18 +64,18 @@ const std::vector<ZoneTransition>& Zone::getTransitions() const {
     return m_transitions;
 }
 
-void Zone::drawAll(sf::RenderWindow& window, Player& player)
+void Zone::drawAll(sf::RenderWindow& window, const EntiteMonde& player)
 {   
     window.draw(m_tileMap);
     // 1. On dessine tout ce qui est AU-DESSUS du joueur
     for (const auto& pnj : m_pnjs) {
-        if (pnj->m_position.y <= player.logicalPos.y) {
+        if (pnj->getPosition().y <= player.getPosition().y) {
             pnj->draw(window);
         }
     }
 
     for (const auto& obj : m_objs) {
-        if (obj->m_position.y <= player.logicalPos.y) {
+        if (obj->getPosition().y <= player.getPosition().y) {
             obj->draw(window);
         }
     }
@@ -84,14 +85,14 @@ void Zone::drawAll(sf::RenderWindow& window, Player& player)
 
     // 3. Puis tout ce qui est EN-DESSOUS du joueur
     for (const auto& pnj : m_pnjs) {
-        if (pnj->m_position.y > player.logicalPos.y) {
+        if (pnj->getPosition().y > player.getPosition().y) {
             pnj->draw(window);
         }
     }
 
     // 4. Puis tout ce qui est EN-DESSOUS du joueur
     for (const auto& obj : m_objs) {
-        if (obj->m_position.y > player.logicalPos.y) {
+        if (obj->getPosition().y > player.getPosition().y) {
             obj->draw(window);
         }
     }

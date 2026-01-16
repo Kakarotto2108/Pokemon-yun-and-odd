@@ -40,11 +40,6 @@ Obj::Obj(const std::string& texture,
     ));
 }
 
-// ------ DESSIN ------
-void Obj::draw(sf::RenderWindow& window) const {
-    window.draw(m_sprite);
-}
-
 // ------ DIALOGUE / ITEM ------
 bool Obj::isInZone(const sf::Vector2f&) const {
     return false;

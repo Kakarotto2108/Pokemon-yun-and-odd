@@ -8,7 +8,7 @@
 #include "Inventory.hpp"
 #include "Zone.hpp"
 
-class Player {
+class Player : public EntiteMonde {
 public:
     Player(const std::string& downTexPath,
            const std::string& leftTexPath,
@@ -23,7 +23,8 @@ public:
     void draw(sf::RenderWindow& window);
     
     std::string m_name;
-    sf::Vector2i getPosition() const;       // position logique (tile)
+    sf::Vector2i getPosition() const override;       // position logique (tile)
+    void draw(sf::RenderWindow& window) const override;
     sf::Vector2i getFacingTile() const;     // tile devant le joueur
     sf::Vector2f getDrawPosition() const;   // position en pixels (sprite)
     sf::Vector2i logicalPos;   // position sur la grille

@@ -4,9 +4,11 @@
 #include <string>
 #include <vector>
 #include "Item.hpp"
+#include "Interactable.hpp"
+#include "EntiteMonde.hpp"
 #include <optional>
 
-class Obj {
+class Obj : public Interactable, public EntiteMonde {
 public:
     // Constructeur
     Obj(const std::string& texture,
@@ -15,11 +17,10 @@ public:
         std::optional<Item> item = std::nullopt);
 
     // Méthodes
-    void draw(sf::RenderWindow& window) const;
-
     bool isInZone(const sf::Vector2f& playerPos) const;
     std::string getDialogue() const;
-    sf::Vector2i getPosition() const;
+    sf::Vector2i getPosition() const override;
+    void draw(sf::RenderWindow& window) const override;
     std::optional<Item> getItem() const;
     void setItemGiven();
 
