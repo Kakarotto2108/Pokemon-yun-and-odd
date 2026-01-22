@@ -1,92 +1,55 @@
 #include <iostream>
 #include <fstream>
 #include "Zone.hpp"
-#include "Player.hpp"
 #include "EntiteMonde.hpp"
 
 const int TILE_SIZE = 32;
 
-Zone::Zone(const int id,
+Zone::Zone(int id,
            std::vector<std::unique_ptr<Pnj>> pnjs,
            std::vector<std::unique_ptr<Obj>> objs,
            TileMap tileMap)
-    : m_id(id), m_pnjs(std::move(pnjs)), m_objs(std::move(objs)), m_tileMap(std::move(tileMap))
+    : m_id(id)
+    , m_pnjs(std::move(pnjs))
+    , m_objs(std::move(objs))
+    , m_tileMap(std::move(tileMap))
 {
-    // --- Chargement collisionMap ---
+    // --- collisionMap ---
     std::ifstream file("assets/zone/zone" + std::to_string(m_id) + "/collisionMap.txt");
-    if (!file) {
-        std::cerr << "Erreur : impossible d'ouvrir le fichier de collision pour la zone " << m_id << std::endl;
-        return;
-    }
+    if (!file) return;
 
     std::string line;
-    while (std::getline(file, line)) {
+    while (std::getline(file, line))
         m_collisionMap.push_back(line);
-    }
-    file.close();
 
-    // --- Chargement visualMap ---
+    // --- visualMap ---
     std::ifstream visFile("assets/zone/zone" + std::to_string(m_id) + "/map.txt");
-    if (!visFile) {
-        std::cerr << "Erreur : impossible d'ouvrir le fichier de carte visuelle pour la zone " << m_id << std::endl;
-        return;
-    }
+    if (!visFile) return;
 
-    std::string visLine;
-    while (std::getline(visFile, visLine)) {
-        m_visualMap.push_back(visLine);
-    }
-    visFile.close();
+    while (std::getline(visFile, line))
+        m_visualMap.push_back(line);
 
-    // --- Chargement TileMap ---
-    if (!m_tileMap.load("assets/zone/zone" + std::to_string(m_id) + "/tileset.png",
-                        sf::Vector2u(TILE_SIZE, TILE_SIZE),
-                        m_visualMap,
-                        m_visualMap[0].size(),
-                        m_visualMap.size()))
-    {
-        std::cerr << "Erreur chargement TileMap\n";
-        return;
-    }
+    // --- TileMap ---
+    m_tileMap.load(
+        "assets/zone/zone" + std::to_string(m_id) + "/tileset.png",
+        sf::Vector2u(TILE_SIZE, TILE_SIZE),
+        m_visualMap,
+        m_visualMap[0].size(),
+        m_visualMap.size()
+    );
 
-    // --- Initialisation de la grille interactable ---
-    m_interactables.resize(m_visualMap.size()); // lignes = hauteur
-    for (auto& row : m_interactables)
-        row.resize(m_visualMap[0].size(), nullptr); // colonnes = largeur
+    // --- Grille interactable ---
+    m_interactables.resize(m_visualMap.size(),
+        std::vector<Interactable*>(m_visualMap[0].size(), nullptr));
 
-    // --- Placement des PNJ dans la grille ---
     for (auto& pnj : m_pnjs) {
-        sf::Vector2i pos = pnj->getPosition();
-        if (pos.y >= 0 && pos.y < (int)m_interactables.size() &&
-            pos.x >= 0 && pos.x < (int)m_interactables[0].size())
-        {
-            m_interactables[pos.y][pos.x] = pnj.get();
-        }
+        auto pos = pnj->getPosition();
+        m_interactables[pos.y][pos.x] = pnj.get();
     }
 
-    // --- Placement des Objets dans la grille ---
     for (auto& obj : m_objs) {
-        sf::Vector2i pos = obj->getPosition();
-        if (pos.y >= 0 && pos.y < (int)m_interactables.size() &&
-            pos.x >= 0 && pos.x < (int)m_interactables[0].size())
-        {
-            m_interactables[pos.y][pos.x] = obj.get();
-        }
-    }
-
-    for (auto& pnjPtr : currentZone.getPnjs())
-    {
-        Pnj* pnj = pnjPtr.get();
-        pnj->onDialogue.subscribe([this](const std::string& dialogue){
-            m_messageBox.setText(dialogue);
-            m_messageBox.show();
-        });
-
-        pnj->onItemGiven.subscribe([this](const Item& item){
-            m_messageBox.setObj(item.getName());
-            m_messageBox.hasObj();
-            m_messageBox.show();
-        });
+        auto pos = obj->getPosition();
+        m_interactables[pos.y][pos.x] = obj.get();
     }
 }
 
