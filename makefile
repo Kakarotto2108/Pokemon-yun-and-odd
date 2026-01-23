@@ -7,24 +7,19 @@ CXX = g++
 # OS detection
 # =========================
 UNAME_S := $(shell uname -s)
+ifeq ($(OS),Windows_NT)
+    OS_NAME := Windows
+else
+    OS_NAME := $(UNAME_S)
+endif
 
 # =========================
 # Common flags
 # =========================
 CXXFLAGS = -Wall -std=c++17
-CPPFLAGS = -Ilib
+CPPFLAGS =
 LDFLAGS =
-LIBS = -lsfml-graphics -lsfml-window -lsfml-system
-
-# =========================
-# macOS SFML 2
-# =========================
-ifeq ($(UNAME_S),Darwin)
-    CXXFLAGS += -arch arm64
-    SFML_PATH = /opt/homebrew/Cellar/sfml@2/2.6.2_1
-    CPPFLAGS += -I$(SFML_PATH)/include
-    LDFLAGS  += -L$(SFML_PATH)/lib
-endif
+LIBS = 
 
 # =========================
 # Project files
@@ -32,6 +27,28 @@ endif
 SRC = main.cpp $(wildcard lib/*.cpp)
 OBJ = $(SRC:.cpp=.o)
 TARGET = game
+ifeq ($(OS_NAME),Windows)
+    TARGET := game.exe
+endif
+
+# =========================
+# OS-specific flags
+# =========================
+ifeq ($(OS_NAME),Darwin)
+    CXXFLAGS += -arch arm64
+    SFML_PATH = /opt/homebrew/Cellar/sfml@2/2.6.2_1  # mettre à jour si nécessaire
+    CPPFLAGS += -I$(SFML_PATH)/include
+    LDFLAGS  += -L$(SFML_PATH)/lib
+    LIBS = -lsfml-graphics -lsfml-window -lsfml-system
+endif
+
+ifeq ($(OS_NAME),Windows)
+    CXXFLAGS += -IC:/SFML-2.5.1/include -Ilib -DSFML_DYNAMIC
+    LDFLAGS  += -LC:/SFML-2.5.1/lib
+    LIBS = -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio \
+           -lwinmm -lgdi32 -lfreetype -lopengl32 -lflac -lvorbisenc \
+           -lvorbisfile -lvorbis -logg -lws2_32
+endif
 
 # =========================
 # Rules
