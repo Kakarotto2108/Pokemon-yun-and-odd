@@ -74,7 +74,7 @@ void Jeu::update()
         }
     }
     // Vérifier interaction "E"
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E) && !m_messageBox.isVisible())
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
     {
         sf::Vector2i front = m_player.getFacingTile();
         Zone& currentZone = m_world.getZoneActuelle();
@@ -86,22 +86,13 @@ void Jeu::update()
             if (Pnj* pnj = dynamic_cast<Pnj*>(interactable))
             {
                 pnj->onDialogue.subscribe([&](const std::string& dialogue){
-                    if (m_messageBox.isVisible())
-                        m_messageBox.hide(m_window);
-                    else {
-                        m_messageBox.setText(dialogue);
-                        m_messageBox.show();
-                    }
+                    m_messageBox.setText(dialogue);
+                    m_messageBox.nextPage(m_window);
                 });
 
                 pnj->onItemGiven.subscribe([&](const Item& item){
-                    if (m_messageBox.isVisible())
-                        m_messageBox.hide(m_window);
-                    else {
                         m_messageBox.setObj(item.getName());
-                        m_messageBox.hasObj();
-                        m_messageBox.show();
-                    }
+                        m_messageBox.nextPage(m_window);
                 });
 
                 pnj->interact(); // Déclenche l'événement

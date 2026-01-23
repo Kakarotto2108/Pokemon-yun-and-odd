@@ -315,8 +315,16 @@ bool MessageBox::hasNextPage() const
     return m_dialogue != "" && m_text2 != ""; 
 }
 
-void MessageBox::nextPage()
+void MessageBox::nextPage(sf::RenderWindow& window)
 {
+    if (!m_visible) {
+        show();
+        setNbrPages(m_dialogue, 35);
+    }
     m_canGoNext = true;
     m_nbrPage--;
+    if (m_nbrPage == -1) {
+        m_canGoNext = false;
+        hide(window);
+    }
 }

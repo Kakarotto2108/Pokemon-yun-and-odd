@@ -25,7 +25,7 @@ public:
 
     // Pagination
     bool hasNextPage() const;
-    void nextPage();
+    void nextPage(sf::RenderWindow& window);
     void setNbrPages(const std::string& text, size_t maxLength);
     int  getNbrPages() const;
 

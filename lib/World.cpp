@@ -40,7 +40,8 @@ void Monde::init()
         "assets/sprite/pnj/48049.png",
         "assets/sprite/pnj/48050.png",
         sf::Vector2i(4,2), 0,
-        "Bonjour !"
+        "Bonjour !",
+        pokeball
     ));
 
     // Exemple objet
