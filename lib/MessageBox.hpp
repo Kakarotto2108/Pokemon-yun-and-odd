@@ -4,6 +4,7 @@
 #include "Item.hpp"
 #include "Event.hpp"
 #include <SFML/Graphics.hpp>
+#include <optional>
 #include <string>
 
 class MessageBox
