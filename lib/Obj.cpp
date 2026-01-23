@@ -49,6 +49,16 @@ std::string Obj::getDialogue() const {
     return m_dialogue;
 }
 
+std::optional<Item> Obj::giveItem() {
+    if (m_item.has_value()) {
+        Item tmp = *m_item;
+        m_item.reset();
+        return tmp;
+    }
+    return std::nullopt;
+}
+
+
 sf::Vector2i Obj::getPosition() const {
     return m_position;
 }
@@ -67,9 +77,6 @@ std::optional<Item> Obj::getItem() const {
     return m_item;
 }
 
-void Obj::setItemGiven() {
-    m_item = std::nullopt;
-}
 
 void Obj::draw(sf::RenderWindow& window) const {
     window.draw(m_sprite);

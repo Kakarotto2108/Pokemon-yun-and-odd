@@ -151,3 +151,8 @@ void Player::setLogicalPos(const sf::Vector2i& pos) {
     sprite.setPosition(targetPos);
 }
 
+void Player::receiveItem(const Item& item) {
+    // Ajouter l'objet à l'inventaire du joueur
+    m_inventory.addItem(item);
+    m_inventory.debugPrint();
+}

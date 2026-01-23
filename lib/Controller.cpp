@@ -4,7 +4,7 @@
 
 Controller::Controller() {
     // Example action mapping
-    actionMapping["Interact"] = sf::Keyboard::Space;
+    actionMapping["Interact"] = sf::Keyboard::E;
 
     // Example axis mapping
     axisMapping["MoveHorizontal"] = {sf::Keyboard::Q, sf::Keyboard::D}; // A for left, D for right

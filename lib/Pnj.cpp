@@ -71,12 +71,12 @@ void Pnj::update(sf::RenderWindow& window, int orientation) {
 
 void Pnj::interact()
 {
+    onDialogue.notify(m_dialogue);
     if (m_item.has_value()) {
         onItemGiven.notify(*m_item);
         m_item.reset();
     }
 
-    onDialogue.notify(m_dialogue);
 }
 
 // ------ DIALOGUE / ITEM ------
@@ -88,16 +88,21 @@ std::string Pnj::getDialogue() const {
     return m_dialogue;
 }
 
+std::optional<Item> Pnj::giveItem() {
+    if (m_item.has_value()) {
+        Item tmp = *m_item;
+        m_item.reset();
+        return tmp;
+    }
+    return std::nullopt;
+}
+
 sf::Vector2i Pnj::getPosition() const {
     return m_position;
 }
 
 std::optional<Item> Pnj::getItem() const {
     return m_item;
-}
-
-void Pnj::setItemGiven() {
-    m_item = std::nullopt;
 }
 
 void Pnj::draw(sf::RenderWindow& window) const {

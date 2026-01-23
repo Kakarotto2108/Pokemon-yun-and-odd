@@ -17,7 +17,18 @@ public:
         }
     }
 
+    void subscribeOnce(Listener listener) {
+        bool* executed = new bool(false); // flag dynamique pour être capturé par lambda
+        listeners.push_back([listener, executed](Args... args){
+            if (!*executed) {
+                listener(args...);
+                *executed = true;
+            }
+        });
+    }
+
 private:
     std::vector<Listener> listeners;
 };
+
 

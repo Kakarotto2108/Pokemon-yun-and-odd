@@ -18,6 +18,10 @@ Jeu::Jeu()
     m_uiView.setCenter(static_cast<sf::Vector2f>(m_window.getSize())/2.f);
 
     m_world.init();
+
+    m_messageBox.onItemGiven.subscribe([this](const Item& item){
+        m_player.receiveItem(item); // ajoute l'objet au joueur
+    });
 }
 
 
@@ -76,8 +80,9 @@ void Jeu::update()
             hasSeenZero = true;
         }
     }
-    // Vérifier interaction "E"
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
+    bool ePressedNow = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E);
+
+    if (ePressedNow && !m_ePressedLastFrame)  // Détection du "front montant"
     {
         sf::Vector2i front = m_player.getFacingTile();
         Zone& currentZone = m_world.getZoneActuelle();
@@ -85,29 +90,18 @@ void Jeu::update()
 
         if (interactable)
         {
-            // Vérifier si c'est un PNJ
-            if (Pnj* pnj = dynamic_cast<Pnj*>(interactable))
-            {
-                pnj->onDialogue.subscribe([&](const std::string& dialogue){
-                    m_messageBox.setText(dialogue);
-                    m_messageBox.nextPage(m_window);
-                });
-
-                pnj->onItemGiven.subscribe([&](const Item& item){
-                        m_messageBox.setObj(item.getName());
-                        m_messageBox.nextPage(m_window);
-                });
-
-                pnj->interact(); // Déclenche l'événement
+            if (auto item = interactable->giveItem()) {
+                m_messageBox.setPendingItem(*item);
+                m_messageBox.setObj(item->getName());
             }
-            // Vérifier si c'est un objet
-            else if (Obj* obj = dynamic_cast<Obj*>(interactable))
-            {
-                obj->interact(); // gère l'objet si besoin
-            }
+            interactable->interact();
+            m_messageBox.nextPage(m_window, interactable->getDialogue());
         }
+    }    
 
-    }
+    // Sauvegarder l'état pour la prochaine frame
+    m_ePressedLastFrame = ePressedNow;
+
 
     // Caméra suit le joueur
     m_cameraView.setCenter(m_player.getDrawPosition());

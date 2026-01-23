@@ -22,6 +22,8 @@ private:
     sf::View m_cameraView;
     sf::View m_uiView;
     bool hasSeenZero = false;
+    bool m_ePressedLastFrame = false;
+
 
     Player m_player;
     Monde m_world;

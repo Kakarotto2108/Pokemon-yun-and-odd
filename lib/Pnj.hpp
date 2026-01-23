@@ -26,11 +26,11 @@ public:
     void update(sf::RenderWindow& window, int orientation);
     bool isInZone(const sf::Vector2f& playerPos) const;
     sf::Vector2i getPosition() const override;
-    std::string getDialogue() const;
+    std::string getDialogue() const override;
     void draw(sf::RenderWindow& window) const override;
     void interact() override;
     std::optional<Item> getItem() const;
-    void setItemGiven();
+    std::optional<Item> giveItem() override;
 
 private:
     sf::Sprite m_sprite;

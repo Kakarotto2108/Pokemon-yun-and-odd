@@ -40,7 +40,7 @@ void Monde::init()
         "assets/sprite/pnj/48049.png",
         "assets/sprite/pnj/48050.png",
         sf::Vector2i(4,2), 0,
-        "Bonjour !",
+        "Bonjour, je m'appelle Camille et j'aime manger des spaghettis, mais pas trop les choux de bruxelles. Par contre, j'aime trop Mathéo!",
         pokeball
     ));
 

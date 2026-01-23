@@ -22,7 +22,8 @@ public:
 
     // Méthodes
     bool isInZone(const sf::Vector2f& playerPos) const;
-    std::string getDialogue() const;
+    std::string getDialogue() const override;
+    std::optional<Item> giveItem() override;
     sf::Vector2i getPosition() const override;
     void interact() override;
     void draw(sf::RenderWindow& window) const override;

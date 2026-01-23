@@ -2,12 +2,20 @@
 #define MESSAGEBOX_HPP
 
 #include "Item.hpp"
+#include "Event.hpp"
 #include <SFML/Graphics.hpp>
 #include <string>
 
 class MessageBox
 {
 public:
+    // Events
+    Event<const Item&> onItemGiven;
+
+    void setPendingItem(const Item& item) {
+        m_pendingItem = item; // on stocke l'objet à notifier plus tard
+    }
+
     // Constructeur
     MessageBox(const sf::Vector2f& windowSize, const sf::Vector2f& position);
 
@@ -25,12 +33,11 @@ public:
 
     // Pagination
     bool hasNextPage() const;
-    void nextPage(sf::RenderWindow& window);
+    void nextPage(sf::RenderWindow& window, const std::string& dialogue);
     void setNbrPages(const std::string& text, size_t maxLength);
     int  getNbrPages() const;
 
     // Objet
-    void hasObj();
     void setObj(const std::string& name);
     void getPocketName(ItemPocket pocket);
     void drawText(sf::RenderWindow& window, const std::string& line1, const std::string& line2);
@@ -51,6 +58,7 @@ private:
     // --- Objet ---
     std::string m_objectName;
     std::string m_pocketName;
+    std::optional<Item> m_pendingItem;
     bool m_haveObj = false;
 
     // --- État ---

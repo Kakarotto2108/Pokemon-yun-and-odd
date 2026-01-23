@@ -174,7 +174,7 @@ void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
     }
     
     if (m_canGoNext && !m_dialogue.empty()) {
-        CutText(m_dialogue, 35);
+        CutText(m_dialogue, 35);        
         m_canGoNext = false;
     }
 
@@ -291,11 +291,6 @@ void MessageBox::hide(sf::RenderWindow& window)
     );
 }
 
-void MessageBox::hasObj()
-{
-    m_haveObj = true;
-}
-
 // --- Méthodes pour le texte et l'objet ---
 
 void MessageBox::setText(const std::string& dialog)
@@ -304,9 +299,16 @@ void MessageBox::setText(const std::string& dialog)
 }
 
 void MessageBox::setObj(const std::string& name)
-{   
+{
     m_objectName = name;
+    m_haveObj = true;
+
+    if (m_pendingItem.has_value()) {
+        onItemGiven.notify(*m_pendingItem);
+        m_pendingItem.reset();
+    }
 }
+
 
 // --- Méthodes de navigation ---
 
@@ -315,15 +317,16 @@ bool MessageBox::hasNextPage() const
     return m_dialogue != "" && m_text2 != ""; 
 }
 
-void MessageBox::nextPage(sf::RenderWindow& window)
+void MessageBox::nextPage(sf::RenderWindow& window, const std::string& dialogue)
 {
+    m_nbrPage--;
     if (!m_visible) {
         show();
+        m_dialogue = dialogue;
         setNbrPages(m_dialogue, 35);
     }
     m_canGoNext = true;
-    m_nbrPage--;
-    if (m_nbrPage == -1) {
+    if (m_nbrPage == 0) {
         m_canGoNext = false;
         hide(window);
     }

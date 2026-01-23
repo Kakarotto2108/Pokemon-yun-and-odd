@@ -29,6 +29,7 @@ public:
     sf::Vector2i logicalPos;   // position sur la grille
     int getCurrentZone() const;
     void setLogicalPos(const sf::Vector2i& pos);
+    void receiveItem(const Item& item);
 
 private:
     sf::Texture texDown, texLeft, texRight, texUp;
