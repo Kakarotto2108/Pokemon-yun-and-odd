@@ -61,6 +61,7 @@ private:
     std::string m_pocketName;
     std::optional<Item> m_pendingItem;
     bool m_haveObj = false;
+    bool showObjectText = false;
 
     // --- État ---
     bool m_visible   = false;

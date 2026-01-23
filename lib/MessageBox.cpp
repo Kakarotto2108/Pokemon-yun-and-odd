@@ -160,13 +160,17 @@ void MessageBox::draw(sf::RenderWindow& window, std::string& playerName)
     m_dialogSprite.setPosition(dialogPos);
     m_whiteFrame.setPosition(dialogPos + sf::Vector2f(80.f, 5.f));
 
-    bool showObjectText = m_haveObj && (m_nbrPage <= 2);
+    showObjectText = m_haveObj && (m_nbrPage <= 2);
 
     if (showObjectText) {
         m_dialogSprite.setTexture(m_dialogObjTex);
         m_dialogSprite.setScale({0.682f, 0.405f});
         m_dialogSprite.setPosition(dialogPos + sf::Vector2f(79.f, 5.f));
         m_dialogSprite.setColor(sf::Color(255, 255, 255, 128));
+        if (m_pendingItem.has_value()) {
+            onItemGiven.notify(*m_pendingItem);
+            m_pendingItem.reset();
+        }
     }
     else {
         m_dialogSprite.setTexture(m_dialogTex);
@@ -302,13 +306,7 @@ void MessageBox::setObj(const std::string& name)
 {
     m_objectName = name;
     m_haveObj = true;
-
-    if (m_pendingItem.has_value()) {
-        onItemGiven.notify(*m_pendingItem);
-        m_pendingItem.reset();
-    }
 }
-
 
 // --- Méthodes de navigation ---
 
