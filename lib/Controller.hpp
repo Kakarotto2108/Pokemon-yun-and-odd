@@ -1,7 +1,7 @@
 #ifndef CONTROLLER_HPP
 #define CONTROLLER_HPP
 
-#include <SFML/Graphics.hpp>
+#include "SFML/Graphics.hpp"
 #include <unordered_map>
 #include <unordered_set>
 #include <iostream>
