@@ -42,6 +42,12 @@ ifeq ($(OS_NAME),Darwin)
     LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 endif
 
+ifeq ($(OS_NAME),Linux)
+    # Utilise pkg-config pour SFML
+    CPPFLAGS += $(shell pkg-config --cflags sfml-graphics sfml-window sfml-system)
+    LDFLAGS  += $(shell pkg-config --libs sfml-graphics sfml-window sfml-system)
+endif
+
 ifeq ($(OS_NAME),Windows)
     CXXFLAGS += -IC:/SFML-2.5.1/include -Ilib -DSFML_DYNAMIC
     LDFLAGS  += -LC:/SFML-2.5.1/lib
