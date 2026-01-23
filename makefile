@@ -17,7 +17,7 @@ endif
 # Common flags
 # =========================
 CXXFLAGS = -Wall -std=c++17
-CPPFLAGS =
+CPPFLAGS = -Ilib
 LDFLAGS =
 LIBS = 
 
@@ -36,7 +36,7 @@ endif
 # =========================
 ifeq ($(OS_NAME),Darwin)
     CXXFLAGS += -arch arm64
-    SFML_PATH = /opt/homebrew/Cellar/sfml@2/2.6.2_1  # mettre à jour si nécessaire
+    SFML_PATH = /opt/homebrew/Cellar/sfml@2/2.6.2_1
     CPPFLAGS += -I$(SFML_PATH)/include
     LDFLAGS  += -L$(SFML_PATH)/lib
     LIBS = -lsfml-graphics -lsfml-window -lsfml-system
