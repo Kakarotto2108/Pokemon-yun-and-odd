@@ -81,15 +81,22 @@ clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 
 git:
-	@if [ -z "$(B)" ]; then echo "ERREUR: Precise la branche avec B=nom_branche"; exit 1; fi
-	@if [ -z "$(M)" ]; then echo "ERREUR: Precise le message avec M='mon message'"; exit 1; fi
-	git checkout -b $(B) || git checkout $(B)
-	git add .
-	git commit -m "$(M)"
-	git push origin $(B)
-	git checkout dev
-	git pull origin dev
-	git merge $(B) --no-edit
-	git push origin dev
-	git push origin --delete $(B)
-	git branch -d $(B)
+	@echo "--- 🛠️  Préparation du commit ---"
+	@read -p "Nom de la branche : " branch; \
+	read -p "Message du commit : " msg; \
+	if [ -z "$$branch" ] || [ -z "$$msg" ]; then \
+		echo "❌ ERREUR : Champs vides, annulation."; \
+		exit 1; \
+	fi; \
+	git checkout -b $$branch || git checkout $$branch && \
+	git add . && \
+	git commit -m "$$msg" && \
+	git push origin $$branch && \
+	git checkout dev && \
+	git pull origin dev && \
+	git merge $$branch --no-edit && \
+	git push origin dev && \
+	echo "--- 🗑️  Nettoyage distant et local ---" && \
+	git push origin --delete $$branch && \
+	git branch -d $$branch && \
+	echo "✅ Terminé ! Tu es sur dev."
