@@ -79,3 +79,14 @@ rebuild: clean all
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
+
+git:
+	git checkout -b $(B) || git checkout $(B) && \
+	git add . && \
+	git commit -m "$(M)" && \
+	git push origin $(B) && \
+	git checkout dev && \
+	git pull origin dev && \
+	git merge $(B) --no-edit && \
+	git push origin dev && \
+	git checkout $(B)

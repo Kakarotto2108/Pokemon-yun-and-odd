@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "Controller.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
@@ -56,6 +57,22 @@ Player::Player(const std::string& downTexPath,
     // CECI EST CRUCIAL : targetPos est calculé et positionné immédiatement au lieu d'attendre update()
     targetPos = sf::Vector2f(logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, logicalPos.y * TILE_SIZE + TILE_SIZE / 2.f - 15.f);
     sprite.setPosition(targetPos);
+
+    Controller::getInstance().onActionPressed("Interact", [this]() {
+        std::cout << "Interact Pressed\n";
+    });
+
+    Controller::getInstance().onActionReleased("Interact", [this]() {
+        std::cout << "Interact Released\n";
+    });
+
+    Controller::getInstance().onAxisChanged("MoveHorizontal", [](float value) {
+        std::cout << "Valeur MoveHorizontal : " << value << std::endl;
+    });
+
+    GameEvents::OnPlayerMove.subscribe([](int x, int y) {
+        std::cout << "Le joueur a bougé en : " << x << ", " << y << std::endl;
+    });
 }
 
 int PnjOrientation(sf::Vector2i pnjPos, sf::Vector2i playerPos) {
@@ -108,6 +125,7 @@ void Player::handleInput(sf::RenderWindow& window, Zone& zone, float delay) {
     // Si la position logique a changé, mettez à jour la position cible.
     if (oldLogicalPos != logicalPos) {
         targetPos = sf::Vector2f(logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, logicalPos.y * TILE_SIZE + TILE_SIZE / 2.f - 15.f);
+        GameEvents::OnPlayerMove.notify(logicalPos.x, logicalPos.y);
     }    
 }
 

@@ -27,9 +27,8 @@ Jeu::Jeu()
 
 // run()
 void Jeu::run() {
-    Controller controller;
     while (m_window.isOpen()) {
-        controller.handleInput(m_window);
+        Controller::getInstance().handleInput(m_window);
         handleEvents();
         update();
         render();

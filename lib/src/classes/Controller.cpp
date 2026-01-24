@@ -1,43 +1,57 @@
 #include "Controller.hpp"
 
-// Create action mapping and axis mapping
-
 Controller::Controller() {
-    // Example action mapping
+    // Action mapping
     actionMapping["Interact"] = sf::Keyboard::E;
 
-    // Example axis mapping
-    axisMapping["MoveHorizontal"] = {sf::Keyboard::Q, sf::Keyboard::D}; // A for left, D for right
-    axisMapping["MoveVertical"] = {sf::Keyboard::Z, sf::Keyboard::S};   // W for up, S for down
+    // Axis mapping
+    axisMapping["MoveHorizontal"] = {sf::Keyboard::Q, sf::Keyboard::D};
+    axisMapping["MoveVertical"] = {sf::Keyboard::Z, sf::Keyboard::S};
+}
+
+void Controller::onActionPressed(std::string action, ActionCallback callback) {
+    pressedCallbacks[action].push_back(callback);
+}
+
+void Controller::onActionReleased(std::string action, ActionCallback callback) {
+    releasedCallbacks[action].push_back(callback);
+}
+
+void Controller::onAxisChanged(std::string axis, AxisCallback callback) {
+    axisCallbacks[axis].push_back(callback);
 }
 
 void Controller::handleInput(sf::RenderWindow& window) {
-    // Handle axis inputs
     for (const auto& axis : axisMapping) {
         float value = 0.0f;
-        if (sf::Keyboard::isKeyPressed(axis.second.first)) {
-            value -= 1.0f; // Negative direction
-        }
-        if (sf::Keyboard::isKeyPressed(axis.second.second)) {
-            value += 1.0f; // Positive direction
-        }
-        // Use the axis value for movement or other purposes
-    }
-
-    // Handle action inputs notifies only once when pressed or released
-    for (const auto& action : actionMapping) {
-        if (sf::Keyboard::isKeyPressed(action.second)) {
-            if (pressedActions.find(action.first) == pressedActions.end()) {
-                pressedActions.insert(action.first);
-                // Action key is pressed
-                std::cout << "Action " << action.first << " pressed." << std::endl;
+        if (sf::Keyboard::isKeyPressed(axis.second.first)) value -= 1.0f;
+        if (sf::Keyboard::isKeyPressed(axis.second.second)) value += 1.0f;
+        
+        if (axisCallbacks.count(axis.first)) {
+            for (auto& cb : axisCallbacks[axis.first]) {
+                cb(value);
             }
         }
-        else {
-            if (pressedActions.find(action.first) != pressedActions.end()) {
-                pressedActions.erase(action.first);
-                // Action key is released
-                std::cout << "Action " << action.first << " released." << std::endl;
+    }
+
+    for (const auto& action : actionMapping) {
+        bool isDown = sf::Keyboard::isKeyPressed(action.second);
+        bool wasDown = (pressedActions.find(action.first) != pressedActions.end());
+
+        if (isDown && !wasDown) {
+            pressedActions.insert(action.first);
+            if (pressedCallbacks.count(action.first)) {
+                for (auto& cb : pressedCallbacks[action.first]) {
+                    cb();
+                }
+            }
+        } 
+        else if (!isDown && wasDown) {
+            pressedActions.erase(action.first);
+            if (releasedCallbacks.count(action.first)) {
+                for (auto& cb : releasedCallbacks[action.first]) {
+                    cb();
+                }
             }
         }
     }
