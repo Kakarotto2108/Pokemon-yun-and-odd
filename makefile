@@ -100,3 +100,71 @@ git:
 	git push origin --delete $$branch && \
 	git branch -d $$branch && \
 	echo "✅ Terminé ! Tu es sur dev."
+
+mfile:
+	@read -p "Nom de l'entité (ex: Player) : " name; \
+	read -p "Target (game/engine) : " target; \
+	read -p "Type (class/abstract/interface) : " type; \
+	read -p "Hérite de (nom du parent ou laisser vide) : " parent; \
+	\
+	if [[ ! "$$name" =~ ^[A-Z][a-zA-Z]*$$ ]]; then echo "❌ Nom invalide"; exit 1; fi; \
+	if [[ ! "$$target" =~ ^(game|engine)$$ ]]; then echo "❌ Target invalide"; exit 1; fi; \
+	\
+	if [ "$$type" == "class" ]; then FOLDER="classes"; \
+	elif [ "$$type" == "abstract" ]; then FOLDER="abstract"; \
+	elif [ "$$type" == "interface" ]; then FOLDER="interfaces"; \
+	else echo "❌ Type invalide"; exit 1; fi; \
+	\
+	INC_DIR="lib/$$target/include/$$FOLDER"; \
+	SRC_DIR="lib/$$target/src/$$FOLDER"; \
+	mkdir -p $$INC_DIR $$SRC_DIR; \
+	HPP_FILE="$$INC_DIR/$$name.hpp"; \
+	\
+	if [ -f "$$HPP_FILE" ]; then echo "❌ Existe déjà"; exit 1; fi; \
+	\
+	GUARD=$$(echo $$name | tr '[:lower:]' '[:upper:]')_HPP; \
+	echo "#ifndef $$GUARD" > $$HPP_FILE; \
+	echo "#define $$GUARD" >> $$HPP_FILE; \
+	echo "" >> $$HPP_FILE; \
+	\
+	if [ -n "$$parent" ]; then \
+		echo "#include \"$$parent.hpp\"" >> $$HPP_FILE; \
+		echo "" >> $$HPP_FILE; \
+		CLASS_LINE="class $$name : public $$parent {"; \
+	else \
+		CLASS_LINE="class $$name {"; \
+	fi; \
+	\
+	echo "$$CLASS_LINE" >> $$HPP_FILE; \
+	\
+	if [ "$$type" == "class" ]; then \
+		echo "private:" >> $$HPP_FILE; \
+		echo "public:" >> $$HPP_FILE; \
+		echo "    $$name();" >> $$HPP_FILE; \
+		echo "    ~$$name();" >> $$HPP_FILE; \
+	elif [ "$$type" == "abstract" ]; then \
+		echo "protected:" >> $$HPP_FILE; \
+		echo "public:" >> $$HPP_FILE; \
+		echo "    $$name();" >> $$HPP_FILE; \
+		echo "    virtual ~$$name() = 0;" >> $$HPP_FILE; \
+	elif [ "$$type" == "interface" ]; then \
+		echo "public:" >> $$HPP_FILE; \
+		echo "    virtual ~$$name() = default;" >> $$HPP_FILE; \
+	fi; \
+	echo "};" >> $$HPP_FILE; \
+	echo "" >> $$HPP_FILE; \
+	echo "#endif" >> $$HPP_FILE; \
+	\
+	if [ "$$type" != "interface" ]; then \
+		CPP_FILE="$$SRC_DIR/$$name.cpp"; \
+		echo "#include \"$$name.hpp\"" > $$CPP_FILE; \
+		echo "" >> $$CPP_FILE; \
+		if [ -n "$$parent" ]; then \
+			echo "$$name::$$name() : $$parent() {}" >> $$CPP_FILE; \
+		else \
+			echo "$$name::$$name() {}" >> $$CPP_FILE; \
+		fi; \
+		echo "" >> $$CPP_FILE; \
+		echo "$$name::~$$name() {}" >> $$CPP_FILE; \
+	fi; \
+	echo "✅ Terminé : $$name ($$type) créé dans $$FOLDER"
