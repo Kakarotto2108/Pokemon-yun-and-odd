@@ -88,5 +88,4 @@ git:
 	git checkout dev && \
 	git pull origin dev && \
 	git merge $(B) --no-edit && \
-	git push origin dev && \
-	git checkout $(B)
+	git push origin dev
