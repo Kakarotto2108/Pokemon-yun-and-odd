@@ -81,11 +81,15 @@ clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 
 git:
-	git checkout -b $(B) || git checkout $(B) && \
-	git add . && \
-	git commit -m "$(M)" && \
-	git push origin $(B) && \
-	git checkout dev && \
-	git pull origin dev && \
-	git merge $(B) --no-edit && \
+	@if [ -z "$(B)" ]; then echo "ERREUR: Precise la branche avec B=nom_branche"; exit 1; fi
+	@if [ -z "$(M)" ]; then echo "ERREUR: Precise le message avec M='mon message'"; exit 1; fi
+	git checkout -b $(B) || git checkout $(B)
+	git add .
+	git commit -m "$(M)"
+	git push origin $(B)
+	git checkout dev
+	git pull origin dev
+	git merge $(B) --no-edit
 	git push origin dev
+	git push origin --delete $(B)
+	git branch -d $(B)
