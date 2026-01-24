@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Player.hpp"
+#include "PlayerController.hpp"
 #include "World.hpp"
 #include "MessageBox.hpp"
 
@@ -26,9 +27,7 @@ private:
 
 
     Player m_player;
+    std::unique_ptr<PlayerController> m_playerController;
     Monde m_world;
     MessageBox m_messageBox;
-
-    sf::Clock m_moveClock;
-    const float m_delayTime = 0.15f;
 };

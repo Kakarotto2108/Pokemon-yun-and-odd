@@ -1,115 +1,78 @@
-#include <iostream>
-#include <fstream>
 #include "Zone.hpp"
+#include "MapLoader.hpp"
 #include "EntiteMonde.hpp"
+#include <iostream>
 
 const int TILE_SIZE = 32;
 
-Zone::Zone(int id,
-           std::vector<std::unique_ptr<Pnj>> pnjs,
-           std::vector<std::unique_ptr<Obj>> objs,
-           TileMap tileMap)
+Zone::Zone(int id, 
+           std::vector<std::unique_ptr<Pnj>> pnjs, 
+           std::vector<std::unique_ptr<Obj>> objs)
     : m_id(id)
     , m_pnjs(std::move(pnjs))
-    , m_objs(std::move(objs))
-    , m_tileMap(std::move(tileMap))
+    , m_objs(std::move(objs)) 
 {
-    // --- collisionMap ---
-    std::ifstream file("assets/zone/zone" + std::to_string(m_id) + "/collisionMap.txt");
-    if (!file) return;
+    loadData();
+    updateInteractableGrid();
+}
 
-    std::string line;
-    while (std::getline(file, line))
-        m_collisionMap.push_back(line);
+void Zone::loadData() {
+    std::string baseDir = "assets/zone/zone" + std::to_string(m_id) + "/";
 
-    // --- visualMap ---
-    std::ifstream visFile("assets/zone/zone" + std::to_string(m_id) + "/map.txt");
-    if (!visFile) return;
+    // 1. Chargement des fichiers via MapLoader
+    m_visualMap = MapLoader::loadFromFile(baseDir + "map.txt", m_width, m_height);
+    m_collisionMap = MapLoader::loadFromFile(baseDir + "collisionMap.txt", m_width, m_height);
 
-    while (std::getline(visFile, line))
-        m_visualMap.push_back(line);
+    // 2. Initialisation du rendu graphique
+    if (!m_tileMap.load(baseDir + "tileset.png", sf::Vector2u(TILE_SIZE, TILE_SIZE), m_visualMap, m_width, m_height)) {
+        std::cerr << "Erreur : Impossible de charger le visuel de la zone " << m_id << std::endl;
+    }
+}
 
-    // --- TileMap ---
-    m_tileMap.load(
-        "assets/zone/zone" + std::to_string(m_id) + "/tileset.png",
-        sf::Vector2u(TILE_SIZE, TILE_SIZE),
-        m_visualMap,
-        m_visualMap[0].size(),
-        m_visualMap.size()
-    );
-
-    // --- Grille interactable ---
-    m_interactables.resize(m_visualMap.size(),
-        std::vector<Interactable*>(m_visualMap[0].size(), nullptr));
+void Zone::updateInteractableGrid() {
+    m_interactables.assign(m_height, std::vector<Interactable*>(m_width, nullptr));
 
     for (auto& pnj : m_pnjs) {
-        auto pos = pnj->getPosition();
-        m_interactables[pos.y][pos.x] = pnj.get();
+        // Remplacement de getGridPosition par getPosition
+        sf::Vector2i pos = sf::Vector2i(pnj->getPosition().x, pnj->getPosition().y); 
+        if (pos.y >= 0 && pos.y < (int)m_height && pos.x >= 0 && pos.x < (int)m_width)
+            m_interactables[pos.y][pos.x] = pnj.get();
     }
 
     for (auto& obj : m_objs) {
-        auto pos = obj->getPosition();
-        m_interactables[pos.y][pos.x] = obj.get();
+        sf::Vector2i pos = sf::Vector2i(obj->getPosition().x, obj->getPosition().y);
+        if (pos.y >= 0 && pos.y < (int)m_height && pos.x >= 0 && pos.x < (int)m_width)
+            m_interactables[pos.y][pos.x] = obj.get();
     }
 }
 
-// --- Accesseurs simples ---
-int Zone::getId() const {
-    return m_id;
+bool Zone::isBlocking(int x, int y) const {
+    if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return true;
+    return m_collisionMap[x + y * m_width] != 0;
 }
 
-std::vector<std::string> Zone::getCollisionMap() const {
-    return m_collisionMap;
+Interactable* Zone::getInteractableAt(int x, int y) const {
+    if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return nullptr;
+    return m_interactables[y][x];
 }
 
-std::vector<std::unique_ptr<Pnj>>& Zone::getPnjs() {
-    return m_pnjs;
-}
-
-std::vector<std::unique_ptr<Obj>>& Zone::getObjs() {
-    return m_objs;
-}
-
-const std::vector<ZoneTransition>& Zone::getTransitions() const {
-    return m_transitions;
-}
-
-// --- Dessin de la zone ---
-void Zone::drawAll(sf::RenderWindow& window, const EntiteMonde& player)
-{   
+void Zone::drawAll(sf::RenderWindow& window, const EntiteMonde& player) {
     window.draw(m_tileMap);
 
-    // 1. Dessin des entités "au-dessus" du joueur
-    for (const auto& pnj : m_pnjs)
-        if (pnj->getPosition().y <= player.getPosition().y)
-            pnj->draw(window);
+    // Remplacement de getGridPosition par getPosition
+    sf::Vector2i playerPos = sf::Vector2i(player.getPosition().x, player.getPosition().y);
 
-    for (const auto& obj : m_objs)
-        if (obj->getPosition().y <= player.getPosition().y)
-            obj->draw(window);
+    for (const auto& pnj : m_pnjs) 
+        if (pnj->getPosition().y <= playerPos.y) pnj->draw(window);
+    
+    for (const auto& obj : m_objs) 
+        if (obj->getPosition().y <= playerPos.y) obj->draw(window);
 
-    // 2. Dessin du joueur
     player.draw(window);
 
-    // 3. Dessin des entités "en-dessous" du joueur
-    for (const auto& pnj : m_pnjs)
-        if (pnj->getPosition().y > player.getPosition().y)
-            pnj->draw(window);
-
-    for (const auto& obj : m_objs)
-        if (obj->getPosition().y > player.getPosition().y)
-            obj->draw(window);
-}
-
-// --- Accès aux interactables ---
-Interactable* Zone::getInteractableAt(int x, int y) const
-{
-    if (x < 0 || y < 0
-        || y >= (int)m_interactables.size()
-        || x >= (int)m_interactables[0].size())
-    {
-        return nullptr;
-    }
-
-    return m_interactables[y][x];
+    for (const auto& pnj : m_pnjs) 
+        if (pnj->getPosition().y > playerPos.y) pnj->draw(window);
+    
+    for (const auto& obj : m_objs) 
+        if (obj->getPosition().y > playerPos.y) obj->draw(window);
 }

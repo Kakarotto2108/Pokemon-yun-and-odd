@@ -1,42 +1,44 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <string>
-#include "Item.hpp"
-#include "Inventory.hpp"
 #include "Zone.hpp"
+#include "Inventory.hpp"
 #include "EntiteMonde.hpp"
-#include "Interactable.hpp"
+#include "Event.hpp"
 
 class Player : public EntiteMonde {
 public:
-    Player(const std::string& downTexPath,
-           const std::string& leftTexPath,
-           const std::string& rightTexPath,
-           const std::string& upTexPath,
-           const std::string& name
-            );
+    Player(const std::string& down, const std::string& left, 
+           const std::string& right, const std::string& up, 
+           const std::string& name);
 
-    void changeZone(std::vector<std::string> collisionMap, Zone& zone);
-    void handleInput(sf::RenderWindow& window, Zone& zone, float delay);
+    void moveRequest(sf::Vector2i direction, Zone& zone);
     void update();
+    void draw(sf::RenderWindow& window) const;
+
+    // Getters
+    sf::Vector2i getPosition() const;
+    sf::Vector2f getDrawPosition() const;
+    sf::Vector2i getFacingTile() const;
     
-    std::string m_name;
-    sf::Vector2i getPosition() const override;       // position logique (tile)
-    void draw(sf::RenderWindow& window) const override;
-    sf::Vector2i getFacingTile() const;     // tile devant le joueur
-    sf::Vector2f getDrawPosition() const;   // position en pixels (sprite)
-    sf::Vector2i logicalPos;   // position sur la grille
-    int getCurrentZone() const;
+    // Setters
     void setLogicalPos(const sf::Vector2i& pos);
     void receiveItem(const Item& item);
 
+    std::string m_name;
+
 private:
+    void updateTexture();
+
+    // Ordre respecté pour éviter Wreorder
+    sf::Vector2i logicalPos;
+    int orientation; // 0:Bas, 1:Gauche, 2:Droite, 3:Haut
+    sf::Vector2f targetPos;
+    
     sf::Texture texDown, texLeft, texRight, texUp;
-    sf::Sprite sprite;
+    mutable sf::Sprite sprite;
     Inventory m_inventory;
 
-    int orientation;           // 0: down, 1: left, 2: right, 3: up
-
-    sf::Vector2f targetPos;    // position pixel cible pour déplacement fluide
+    const float TILE_SIZE = 32.f;
+    const float MOVE_SPEED = 0.2f; 
 };

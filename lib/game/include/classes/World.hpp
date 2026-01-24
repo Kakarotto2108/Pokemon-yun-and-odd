@@ -2,7 +2,10 @@
 
 #include <vector>
 #include <memory>
+#include <map>
 #include "Zone.hpp"
+
+class Player;
 
 class Monde {
 public:
