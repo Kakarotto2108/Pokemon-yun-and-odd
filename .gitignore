@@ -1,0 +1,10 @@
+# On ignore les fichiers objets
+*.o
+build/
+
+# On ignore l'exécutable
+PokemonYunOdd.exe
+PokemonYunOdd
+
+# On ignore les fichiers temporaires de VS Code ou autres
+.vscode/

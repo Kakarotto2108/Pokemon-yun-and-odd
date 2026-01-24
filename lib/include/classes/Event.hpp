@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 #include <vector>
+#include <memory>
+#include <string>
 
 template<typename... Args>
 class Event {
@@ -18,11 +20,11 @@ public:
     }
 
     void subscribeOnce(Listener listener) {
-        bool* executed = new bool(false); // flag dynamique pour être capturé par lambda
+        auto executed = std::make_shared<bool>(false); 
         listeners.push_back([listener, executed](Args... args){
             if (!*executed) {
-                listener(args...);
                 *executed = true;
+                listener(args...);
             }
         });
     }
@@ -31,4 +33,8 @@ private:
     std::vector<Listener> listeners;
 };
 
-
+// Events List
+struct GameEvents {
+    static Event<int, int> OnPlayerMove; 
+    static Event<std::string> OnDialogueTrigger;
+};
