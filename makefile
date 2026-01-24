@@ -14,22 +14,28 @@ else
 endif
 
 # =========================
+# Project files
+# =========================
+LIB_DIR = lib
+ALL_LIB_DIRS = $(shell find $(LIB_DIR) -type d)
+VPATH = . $(ALL_LIB_DIRS)
+SRC = main.cpp $(shell find $(LIB_DIR) -name "*.cpp")
+OBJ = $(addprefix $(BUILD_DIR)/, $(notdir $(SRC:.cpp=.o)))
+BIN_DIR = bin
+TARGET = $(BIN_DIR)/PokemonYunOdd
+BUILD_DIR = build
+
+ifeq ($(OS_NAME),Windows)
+    TARGET := $(TARGET).exe
+endif
+
+# =========================
 # Common flags
 # =========================
 CXXFLAGS = -Wall -std=c++17
-CPPFLAGS = -Ilib
+CPPFLAGS = -I. $(addprefix -I, $(ALL_LIB_DIRS))
 LDFLAGS =
 LIBS = 
-
-# =========================
-# Project files
-# =========================
-SRC = main.cpp $(wildcard lib/*.cpp)
-OBJ = $(SRC:.cpp=.o)
-TARGET = game
-ifeq ($(OS_NAME),Windows)
-    TARGET := game.exe
-endif
 
 # =========================
 # OS-specific flags
@@ -64,8 +70,7 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CXX) $(OBJ) -o $(TARGET) $(LDFLAGS) $(LIBS)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
+$(BUILD_DIR)/%.o: %.cpp ; @mkdir -p $(BUILD_DIR) ; $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 run: $(TARGET)
 	./$(TARGET)
@@ -73,4 +78,4 @@ run: $(TARGET)
 rebuild: clean all
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -rf $(BUILD_DIR) $(TARGET)
