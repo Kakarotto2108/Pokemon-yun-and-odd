@@ -4,7 +4,6 @@
 #include <vector>
 #include "Config.hpp"
 
-#include "Player.hpp"
 #include "PlayerController.hpp"
 #include "World.hpp"
 
@@ -19,11 +18,12 @@ private:
     void render();
 
 private:
+    GameConfig m_config;
     sf::RenderWindow m_window;
+    Player& m_player;
     sf::View m_cameraView;
     sf::View m_uiView;
 
-    Player m_player;
     std::unique_ptr<PlayerController> m_playerController;
     World m_world;
 };

@@ -1,5 +1,6 @@
 #include "PlayerController.hpp"
 #include "Interactable.hpp"
+#include "DialogManager.hpp"
 #include <iostream>
 
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
@@ -11,16 +12,17 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
     });
 
     Controller::getInstance().onActionPressed("Interact", [this]() {
-        sf::Vector2i front = m_player.getFacingTile();
-        Zone& currentZone = m_world.getZoneActuelle();
-        Interactable* interactable = dynamic_cast<Interactable*>(currentZone.getEntityAt(front.x, front.y));
-
-        if (interactable)
-        {
-            std::cout << "Interacting" << std::endl;
-            interactable->interact();
+        if (DialogManager::getInstance().isActive()) {
+            DialogManager::getInstance().next();
         } else {
-            std::cout << "No interactable in front." << std::endl;
+            sf::Vector2i front = m_player.getFacingTile();
+            Zone& currentZone = m_world.getZoneActuelle();
+            Interactable* interactable = dynamic_cast<Interactable*>(currentZone.getEntityAt(front.x, front.y));
+
+            if (interactable)
+            {
+                interactable->interact();
+            }
         }
     });
 }

@@ -1,10 +1,12 @@
 #include "Game.hpp"
+#include "DialogManager.hpp"
 #include <iostream>
 
 Game::Game(const GameConfig& config)
     : m_window(sf::VideoMode(config.width, config.height), config.title)
-    , m_player(config.playerName) // Le constructeur de Player chargera ses assets via ResourceManager en interne
+    , m_player(Player::getInstance()) // Le constructeur de Player chargera ses assets via ResourceManager en interne
 {
+    m_config = config;
     m_window.setFramerateLimit(120);
 
     // Caméra "Game"
@@ -23,6 +25,11 @@ Game::Game(const GameConfig& config)
 
 void Game::run() {
     sf::Clock clock;
+
+    MessageBox dialogUI;
+    dialogUI.setPosition({0.f, m_config.height - 135.f}); // Position par défaut en bas de l'écran
+    DialogManager::getInstance().init(&dialogUI);
+
     while (m_window.isOpen()) {
         sf::Time dt = clock.restart(); // On récupère le temps écoulé
         
@@ -64,6 +71,7 @@ void Game::render()
 
     // --- UI ---
     m_window.setView(m_uiView);
+    DialogManager::getInstance().draw(m_window);
 
     m_window.display();
 }
