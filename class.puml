@@ -1,196 +1,308 @@
-@startuml
+@startuml PokemonYunOdd_Class_Diagram
 
-' Configuration du style
+' --- Configuration visuelle professionnelle ---
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 60
+skinparam shadowing true
+skinparam roundcorner 10
 
-' --- Interfaces & Abstractions ---
-
-interface WorldEntity {
-    + {abstract} getPosition() : sf::Vector2i
-    + {abstract} draw(window : sf::RenderWindow&)
+skinparam class {
+    BackgroundColor White
+    ArrowColor #2C3E50
+    BorderColor #2C3E50
+    HeaderBackgroundColor #ECF0F1
 }
 
-abstract class Interactable {
-    + {abstract} interact()
-    + {abstract} getPosition() : sf::Vector2i
-    + getDialogue() : string
-    + giveItem() : std::optional<Item>
+skinparam package {
+    BackgroundColor #FDFEFE
+    BorderColor #BDC3C7
 }
 
-' --- Entités du Monde ---
+' --- Titre ---
+title Diagramme de Classes - Pokemon Yun & Odd
 
-class Player {
-    - m_name : string
-    - logicalPos : sf::Vector2i
-    - orientation : int
-    - m_inventory : Inventory
-    + moveRequest(direction : sf::Vector2i, zone : Zone&)
-    + update()
-    + receiveItem(item : Item)
+' ==========================================
+' PACKAGE: ENGINE / CORE
+' ==========================================
+package "Engine & Core" {
+
+    class Game {
+        - m_config : GameConfig
+        - m_window : sf::RenderWindow
+        - m_player : Player&
+        - m_cameraView : sf::View
+        - m_uiView : sf::View
+        - m_playerController : unique_ptr<PlayerController>
+        - m_world : World
+        + Game(config : GameConfig)
+        + run() : void
+        - handleEvents() : void
+        - update(dt : float) : void
+        - render() : void
+    }
+
+    struct GameConfig {
+        + width : uint
+        + height : uint
+        + title : string
+        + playerName : string
+    }
+
+    class "ResourceManager<T>" as ResourceManager << (S,#FF7700) Singleton >> {
+        - resources : map<string, unique_ptr<T>>
+        - ResourceManager()
+        + {static} getInstance() : ResourceManager&
+        + get(filepath : string) : T&
+        + clear() : void
+    }
+    note right of ResourceManager : Gère Texture, Font, SoundBuffer
+
+    class TileMap {
+        - m_vertices : sf::VertexArray
+        - m_tileset : const sf::Texture*
+        + load(texture, tileSize, tiles, w, h) : bool
+        - draw(target, states) : void
+    }
+
+    class Controller << (S,#FF7700) Singleton >> {
+        + {static} getInstance() : Controller&
+        + onAxisChanged(...)
+        + onActionPressed(...)
+        + handleInput(window)
+    }
 }
 
-class Pnj {
-    - m_dialogue : string
-    - m_item : std::optional<Item>
-    + onItemGiven : Event<const Item&>
-    + onDialogue : Event<const string&>
-    + interact()
+' ==========================================
+' PACKAGE: WORLD
+' ==========================================
+package "World Management" {
+
+    class World {
+        - m_zones : map<int, unique_ptr<Zone>>
+        - m_currentZoneId : int
+        + World()
+        + init() : void
+        + addZone(zone : unique_ptr<Zone>) : void
+        + getZoneActuelle() : Zone&
+        + changerZone(id : int) : void
+        + update(player : Player&) : void
+        + draw(window, focus) : void
+    }
+
+    class Zone {
+        - m_id : int
+        - m_width : uint
+        - m_height : uint
+        - m_collisionMap : vector<int>
+        - m_transitions : vector<ZoneTransition>
+        - m_entities : vector<unique_ptr<WorldEntity>>
+        - m_tileset : sf::Texture*
+        - m_tileMap : TileMap
+        + Zone(...)
+        + isBlocking(x, y) : bool
+        + drawAll(window, player) : void
+        + getEntityAt(x, y) : WorldEntity*
+        + getTransitions() : vector<ZoneTransition>&
+    }
+
+    class ZoneFactory << (F,#00AA00) Factory >> {
+        + {static} createZone(zoneId : int) : unique_ptr<Zone>
+    }
+    note bottom of ZoneFactory : Factory Method Pattern\nCharge maps et instancie entités
+
+    class MapLoader <<Utility>> {
+        + {static} loadFromFile(...) : vector<int>
+    }
+
+    struct ZoneTransition {
+        + targetZoneId : int
+        + targetSpawnPos : sf::Vector2i
+    }
 }
 
-class Obj {
-    - m_dialogue : string
-    - m_item : std::optional<Item>
-    + onItemGiven : Event<const Item&>
-    + onDialogue : Event<const string&>
-    + interact()
+' ==========================================
+' PACKAGE: ENTITIES
+' ==========================================
+package "Entities" {
+
+    abstract class WorldEntity {
+        # m_name : string
+        # m_logicalPos : sf::Vector2i
+        + WorldEntity(name, pos)
+        + {abstract} draw(window) : void
+        + getPosition() : sf::Vector2i
+        + getName() : string
+    }
+
+    interface Interactable <<Interface>> {
+        + {abstract} interact() : void
+    }
+
+    class Character {
+        # m_orientation : int
+        # m_sprite : sf::Sprite
+        # m_animations : map<string, Animation>
+        # m_currentAnim : string
+        # m_isMoving : bool
+        # m_targetPos : sf::Vector2f
+        # m_inventory : Inventory
+        + Character(...)
+        + moveRequest(direction, zone) : void
+        + update(dt) : void
+        + draw(window) : void
+        + receiveItem(item) : void
+    }
+
+    class Player << (S,#FF7700) Singleton >> {
+        - Player(name)
+        + {static} getInstance() : Player&
+    }
+
+    class Npc {
+        - m_dialogue : string
+        + Npc(...)
+        + interact() : void
+    }
+
+    class Obj {
+        - m_dialogue : string
+        - m_item : optional<Item>
+        - m_sprite : sf::Sprite
+        + Obj(...)
+        + interact() : void
+        + draw(window) : void
+    }
+
+    class PlayerController {
+        - m_world : World&
+        - m_player : Player&
+        - m_hAxis : float
+        - m_vAxis : float
+        - m_moveTimer : sf::Clock
+        + PlayerController(world, player)
+        + update(zone, dt) : void
+    }
 }
 
-' --- Gestion du Monde ---
+' ==========================================
+' PACKAGE: ITEMS & INVENTORY
+' ==========================================
+package "Items & Inventory" {
+    class Item {
+        - m_name : string
+        - m_description : string
+        - m_pocket : ItemPocket
+        - m_consumable : bool
+        + Item(...)
+        + getName() : string
+    }
 
-class TileMap {
-    - m_vertices : sf::VertexArray
-    - m_tileset : const sf::Texture*
-    + load(texture, tileSize, tiles, width, height) : bool
+    enum ItemPocket {
+        Items
+        Balls
+        KeyItems
+        TMsHMs
+        Berries
+    }
+
+    class Inventory {
+        - m_pockets : map<ItemPocket, map<string, int>>
+        + addItem(item, qty) : void
+        + removeItem(item, qty) : bool
+        + getQuantity(item) : int
+    }
 }
 
-class Zone {
-    - m_id : int
-    - m_collisionMap : vector<int>
-    - m_transitions : vector<ZoneTransition>
-    - m_entities : vector<unique_ptr<Interactable>>
-    - m_tileMap : TileMap
-    + isBlocking(x, y) : bool
-    + getInteractableAt(x, y) : Interactable*
-    + drawAll(window, player)
+' ==========================================
+' PACKAGE: UI / DIALOGUE
+' ==========================================
+package "UI System" {
+    class DialogManager << (S,#FF7700) Singleton >> {
+        - m_msgBox : MessageBox*
+        - m_queue : queue<DialogueStep>
+        - m_active : bool
+        - DialogManager()
+        + {static} getInstance() : DialogManager&
+        + init(msgBox) : void
+        + addLine(text, type) : void
+        + startDialogue(steps) : void
+        + next() : void
+        + draw(window) : void
+    }
+
+    class MessageBox {
+        - m_boxSprite : sf::Sprite
+        - m_segments : vector<TextSegment>
+        - m_visible : bool
+        + setBoxType(type) : void
+        + setText(rawText) : void
+        + draw(window) : void
+        - parseText(text) : void
+    }
+
+    struct DialogueStep {
+        + text : string
+        + type : BoxType
+        + action : function<void()>
+    }
+
+    enum BoxType {
+        Classic
+        Object
+    }
 }
 
-class Monde {
-    - m_zones : map<int, unique_ptr<Zone>>
-    - m_currentZoneId : int
-    + addZone(zone : unique_ptr<Zone>)
-    + getZoneActuelle() : Zone&
-    + changerZone(id)
-    + update(player)
-    + draw(window, focus)
-    + init()
-}
+' ==========================================
+' RELATIONS
+' ==========================================
 
-class ZoneFactory {
-    + {static} createZone(zoneId : int) : unique_ptr<Zone>
-}
+' --- Inheritance ---
+WorldEntity <|-- Character
+WorldEntity <|-- Obj
+Character <|-- Player
+Character <|-- Npc
+Interactable <|.. Npc
+Interactable <|.. Obj
+sf::Drawable <|-- TileMap
+sf::Transformable <|-- TileMap
 
-class MapLoader {
-    + {static} loadFromFile(filepath, width, height) : vector<int>
-}
-
-' --- Core Game & UI ---
-
-class Game {
-    - m_window : sf::RenderWindow
-    - m_cameraView : sf::View
-    - m_uiView : sf::View
-    - m_player : Player
-    - m_playerController : unique_ptr<PlayerController>
-    - m_world : Monde
-    - m_messageBox : MessageBox
-    + run()
-    - update()
-    - render()
-}
-
-class PlayerController {
-    - m_player : Player&
-    + update(zone : Zone&, dt : float)
-}
-
-class MessageBox {
-    - m_dialogue : string
-    - m_pendingItem : std::optional<Item>
-    + onItemGiven : Event<const Item&>
-    + show()
-    + hide()
-    + nextPage()
-    + setObj(name)
-    + draw(window, playerName)
-}
-
-' --- Systèmes & Utilitaires ---
-
-class Controller <<Singleton>> {
-    + handleInput(window)
-    + onActionPressed()
-    + onActionReleased()
-    + onAxisChanged()
-}
-
-class "ResourceManager<T>" as ResourceManager <<Singleton>> {
-    + get(filepath) : T&
-}
-
-class Event<Args...> {
-    + subscribe(listener)
-    + notify(args...)
-}
-
-' --- Items & Inventaire ---
-
-class Item {
-    - m_name : string
-    - m_pocket : ItemPocket
-    + getName() : string
-}
-
-class Inventory {
-    - m_pockets : map<ItemPocket, map<string, int>>
-    + addItem(item, quantity)
-    + removeItem(item, quantity)
-}
-
-enum ItemPocket {
-    Items
-    Balls
-    KeyItems
-    TMsHMs
-    Berries
-}
-
-' --- Relations ---
-
-' Héritage
-WorldEntity <|-- Player
-WorldEntity <|-- Interactable
-Interactable <|-- Pnj
-Interactable <|-- Obj
-
-' Composition principale
-Game *-- Monde
-Game *-- Player
-Game *-- MessageBox
+' --- Composition / Aggregation ---
+Game *-- GameConfig
+Game o-- Player
+Game *-- World
 Game *-- PlayerController
 
-' Relations Monde
-Monde *-- Zone
+World *-- Zone : owns (unique_ptr)
 Zone *-- TileMap
-Zone *-- Interactable : contains >
-ZoneFactory ..> Zone : creates >
-ZoneFactory ..> MapLoader : uses >
-ZoneFactory ..> ResourceManager : uses >
+Zone *-- WorldEntity : owns (unique_ptr)
+Zone +-- ZoneTransition
 
-' Relations Player
-Player *-- Inventory
-PlayerController o-- Player : controls >
-PlayerController ..> Controller : uses >
+PlayerController o-- World
+PlayerController o-- Player
+PlayerController ..> Controller : uses (Singleton)
 
-' Relations Items
+Character *-- Inventory
 Inventory o-- Item
-Pnj o-- Item : holds optional >
-Obj o-- Item : holds optional >
-MessageBox ..> Item : notifies >
+Item *-- ItemPocket
 
-' Events
-Pnj ..> Event
-Obj ..> Event
-MessageBox ..> Event
+DialogManager o-- MessageBox
+DialogManager *-- DialogueStep
+DialogueStep *-- BoxType
+
+' --- Dependencies / Usage ---
+ZoneFactory ..> Zone : creates
+ZoneFactory ..> MapLoader : uses
+ZoneFactory ..> Npc : creates
+ZoneFactory ..> Obj : creates
+ZoneFactory ..> ResourceManager : uses
+
+Obj ..> Item : contains optional
+Npc ..> DialogManager : uses
+PlayerController ..> Interactable : uses
+
+Game ..> DialogManager : init & draw
+Game ..> ResourceManager : uses (indirectly)
 
 @enduml
