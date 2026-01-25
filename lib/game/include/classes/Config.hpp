@@ -3,8 +3,8 @@
 #include <string>
 
 struct GameConfig {
-    unsigned int width = 640;
-    unsigned int height = 480;
+    unsigned int width = 1280;
+    unsigned int height = 720;
     std::string title = "Pokemon Yun & Odd";
     std::string playerName = "Kakarot";
 };

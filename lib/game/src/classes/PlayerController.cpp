@@ -1,11 +1,27 @@
 #include "PlayerController.hpp"
+#include "Interactable.hpp"
+#include <iostream>
 
-PlayerController::PlayerController(Player& player) : m_player(player) {
+PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         m_hAxis = val;
     });
     Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
         m_vAxis = val;
+    });
+
+    Controller::getInstance().onActionPressed("Interact", [this]() {
+        sf::Vector2i front = m_player.getFacingTile();
+        Zone& currentZone = m_world.getZoneActuelle();
+        Interactable* interactable = dynamic_cast<Interactable*>(currentZone.getEntityAt(front.x, front.y));
+
+        if (interactable)
+        {
+            std::cout << "Interacting" << std::endl;
+            interactable->interact();
+        } else {
+            std::cout << "No interactable in front." << std::endl;
+        }
     });
 }
 

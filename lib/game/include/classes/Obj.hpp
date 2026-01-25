@@ -1,44 +1,24 @@
 #pragma once
-
-#include <SFML/Graphics.hpp>
-#include <string>
-#include <vector>
-#include "Item.hpp"
-#include "Interactable.hpp"
 #include "WorldEntity.hpp"
-#include "Event.hpp"
+#include "Interactable.hpp"
+#include "Item.hpp"
 #include <optional>
 
-class Obj : public Interactable {
+// Obj doit hériter de WorldEntity pour être dans le vecteur de la Zone
+class Obj : public WorldEntity, public Interactable {
 public:
-
-    Event<const Item&> onItemGiven;
-    Event<const std::string&> onDialogue;
-    // Constructeur
-    Obj(const std::string& texture,
-        const sf::Vector2i& position,
-        const std::string& dialogueText,
+    Obj(const std::string& name, const std::string& texturePath, 
+        const sf::Vector2i& pos, const std::string& dialogue, 
         std::optional<Item> item = std::nullopt);
 
-    // Méthodes
-    bool isInZone(const sf::Vector2f& playerPos) const;
-    std::string getDialogue() const override;
-    std::optional<Item> giveItem() override;
-    sf::Vector2i getPosition() const override;
+    // Obligatoire pour Interactable
     void interact() override;
-    void draw(sf::RenderWindow& window) const override;
-    std::optional<Item> getItem() const;
-    void setItemGiven();
 
-    // Public pour accéder directement au sprite
-    sf::Sprite m_sprite;
-    sf::Vector2i m_position;
-    bool m_return;
+    // Obligatoire pour WorldEntity (Rendu)
+    void draw(sf::RenderWindow& window) const override;
 
 private:
-    // ⚠ Important : textures doivent être déclarées AVANT le sprite
-    sf::Texture m_texture;
-
     std::string m_dialogue;
     std::optional<Item> m_item;
+    sf::Sprite m_sprite;
 };

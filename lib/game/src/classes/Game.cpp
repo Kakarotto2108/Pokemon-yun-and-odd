@@ -17,7 +17,7 @@ Game::Game(const GameConfig& config)
 
     m_world.init();
 
-    m_playerController = std::make_unique<PlayerController>(m_player); // À ajouter avant l'accolade de fin du constructeur
+    m_playerController = std::make_unique<PlayerController>(m_world,m_player); // À ajouter avant l'accolade de fin du constructeur
 }
 
 

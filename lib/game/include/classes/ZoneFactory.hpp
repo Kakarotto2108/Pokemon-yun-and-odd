@@ -4,7 +4,7 @@
 #include "Zone.hpp"
 #include "MapLoader.hpp"
 #include "ResourceManager.hpp"
-#include "Pnj.hpp"
+#include "Npc.hpp"
 #include "Obj.hpp"
 
 class ZoneFactory {
@@ -19,20 +19,30 @@ public:
         sf::Texture& tileset = TextureManager::getInstance().get(path + "tileset.png");
 
         // 2. Créer les entités spécifiques à la zone
-        std::vector<std::unique_ptr<Interactable>> entities;
+        std::vector<std::unique_ptr<WorldEntity>> entities;
 
         if (zoneId == 1) {
-            Item pokeball("Poké ball", ItemPocket::Balls, "Un objet...", true);
+            // Note : pokeball doit rester en vie assez longtemps ou être copiée. 
+            // Si Npc prend une référence (Item&), attention à la portée !
+            static Item pokeball("Poké ball", ItemPocket::Balls, "Un objet...", true); 
             
-            // On ajoute au vecteur d'Interactable (Polymorphisme)
-            entities.push_back(std::make_unique<Pnj>(
-                "assets/sprite/pnj/48049.png", "assets/sprite/pnj/48050.png",
-                sf::Vector2i(4,2), 0, "Bonjour !", pokeball
+            // Correction NPC : Ajoute le NOM en premier argument si ton constructeur le demande
+            entities.push_back(std::make_unique<Npc>(
+                "Camille",                         // Nom du PNJ
+                "assets/sprite/pnj/gabou.png",    // Sprite
+                sf::Vector2i(4, 2),               // Position
+                0,                                // Orientation
+                "Bonjour !",                      // Dialogue
+                pokeball                          // Item
             ));
 
+            // Même logique pour Obj si c'est un Interactable
             entities.push_back(std::make_unique<Obj>(
-                "assets/sprite/obj/IMG_1338.png", sf::Vector2i(5,0),
-                "Cette télé est un cadeau.", pokeball
+                "Television",                     // 1. Nom
+                "assets/sprite/obj/IMG_1338.png", // 2. Texture Path
+                sf::Vector2i(5, 0),               // 3. Position
+                "Cette télé est un cadeau de maman.",      // 4. Dialogue
+                pokeball                          // 5. Item (optionnel)
             ));
         }
 

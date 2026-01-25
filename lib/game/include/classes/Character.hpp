@@ -1,3 +1,5 @@
+#pragma once
+
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <map>
@@ -29,7 +31,6 @@ public:
 
 protected:
     std::string m_name;
-    sf::Vector2i m_logicalPos;
     sf::Vector2f m_targetPos;
     int m_orientation;
     

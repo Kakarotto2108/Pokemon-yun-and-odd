@@ -4,15 +4,14 @@
 #include <cmath>
 
 Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation)
-    : WorldEntity(), 
+    : WorldEntity(name, pos), 
       m_name(name),
-      m_logicalPos(pos), 
       m_orientation(orientation), 
       m_currentAnim("WalkDown"),
       m_isMoving(false)
 {
     // Attention au chemin : assure-toi que le dossier existe
-    sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get("./assets/sprite/pnj/" + spriteSheetName + ".png");
+    sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get(spriteSheetName);
     m_sprite.setTexture(tex);
 
     m_animations["WalkDown"]  = Animation(0, 4, 0.15f, 64);
@@ -20,7 +19,7 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
     m_animations["WalkRight"] = Animation(2, 4, 0.15f, 64);
     m_animations["WalkUp"]    = Animation(3, 4, 0.15f, 64);
 
-    m_sprite.setOrigin(32.f, 48.f); 
+    m_sprite.setOrigin(32.f, 32.f); 
     setLogicalPos(m_logicalPos);
 }
 
@@ -43,7 +42,7 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     if (!zone.isBlocking(nextPos.x, nextPos.y)) {
         m_logicalPos = nextPos;
         m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE/2.f, 
-                                   m_logicalPos.y * TILE_SIZE + TILE_SIZE/2.f);
+                                   m_logicalPos.y * TILE_SIZE);
         
         // Notifier le système que CE personnage a bougé
         //GameEvents::OnCharacterMove.notify(m_logicalPos.x, m_logicalPos.y);
