@@ -25,6 +25,7 @@ public:
     sf::Vector2i getFacingTile() const;
     void setLogicalPos(const sf::Vector2i& pos);
     std::string getName() const { return m_name; }
+    bool getIsMoving() const { return m_isMoving; }
 
     void receiveItem(const Item& item);
     Inventory& getInventory() { return m_inventory; }
