@@ -5,13 +5,15 @@
 #include "Inventory.hpp"
 #include "WorldEntity.hpp"
 #include "Event.hpp"
+#include "Animation.hpp"
+#include "ResourceManager.hpp"
 
 class Player : public WorldEntity {
 public:
     Player(const std::string& name);
 
     void moveRequest(sf::Vector2i direction, Zone& zone);
-    void update();
+    void update(float dt);
     void draw(sf::RenderWindow& window) const;
 
     // Getters
@@ -32,11 +34,14 @@ private:
     sf::Vector2i logicalPos;
     int orientation; // 0:Bas, 1:Gauche, 2:Droite, 3:Haut
     sf::Vector2f targetPos;
-    
-    sf::Texture texDown, texLeft, texRight, texUp;
-    mutable sf::Sprite sprite;
+
     Inventory m_inventory;
 
     const float TILE_SIZE = 32.f;
     const float MOVE_SPEED = 0.2f; 
+
+    sf::Sprite m_sprite;
+    std::map<std::string, Animation> m_animations;
+    std::string m_currentAnim;
+    bool m_ismoving = false;
 };

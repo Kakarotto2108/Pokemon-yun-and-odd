@@ -41,7 +41,7 @@ void Game::update(float dt)
     
     m_world.update(m_player); 
     
-    m_player.update();
+    m_player.update(dt);
     m_cameraView.setCenter(m_player.getDrawPosition());
 }
 

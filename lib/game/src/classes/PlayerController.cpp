@@ -14,15 +14,12 @@ void PlayerController::update(Zone& zone, float dt) {
 
     sf::Vector2i direction(0, 0);
 
-    // Priorité à l'axe horizontal (ou vertical selon ton choix)
-    if (m_hAxis != 0.f) {
-        direction.x = (m_hAxis > 0.f) ? 1 : -1;
-    } else if (m_vAxis != 0.f) {
-        direction.y = (m_vAxis > 0.f) ? 1 : -1;
+    // Priorité à l'axe horizontal (ou vertical selon ton choix)) {
+    direction.x = (int)m_hAxis;
+    if (m_hAxis == 0.f) {
+        direction.y = (int)m_vAxis;
     }
-
-    if (direction.x != 0 || direction.y != 0) {
-        m_player.moveRequest(direction, zone);
-        m_moveTimer.restart();
-    }
+    
+    m_player.moveRequest(direction, zone);
+    m_moveTimer.restart();
 }
