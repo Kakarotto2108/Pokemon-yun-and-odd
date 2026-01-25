@@ -7,12 +7,13 @@
 
 #include "Zone.hpp"
 #include "WorldEntity.hpp"
+#include "Player.hpp"
 
 class Player;
 
-class Monde {
+class World {
 public:
-    Monde();
+    World();
 
     // Responsabilité : Gestion de la collection de zones
     void addZone(std::unique_ptr<Zone> zone);

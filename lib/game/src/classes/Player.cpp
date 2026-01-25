@@ -2,11 +2,14 @@
 #include <iostream>
 #include <cmath>
 
-Player::Player(const std::string& down, const std::string& left, 
-               const std::string& right, const std::string& up, 
-               const std::string& name)
+Player::Player(const std::string& name)
     : logicalPos(0,0), orientation(0), targetPos(0.f, 0.f)
 {
+    const std::string down  = "./assets/sprite/pnj/player_face.png";
+    const std::string left  = "./assets/sprite/pnj/player_l.png";
+    const std::string right = "./assets/sprite/pnj/player_r.png";
+    const std::string up    = "./assets/sprite/pnj/player_up.png";
+
     if (!texDown.loadFromFile(down))  std::cerr << "Erreur Down\n";
     if (!texLeft.loadFromFile(left))  std::cerr << "Erreur Left\n";
     if (!texRight.loadFromFile(right)) std::cerr << "Erreur Right\n";

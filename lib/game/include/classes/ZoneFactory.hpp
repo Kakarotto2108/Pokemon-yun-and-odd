@@ -40,8 +40,8 @@ public:
         auto zone = std::make_unique<Zone>(zoneId, width, height, std::move(collision), std::move(entities), tileset, visual);
 
         // 4. Ajouter les transitions (On pourrait aussi les charger d'un fichier)
-        if (zoneId == 1) zone->getTransitions().push_back({2, sf::Vector2i(5,0)});
-        if (zoneId == 2) zone->getTransitions().push_back({1, sf::Vector2i(5,6)});
+        if (zoneId == 1) zone->getTransitions().push_back({2, sf::Vector2i(5,1)});
+        if (zoneId == 2) zone->getTransitions().push_back({1, sf::Vector2i(5,5)});
 
         return zone;
     }

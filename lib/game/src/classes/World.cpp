@@ -2,36 +2,64 @@
 #include "ZoneFactory.hpp"
 #include <iostream>
 
-Monde::Monde() : m_currentZoneId(1) {}
+World::World() : m_currentZoneId(1) {}
 
-void Monde::addZone(std::unique_ptr<Zone> zone) {
+void World::addZone(std::unique_ptr<Zone> zone) {
     if (zone) {
         int id = zone->getId();
         m_zones[id] = std::move(zone);
     }
 }
 
-Zone& Monde::getZoneActuelle() {
+Zone& World::getZoneActuelle() {
     return *m_zones.at(m_currentZoneId);
 }
 
-void Monde::changerZone(int id) {
+void World::changerZone(int id) {
     if (m_zones.find(id) != m_zones.end()) {
         m_currentZoneId = id;
     }
 }
 
-int Monde::getCurrentZoneId() const {
+int World::getCurrentZoneId() const {
     return m_currentZoneId;
 }
 
-void Monde::draw(sf::RenderWindow& window, const WorldEntity& focus) {
+void World::draw(sf::RenderWindow& window, const WorldEntity& focus) {
     getZoneActuelle().drawAll(window, focus);
 }
 
-void Monde::init() {
+void World::init() {
     addZone(ZoneFactory::createZone(1));
     addZone(ZoneFactory::createZone(2));
 
     m_currentZoneId = 1;
+}
+
+void World::update(Player& player) {
+    // 1. Récupérer la zone actuelle
+    Zone& zone = getZoneActuelle();
+    sf::Vector2i pos = player.getPosition();
+
+    // 2. Vérifier si la case actuelle est une case de collision/transition
+    int tileValue = zone.getCollisionMap()[pos.x + pos.y * zone.getWidth()];
+
+    // 3. Si la valeur correspond à une transition
+    if (tileValue > 0) {
+        auto& transitions = zone.getTransitions();
+        
+        // On cherche si une transition avec cet ID existe
+        auto it = std::find_if(transitions.begin(), transitions.end(),
+            [tileValue](const ZoneTransition& t) { 
+                return t.targetZoneId == tileValue; 
+            });
+
+        if (it != transitions.end()) {
+            // Logique de changement de zone
+            changerZone(it->targetZoneId);
+            
+            // On place le joueur à sa nouvelle position
+            player.setLogicalPos(it->targetSpawnPos);
+        }
+    }
 }

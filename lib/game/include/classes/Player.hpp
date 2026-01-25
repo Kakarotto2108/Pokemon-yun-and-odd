@@ -8,9 +8,7 @@
 
 class Player : public WorldEntity {
 public:
-    Player(const std::string& down, const std::string& left, 
-           const std::string& right, const std::string& up, 
-           const std::string& name);
+    Player(const std::string& name);
 
     void moveRequest(sf::Vector2i direction, Zone& zone);
     void update();

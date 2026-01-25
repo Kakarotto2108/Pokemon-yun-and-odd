@@ -45,7 +45,7 @@ void Zone::updateInteractableGrid() {
 
 bool Zone::isBlocking(int x, int y) const {
     if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return true;
-    return m_collisionMap[x + y * m_width] != 0;
+    return m_collisionMap[x + y * m_width] < 0;
 }
 
 Interactable* Zone::getInteractableAt(int x, int y) const {
