@@ -1,13 +1,13 @@
 #include "Item.hpp"
 
 Item::Item(
-    const std::string& name,
+    std::string name,
     ItemPocket pocket,
-    const std::string& description,
+    std::string description,
     bool consumable
 )
-: m_name(name)
-, m_description(description)
+: m_name(std::move(name))
+, m_description(std::move(description))
 , m_pocket(pocket)
 , m_consumable(consumable)
 {}

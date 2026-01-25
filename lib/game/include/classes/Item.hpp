@@ -14,9 +14,9 @@ class Item
 {
 public:
     Item(
-        const std::string& name,
+        std::string name,
         ItemPocket pocket,
-        const std::string& description,
+        std::string description,
         bool consumable = false
     );
 

@@ -28,5 +28,6 @@
         "print": "cpp",
         "cstddef": "cpp",
         "algorithm": "cpp"
-    }
+    },
+    "plantuml.render": "Local"
 }

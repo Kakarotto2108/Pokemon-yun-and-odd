@@ -24,10 +24,13 @@ bool Inventory::removeItem(const Item& item, int quantity)
 
 int Inventory::getQuantity(const Item& item) const
 {
-    const auto& pocket = m_pockets.at(item.getPocket());
-    auto it = pocket.find(item.getName());
+    // On cherche d'abord si la poche existe
+    auto pocketIt = m_pockets.find(item.getPocket());
+    if (pocketIt == m_pockets.end()) return 0;
 
-    return (it != pocket.end()) ? it->second : 0;
+    // Puis on cherche l'item dans cette poche
+    auto itemIt = pocketIt->second.find(item.getName());
+    return (itemIt != pocketIt->second.end()) ? itemIt->second : 0;
 }
 
 void Inventory::debugPrint() const {

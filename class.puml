@@ -1,0 +1,196 @@
+@startuml
+
+' Configuration du style
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' --- Interfaces & Abstractions ---
+
+interface WorldEntity {
+    + {abstract} getPosition() : sf::Vector2i
+    + {abstract} draw(window : sf::RenderWindow&)
+}
+
+abstract class Interactable {
+    + {abstract} interact()
+    + {abstract} getPosition() : sf::Vector2i
+    + getDialogue() : string
+    + giveItem() : std::optional<Item>
+}
+
+' --- Entités du Monde ---
+
+class Player {
+    - m_name : string
+    - logicalPos : sf::Vector2i
+    - orientation : int
+    - m_inventory : Inventory
+    + moveRequest(direction : sf::Vector2i, zone : Zone&)
+    + update()
+    + receiveItem(item : Item)
+}
+
+class Pnj {
+    - m_dialogue : string
+    - m_item : std::optional<Item>
+    + onItemGiven : Event<const Item&>
+    + onDialogue : Event<const string&>
+    + interact()
+}
+
+class Obj {
+    - m_dialogue : string
+    - m_item : std::optional<Item>
+    + onItemGiven : Event<const Item&>
+    + onDialogue : Event<const string&>
+    + interact()
+}
+
+' --- Gestion du Monde ---
+
+class TileMap {
+    - m_vertices : sf::VertexArray
+    - m_tileset : const sf::Texture*
+    + load(texture, tileSize, tiles, width, height) : bool
+}
+
+class Zone {
+    - m_id : int
+    - m_collisionMap : vector<int>
+    - m_transitions : vector<ZoneTransition>
+    - m_entities : vector<unique_ptr<Interactable>>
+    - m_tileMap : TileMap
+    + isBlocking(x, y) : bool
+    + getInteractableAt(x, y) : Interactable*
+    + drawAll(window, player)
+}
+
+class Monde {
+    - m_zones : map<int, unique_ptr<Zone>>
+    - m_currentZoneId : int
+    + addZone(zone : unique_ptr<Zone>)
+    + getZoneActuelle() : Zone&
+    + changerZone(id)
+    + update(player)
+    + draw(window, focus)
+    + init()
+}
+
+class ZoneFactory {
+    + {static} createZone(zoneId : int) : unique_ptr<Zone>
+}
+
+class MapLoader {
+    + {static} loadFromFile(filepath, width, height) : vector<int>
+}
+
+' --- Core Game & UI ---
+
+class Game {
+    - m_window : sf::RenderWindow
+    - m_cameraView : sf::View
+    - m_uiView : sf::View
+    - m_player : Player
+    - m_playerController : unique_ptr<PlayerController>
+    - m_world : Monde
+    - m_messageBox : MessageBox
+    + run()
+    - update()
+    - render()
+}
+
+class PlayerController {
+    - m_player : Player&
+    + update(zone : Zone&, dt : float)
+}
+
+class MessageBox {
+    - m_dialogue : string
+    - m_pendingItem : std::optional<Item>
+    + onItemGiven : Event<const Item&>
+    + show()
+    + hide()
+    + nextPage()
+    + setObj(name)
+    + draw(window, playerName)
+}
+
+' --- Systèmes & Utilitaires ---
+
+class Controller <<Singleton>> {
+    + handleInput(window)
+    + onActionPressed()
+    + onActionReleased()
+    + onAxisChanged()
+}
+
+class "ResourceManager<T>" as ResourceManager <<Singleton>> {
+    + get(filepath) : T&
+}
+
+class Event<Args...> {
+    + subscribe(listener)
+    + notify(args...)
+}
+
+' --- Items & Inventaire ---
+
+class Item {
+    - m_name : string
+    - m_pocket : ItemPocket
+    + getName() : string
+}
+
+class Inventory {
+    - m_pockets : map<ItemPocket, map<string, int>>
+    + addItem(item, quantity)
+    + removeItem(item, quantity)
+}
+
+enum ItemPocket {
+    Items
+    Balls
+    KeyItems
+    TMsHMs
+    Berries
+}
+
+' --- Relations ---
+
+' Héritage
+WorldEntity <|-- Player
+WorldEntity <|-- Interactable
+Interactable <|-- Pnj
+Interactable <|-- Obj
+
+' Composition principale
+Game *-- Monde
+Game *-- Player
+Game *-- MessageBox
+Game *-- PlayerController
+
+' Relations Monde
+Monde *-- Zone
+Zone *-- TileMap
+Zone *-- Interactable : contains >
+ZoneFactory ..> Zone : creates >
+ZoneFactory ..> MapLoader : uses >
+ZoneFactory ..> ResourceManager : uses >
+
+' Relations Player
+Player *-- Inventory
+PlayerController o-- Player : controls >
+PlayerController ..> Controller : uses >
+
+' Relations Items
+Inventory o-- Item
+Pnj o-- Item : holds optional >
+Obj o-- Item : holds optional >
+MessageBox ..> Item : notifies >
+
+' Events
+Pnj ..> Event
+Obj ..> Event
+MessageBox ..> Event
+
+@enduml
