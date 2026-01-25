@@ -1,12 +1,11 @@
-#pragma once
-#include <SFML/Graphics.hpp>
+#ifndef ZONE_HPP
+#define ZONE_HPP
+
 #include <vector>
-#include <string>
 #include <memory>
-#include "TileMap.hpp"
-#include "Pnj.hpp"
-#include "Obj.hpp"
+#include "WorldEntity.hpp"
 #include "Interactable.hpp"
+#include "TileMap.hpp"
 
 struct ZoneTransition {
     int targetZoneId;
@@ -15,36 +14,33 @@ struct ZoneTransition {
 
 class Zone {
 public:
-    Zone(int id, 
-         std::vector<std::unique_ptr<Pnj>> pnjs, 
-         std::vector<std::unique_ptr<Obj>> objs);
+    Zone(int id, unsigned int width, unsigned int height,
+         std::vector<int> collisionMap,
+         std::vector<std::unique_ptr<Interactable>> entities,
+         sf::Texture& tileset,
+         const std::vector<int>& visualMap);
 
-    void drawAll(sf::RenderWindow& window, const class EntiteMonde& player);
-    
     int getId() const { return m_id; }
-    bool isBlocking(int x, int y) const;
-    Interactable* getInteractableAt(int x, int y) const;
-    
-    // Ajoute cet accesseur pour corriger l'erreur dans Game.cpp
-    std::vector<ZoneTransition>& getTransitions() { return m_transitions; }
-    const std::vector<int>& getCollisionMap() const { return m_collisionMap; }
     unsigned int getWidth() const { return m_width; }
     unsigned int getHeight() const { return m_height; }
+    const std::vector<int>& getCollisionMap() const { return m_collisionMap; }
+    std::vector<ZoneTransition>& getTransitions() { return m_transitions; }
+
+    void updateInteractableGrid();
+    bool isBlocking(int x, int y) const;
+    Interactable* getInteractableAt(int x, int y) const;
+    void drawAll(sf::RenderWindow& window, const WorldEntity& player);
 
 private:
     int m_id;
-    unsigned int m_width = 0;
-    unsigned int m_height = 0;
-    
-    TileMap m_tileMap;
-    std::vector<int> m_visualMap;
+    unsigned int m_width, m_height;
     std::vector<int> m_collisionMap;
-    
-    std::vector<std::unique_ptr<Pnj>> m_pnjs;
-    std::vector<std::unique_ptr<Obj>> m_objs;
     std::vector<ZoneTransition> m_transitions;
+    std::vector<std::unique_ptr<Interactable>> m_entities; // 1. Entities
+    sf::Texture* m_tileset;                               // 2. Tileset
+    
     std::vector<std::vector<Interactable*>> m_interactables;
-
-    void loadData();
-    void updateInteractableGrid();
+    TileMap m_tileMap;
 };
+
+#endif

@@ -1,48 +1,45 @@
 #include "Zone.hpp"
-#include "MapLoader.hpp"
-#include "EntiteMonde.hpp"
-#include <iostream>
+#include <algorithm>
 
-const int TILE_SIZE = 32;
-
-Zone::Zone(int id, 
-           std::vector<std::unique_ptr<Pnj>> pnjs, 
-           std::vector<std::unique_ptr<Obj>> objs)
-    : m_id(id)
-    , m_pnjs(std::move(pnjs))
-    , m_objs(std::move(objs)) 
+Zone::Zone(int id, unsigned int width, unsigned int height,
+           std::vector<int> collisionMap,
+           std::vector<std::unique_ptr<Interactable>> entities,
+           sf::Texture& tileset,
+           const std::vector<int>& visualMap)
+    : m_id(id), m_width(width), m_height(height)
+    , m_collisionMap(std::move(collisionMap))
+    , m_entities(std::move(entities))
+    , m_tileset(&tileset)
 {
-    loadData();
+    m_tileMap.load(*m_tileset, sf::Vector2u(32, 32), visualMap, m_width, m_height);
+    
+    m_interactables.assign(m_height, std::vector<Interactable*>(m_width, nullptr));
     updateInteractableGrid();
 }
 
-void Zone::loadData() {
-    std::string baseDir = "assets/zone/zone" + std::to_string(m_id) + "/";
+void Zone::drawAll(sf::RenderWindow& window, const WorldEntity& player) {
+    window.draw(m_tileMap);
 
-    // 1. Chargement des fichiers via MapLoader
-    m_visualMap = MapLoader::loadFromFile(baseDir + "map.txt", m_width, m_height);
-    m_collisionMap = MapLoader::loadFromFile(baseDir + "collisionMap.txt", m_width, m_height);
-
-    // 2. Initialisation du rendu graphique
-    if (!m_tileMap.load(baseDir + "tileset.png", sf::Vector2u(TILE_SIZE, TILE_SIZE), m_visualMap, m_width, m_height)) {
-        std::cerr << "Erreur : Impossible de charger le visuel de la zone " << m_id << std::endl;
+    std::vector<const WorldEntity*> renderQueue;
+    renderQueue.push_back(&player);
+    
+    for (const auto& e : m_entities) {
+        renderQueue.push_back(static_cast<const WorldEntity*>(e.get()));
     }
+
+    std::sort(renderQueue.begin(), renderQueue.end(), [](const WorldEntity* a, const WorldEntity* b) {
+        return a->getPosition().y < b->getPosition().y;
+    });
+
+    for (const auto* e : renderQueue) e->draw(window);
 }
 
 void Zone::updateInteractableGrid() {
-    m_interactables.assign(m_height, std::vector<Interactable*>(m_width, nullptr));
-
-    for (auto& pnj : m_pnjs) {
-        // Remplacement de getGridPosition par getPosition
-        sf::Vector2i pos = sf::Vector2i(pnj->getPosition().x, pnj->getPosition().y); 
-        if (pos.y >= 0 && pos.y < (int)m_height && pos.x >= 0 && pos.x < (int)m_width)
-            m_interactables[pos.y][pos.x] = pnj.get();
-    }
-
-    for (auto& obj : m_objs) {
-        sf::Vector2i pos = sf::Vector2i(obj->getPosition().x, obj->getPosition().y);
-        if (pos.y >= 0 && pos.y < (int)m_height && pos.x >= 0 && pos.x < (int)m_width)
-            m_interactables[pos.y][pos.x] = obj.get();
+    for (auto& row : m_interactables) std::fill(row.begin(), row.end(), nullptr);
+    for (auto& ent : m_entities) {
+        sf::Vector2i pos = ent->getPosition();
+        if (pos.x >= 0 && pos.x < (int)m_width && pos.y >= 0 && pos.y < (int)m_height)
+            m_interactables[pos.y][pos.x] = ent.get();
     }
 }
 
@@ -54,25 +51,4 @@ bool Zone::isBlocking(int x, int y) const {
 Interactable* Zone::getInteractableAt(int x, int y) const {
     if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return nullptr;
     return m_interactables[y][x];
-}
-
-void Zone::drawAll(sf::RenderWindow& window, const EntiteMonde& player) {
-    window.draw(m_tileMap);
-
-    // Remplacement de getGridPosition par getPosition
-    sf::Vector2i playerPos = sf::Vector2i(player.getPosition().x, player.getPosition().y);
-
-    for (const auto& pnj : m_pnjs) 
-        if (pnj->getPosition().y <= playerPos.y) pnj->draw(window);
-    
-    for (const auto& obj : m_objs) 
-        if (obj->getPosition().y <= playerPos.y) obj->draw(window);
-
-    player.draw(window);
-
-    for (const auto& pnj : m_pnjs) 
-        if (pnj->getPosition().y > playerPos.y) pnj->draw(window);
-    
-    for (const auto& obj : m_objs) 
-        if (obj->getPosition().y > playerPos.y) obj->draw(window);
 }

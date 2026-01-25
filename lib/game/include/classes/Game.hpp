@@ -8,9 +8,9 @@
 #include "World.hpp"
 #include "MessageBox.hpp"
 
-class Jeu {
+class Game {
 public:
-    Jeu();
+    Game();
     void run();
 
 private:

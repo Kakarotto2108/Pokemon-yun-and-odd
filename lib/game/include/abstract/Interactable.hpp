@@ -2,8 +2,9 @@
 
 #include <optional>
 #include "Item.hpp"
+#include "WorldEntity.hpp"
 
-class Interactable {
+class Interactable : public WorldEntity {
 public:
     virtual ~Interactable() = default;
 

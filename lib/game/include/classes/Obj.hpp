@@ -5,11 +5,11 @@
 #include <vector>
 #include "Item.hpp"
 #include "Interactable.hpp"
-#include "EntiteMonde.hpp"
+#include "WorldEntity.hpp"
 #include "Event.hpp"
 #include <optional>
 
-class Obj : public Interactable, public EntiteMonde {
+class Obj : public Interactable {
 public:
 
     Event<const Item&> onItemGiven;

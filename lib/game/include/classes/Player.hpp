@@ -3,10 +3,10 @@
 #include <string>
 #include "Zone.hpp"
 #include "Inventory.hpp"
-#include "EntiteMonde.hpp"
+#include "WorldEntity.hpp"
 #include "Event.hpp"
 
-class Player : public EntiteMonde {
+class Player : public WorldEntity {
 public:
     Player(const std::string& down, const std::string& left, 
            const std::string& right, const std::string& up, 

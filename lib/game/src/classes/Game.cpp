@@ -2,14 +2,14 @@
 #include "Controller.hpp"
 #include <iostream>
 
-Jeu::Jeu()
+Game::Game()
     : m_window(sf::VideoMode(640,480), "Pokemon"),
       m_player("./assets/sprite/pnj/player_face.png","./assets/sprite/pnj/player_l.png","./assets/sprite/pnj/player_r.png","./assets/sprite/pnj/player_up.png","Kakarot"),
       m_messageBox(sf::Vector2f(600.f, 90.f), sf::Vector2f(-5.f, 8.f))
 {
     m_window.setFramerateLimit(120);
 
-    // Caméra "jeu"
+    // Caméra "Game"
     m_cameraView.setSize(static_cast<sf::Vector2f>(m_window.getSize())); // taille = fenêtre
     m_cameraView.setCenter(m_player.getDrawPosition()); // centre sur le joueur
 
@@ -28,7 +28,7 @@ Jeu::Jeu()
 
 
 // run()
-void Jeu::run() {
+void Game::run() {
     while (m_window.isOpen()) {
         Controller::getInstance().handleInput(m_window);
         handleEvents();
@@ -38,7 +38,7 @@ void Jeu::run() {
 }
 
 // update()
-void Jeu::update()
+void Game::update()
 {
     m_playerController->update(m_world.getZoneActuelle(), 0.f);
 
@@ -95,7 +95,7 @@ void Jeu::update()
     m_cameraView.setCenter(m_player.getDrawPosition());
 }
 
-void Jeu::handleEvents()
+void Game::handleEvents()
 {
     sf::Event event;
     while (m_window.pollEvent(event)) {
@@ -104,7 +104,7 @@ void Jeu::handleEvents()
     }
 }
 
-void Jeu::render()
+void Game::render()
 {
     m_window.clear();
 

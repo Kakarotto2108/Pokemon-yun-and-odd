@@ -1,9 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-class EntiteMonde {
+class WorldEntity {
 public:
-    virtual ~EntiteMonde() = default;
+    virtual ~WorldEntity() = default;
 
     virtual sf::Vector2i getPosition() const = 0;
     virtual void draw(sf::RenderWindow& window) const = 0;
