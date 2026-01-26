@@ -10,6 +10,8 @@ public:
     Obj(const std::string& name, const std::string& texturePath, 
         const sf::Vector2i& pos, const std::string& dialogue, 
         std::optional<Item> item = std::nullopt);
+    
+    const sf::Sprite& getSprite() const { return m_sprite; }
 
     // Obligatoire pour Interactable
     void interact() override;

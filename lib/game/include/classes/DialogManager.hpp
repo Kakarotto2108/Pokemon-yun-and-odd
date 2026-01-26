@@ -1,7 +1,7 @@
 #ifndef DIALOGMANAGER_HPP
 #define DIALOGMANAGER_HPP
 
-#include "MessageBox.hpp"
+#include "GameDialog.hpp"
 #include <queue>
 #include <functional>
 #include <vector>
@@ -26,7 +26,7 @@ public:
     }
 
     // Indispensable pour lier la MessageBox au Singleton au lancement du jeu
-    void init(MessageBox* msgBox) { m_msgBox = msgBox; }
+    void init(GameDialog* msgBox) { m_msgBox = msgBox; }
 
     void addLine(const std::string& text, BoxType type = BoxType::Classic);
     void startDialogue(const std::vector<DialogueStep>& steps);
@@ -38,7 +38,7 @@ public:
 private:
     DialogManager() = default; // Constructeur privé
 
-    MessageBox* m_msgBox = nullptr;
+    GameDialog* m_msgBox = nullptr;
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
 };

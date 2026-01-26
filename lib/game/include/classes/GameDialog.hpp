@@ -1,5 +1,5 @@
-#ifndef MESSAGEBOX_HPP
-#define MESSAGEBOX_HPP
+#ifndef GAMEDIALOG_HPP
+#define GAMEDIALOG_HPP
 
 #include "ResourceManager.hpp"
 #include <SFML/Graphics.hpp>
@@ -13,9 +13,9 @@ struct TextSegment {
     sf::Color color;
 };
 
-class MessageBox {
+class GameDialog {
 public:
-    MessageBox();
+    GameDialog();
 
     void setBoxType(BoxType type);
     void setPosition(const sf::Vector2f& pos);

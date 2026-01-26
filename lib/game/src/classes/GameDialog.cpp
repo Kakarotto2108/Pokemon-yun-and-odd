@@ -1,11 +1,11 @@
-#include "MessageBox.hpp"
+#include "GameDialog.hpp"
 #include <regex>
 
-MessageBox::MessageBox() {
+GameDialog::GameDialog() {
     setBoxType(BoxType::Classic); 
 }
 
-void MessageBox::setBoxType(BoxType type) {
+void GameDialog::setBoxType(BoxType type) {
     std::string path = (type == BoxType::Object) 
         ? "assets/sprite/ui/objet_box.png" 
         : "assets/sprite/ui/dialog_box.png";
@@ -14,12 +14,12 @@ void MessageBox::setBoxType(BoxType type) {
     m_boxSprite.setScale(1.f, 1.f);
 }
 
-void MessageBox::setPosition(const sf::Vector2f& pos) {
+void GameDialog::setPosition(const sf::Vector2f& pos) {
     m_pos = pos;
     m_boxSprite.setPosition(pos);
 }
 
-void MessageBox::parseText(const std::string& text) {
+void GameDialog::parseText(const std::string& text) {
     m_segments.clear();
     sf::Color currentColor = sf::Color::Black;
 
@@ -45,7 +45,7 @@ void MessageBox::parseText(const std::string& text) {
     }
 }
 
-sf::Color MessageBox::getColorFromName(const std::string& name) {
+sf::Color GameDialog::getColorFromName(const std::string& name) {
     if (name == "blue")  return sf::Color(80, 160, 255);
     if (name == "red")   return sf::Color::Red;
     if (name == "green") return sf::Color::Green;
@@ -53,11 +53,11 @@ sf::Color MessageBox::getColorFromName(const std::string& name) {
     return sf::Color::Black; // Couleur par défaut
 }
 
-void MessageBox::setText(const std::string& rawText) {
+void GameDialog::setText(const std::string& rawText) {
     parseText(rawText);
 }
 
-void MessageBox::draw(sf::RenderWindow& window) {
+void GameDialog::draw(sf::RenderWindow& window) {
     if (!m_visible) return;
 
     window.draw(m_boxSprite);

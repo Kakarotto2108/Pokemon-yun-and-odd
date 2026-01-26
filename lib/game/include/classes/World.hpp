@@ -8,6 +8,9 @@
 #include "Zone.hpp"
 #include "WorldEntity.hpp"
 #include "Player.hpp"
+#include "Character.hpp"
+#include "Obj.hpp"
+
 
 class Player;
 
@@ -19,15 +22,20 @@ public:
     void addZone(std::unique_ptr<Zone> zone);
     
     // Accesseurs
-    Zone& getZoneActuelle();
+    Zone& getCurrentZone();
     int getCurrentZoneId() const;
     
     // Responsabilité : Contrôleur d'état du monde
-    void changerZone(int zoneId);
+    void switchZone(int zoneId);
     
     // Orchestration (Délègue à la Zone actuelle - Information Expert)
     void update(Player& player);
     void draw(sf::RenderWindow& window, const WorldEntity& focus);
+    void drawTileMap3D(const TileMap& tileMap);
+    void drawCharacter3D(const Character& character);
+    void drawObjSprite3D(const Obj& obj);
+    void renderEntities(Zone& zone);
+    void draw3D(sf::RenderWindow& window);
     
     // Initialisation via Factory (L'implémentation utilisera ZoneFactory)
     void init();
