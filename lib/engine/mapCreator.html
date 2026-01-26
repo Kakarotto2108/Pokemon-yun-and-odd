@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Poke-Editor v3.6 - Spawn Points</title>
+    <style>
+        body { display: flex; font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; margin: 0; height: 100vh; overflow: hidden; }
+        #toolbar { width: 300px; background: #34495e; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.3); z-index: 10; overflow-y: auto; }
+        #viewport { flex-grow: 1; overflow: hidden; background: #1a1a1a; cursor: crosshair; }
+        
+        canvas { display: block; }
+        #map-canvas { /* Now sized by JS */ }
+        
+        #tileset-container { min-height: 200px; max-height: 400px; resize: vertical; overflow: auto; background: #95a5a6; border: 2px solid #3498db; margin-top: 10px; }
+        
+        .btn { background: #3498db; border: none; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; text-align: left; }
+        .btn:hover { background: #2980b9; }
+        .btn-green { background: #27ae60; margin-top: 10px; text-align: center; }
+        .active-mode { outline: 3px solid #e74c3c; background: #2980b9; }
+        
+        .input-group { display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
+        input { background: #2c3e50; border: 1px solid #7f8c8d; color: white; padding: 4px; border-radius: 3px; width: 60px; }
+        #target-zone-id { width: 80px; font-size: 1.1em; color: #f1c40f; text-align: center; border: 1px solid #9b59b6; }
+        
+        hr { border: 0; border-top: 1px solid #555; width: 100%; margin: 10px 0; }
+        .info { font-size: 0.75em; color: #bdc3c7; line-height: 1.4; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; }
+        .highlight { color: #f1c40f; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="toolbar">
+    <h3>Configuration</h3>
+    <div class="input-group">Largeur: <input type="number" id="map-w" value="20"></div>
+    <div class="input-group">Hauteur: <input type="number" id="map-h" value="20"></div>
+    <button class="btn btn-green" style="margin-top:0" onclick="resizeMap()">Appliquer / Reset</button>
+    
+    <hr>
+    <h3>Chargement</h3>
+    <div class="input-group">Map: &nbsp; <input type="file" id="upload-map-txt" accept=".txt" style="width: 170px;"></div>
+    <div class="input-group">Collisions: &nbsp; <input type="file" id="upload-collision-txt" accept=".txt" style="width: 170px;"></div>
+    <button class="btn" style="margin-top: 5px" onclick="loadMapFiles()">📂 Charger</button>
+    
+    <hr>
+    <h3>Tileset</h3>
+    <input type="file" id="upload-tileset" accept="image/*">
+    <div class="input-group">Tile Size: <input type="number" id="tile-size" value="32"></div>
+    <div id="tileset-container">
+        <canvas id="tileset-canvas"></canvas>
+    </div>
+
+    <hr>
+    <h3>Outils</h3>
+    <button class="btn" id="btn-draw" onclick="setMode('draw')">🎨 Dessin</button>
+    <button class="btn" id="btn-coll" onclick="setMode('collision')">🚫 Collision (-1)</button>
+    <button class="btn" id="btn-spaw" onclick="setMode('spawn')">🚩 Spawn Point (-2)</button>
+    <button class="btn" id="btn-trans" onclick="setMode('transition')">🚪 Transition (ID)</button>
+    
+    <div id="transition-settings" style="display:none; background: #1e2b38; padding: 10px; border-radius: 5px; border: 1px solid #9b59b6;">
+        <div class="input-group">ID Zone Cible: <input type="number" id="target-zone-id" value="1" min="1"></div>
+    </div>
+
+    <hr>
+    <button class="btn btn-green" onclick="exportFiles()">💾 Exporter .txt</button>
+    <div class="info">
+        <span class="highlight">Gid :</span> Poser l'élément<br>
+        <span class="highlight">Droit :</span> Effacer (0)<br>
+        <span class="highlight">Note :</span> Le Spawn Point (-2) définit où le joueur arrive dans cette zone.
+    </div>
+</div>
+
+<div id="viewport">
+    <canvas id="map-canvas"></canvas>
+</div>
+
+<script>
+    let tileSize = 32;
+    let mapW = 20;
+    let mapH = 20;
+    let mode = 'draw';
+    let selectedTile = 0;
+    
+    let mapData = [];
+    let collisionData = []; 
+
+    let scale = 1.0;
+    let viewX = 0;
+    let viewY = 0;
+    let isPanning = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    
+    const mapCanvas = document.getElementById('map-canvas');
+    const viewport = document.getElementById('viewport');
+    const ctx = mapCanvas.getContext('2d');
+    const tsCanvas = document.getElementById('tileset-canvas');
+    const tsCtx = tsCanvas.getContext('2d');
+    let tilesetImg = new Image();
+
+    function resizeCanvas() {
+        mapCanvas.width = viewport.clientWidth;
+        mapCanvas.height = viewport.clientHeight;
+        if (mapData.length > 0) drawMap();
+    }
+
+    function loadMapFiles() {
+        const mapFileInput = document.getElementById('upload-map-txt');
+        const collisionFileInput = document.getElementById('upload-collision-txt');
+
+        if (mapFileInput.files.length === 0 || collisionFileInput.files.length === 0) {
+            alert("Veuillez sélectionner les fichiers map.txt et collisionMap.txt.");
+            return;
+        }
+
+        const mapFile = mapFileInput.files[0];
+        const collisionFile = collisionFileInput.files[0];
+
+        Promise.all([
+            mapFile.text(),
+            collisionFile.text()
+        ]).then(([mapContent, collisionContent]) => {
+            parseAndLoadMap(mapContent, collisionContent);
+        }).catch(error => {
+            console.error("Erreur lors de la lecture des fichiers:", error);
+            alert("Une erreur est survenue lors de la lecture des fichiers.");
+        });
+    }
+
+    function parseAndLoadMap(mapContent, collisionContent) {
+        try {
+            tileSize = parseInt(document.getElementById('tile-size').value) || 32;
+
+            const mapRows = mapContent.trim().split('\n');
+            const newMapW = mapRows[0].split(',').length;
+            const newMapH = mapRows.length;
+            const newMapData = mapRows.join(',').split(',').map(Number);
+
+            const collisionRows = collisionContent.trim().split('\n');
+            const newCollisionData = collisionRows.join(',').split(',').map(Number);
+
+            if (newMapData.length !== newCollisionData.length) {
+                alert("Les fichiers de map et de collision n'ont pas la même taille !");
+                return;
+            }
+
+            mapW = newMapW;
+            mapH = newMapH;
+            mapData = newMapData;
+            collisionData = newCollisionData;
+
+            document.getElementById('map-w').value = mapW;
+            document.getElementById('map-h').value = mapH;
+            
+            scale = 1.0; // Reset zoom
+            viewX = (viewport.clientWidth - mapW * tileSize) / 2;
+            viewY = (viewport.clientHeight - mapH * tileSize) / 2;
+            
+            // Redraw tileset canvas if image is loaded
+            if (tilesetImg.complete && tilesetImg.src) {
+                tsCanvas.width = tilesetImg.width;
+                tsCanvas.height = tilesetImg.height;
+                drawTileset();
+            }
+            
+            drawMap();
+
+            alert("Map chargée avec succès !");
+
+        } catch (e) {
+            console.error("Erreur lors du parsing des fichiers de map:", e);
+            alert("Erreur lors du parsing des fichiers de map. Vérifiez le format.");
+        }
+    }
+
+    function initData() {
+        mapData = Array(mapW * mapH).fill(0);
+        collisionData = Array(mapW * mapH).fill(0);
+        
+        scale = 1.0;
+        viewX = (viewport.clientWidth - mapW * tileSize) / 2;
+        viewY = (viewport.clientHeight - mapH * tileSize) / 2;
+
+        drawMap();
+    }
+
+    function resizeMap() {
+        if(!confirm("Reset complet de la map ?")) return;
+        mapW = parseInt(document.getElementById('map-w').value);
+        mapH = parseInt(document.getElementById('map-h').value);
+        tileSize = parseInt(document.getElementById('tile-size').value);
+        initData();
+    }
+
+    function drawTileset() {
+        if (!tilesetImg.complete || !tilesetImg.src) return;
+        
+        tsCtx.clearRect(0, 0, tsCanvas.width, tsCanvas.height);
+        tsCtx.drawImage(tilesetImg, 0, 0);
+        
+        // Highlight the selected tile
+        const tsCols = Math.floor(tilesetImg.width / tileSize);
+        const sx = (selectedTile % tsCols) * tileSize;
+        const sy = Math.floor(selectedTile / tsCols) * tileSize;
+        
+        tsCtx.strokeStyle = '#f1c40f'; // bright yellow
+        tsCtx.lineWidth = 2;
+        tsCtx.strokeRect(sx + 1, sy + 1, tileSize - 2, tileSize - 2);
+    }
+
+    document.getElementById('upload-tileset').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            tilesetImg.src = event.target.result;
+            tilesetImg.onload = () => {
+                tsCanvas.width = tilesetImg.width;
+                tsCanvas.height = tilesetImg.height;
+                drawTileset();
+                drawMap();
+            };
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    function setMode(m) { 
+        mode = m; 
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active-mode'));
+        const btnId = 'btn-' + m.substring(0,4);
+        if(document.getElementById(btnId)) document.getElementById(btnId).classList.add('active-mode');
+        document.getElementById('transition-settings').style.display = (m === 'transition') ? 'block' : 'none';
+    }
+
+    tsCanvas.onclick = (e) => {
+        if (!tilesetImg.complete || !tilesetImg.src) return;
+        const x = Math.floor(e.offsetX / tileSize);
+        const y = Math.floor(e.offsetY / tileSize);
+        const cols = Math.floor(tilesetImg.width / tileSize);
+        selectedTile = y * cols + x;
+        drawTileset();
+        setMode('draw');
+    };
+
+    const handleInput = (e) => {
+        if (isPanning) return;
+        if (e.buttons !== 1 && e.buttons !== 2) return; // Only left/right click
+
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Convert screen coords to world coords
+        const worldX = (mouseX - viewX) / scale;
+        const worldY = (mouseY - viewY) / scale;
+
+        const x = Math.floor(worldX / tileSize);
+        const y = Math.floor(worldY / tileSize);
+        
+        if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
+            const index = y * mapW + x;
+            
+            if (e.buttons === 2) { // Right click
+                if (mode === 'draw') mapData[index] = 0;
+                else collisionData[index] = 0;
+            } else { // Left click
+                if (mode === 'draw') {
+                    mapData[index] = selectedTile;
+                } 
+                else if (mode === 'collision') {
+                    collisionData[index] = -1;
+                } 
+                else if (mode === 'spawn') {
+                    const oldSpawnIndex = collisionData.indexOf(-2);
+                    if (oldSpawnIndex !== -1) {
+                        collisionData[oldSpawnIndex] = 0;
+                    }
+                    collisionData[index] = -2;
+                }
+                else if (mode === 'transition') {
+                    if (collisionData[index] > 0) {
+                        document.getElementById('target-zone-id').value = collisionData[index];
+                    }
+                    collisionData[index] = parseInt(document.getElementById('target-zone-id').value) || 1;
+                }
+            }
+            drawMap();
+        }
+    };
+
+    viewport.addEventListener('mousedown', handleInput);
+    viewport.addEventListener('mousemove', handleInput);
+    viewport.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // --- Pan and Zoom ---
+    viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomIntensity = 0.1;
+        const delta = -Math.sign(e.deltaY);
+        const oldScale = scale;
+
+        const rect = viewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        scale += delta * zoomIntensity * scale;
+        scale = Math.max(0.2, Math.min(scale, 4)); // Clamp scale
+
+        // Adjust view transformation to zoom towards the mouse
+        viewX = mouseX - (mouseX - viewX) * (scale / oldScale);
+        viewY = mouseY - (mouseY - viewY) * (scale / oldScale);
+
+        drawMap();
+    }, { passive: false }); // passive:false is important for preventDefault
+
+    viewport.addEventListener('mousedown', (e) => {
+        if (e.button === 1) { // Middle mouse button
+            isPanning = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            viewport.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            viewX += dx;
+            viewY += dy;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            drawMap();
+        }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+        if (e.button === 1 && isPanning) {
+            isPanning = false;
+            viewport.style.cursor = 'crosshair';
+        }
+    });
+    // --- End Pan and Zoom ---
+
+    function drawMap() {
+        ctx.fillStyle = "#1a1a1a";
+        ctx.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+
+        ctx.save();
+        ctx.translate(viewX, viewY);
+        ctx.scale(scale, scale);
+
+        const tsCols = Math.floor(tilesetImg.width / tileSize);
+
+        for(let i = 0; i < mapData.length; i++) {
+            const tx = i % mapW;
+            const ty = Math.floor(i / mapW);
+            
+            if(tilesetImg.complete && tilesetImg.src) {
+                const tileIdx = mapData[i];
+                const sx = (tileIdx % tsCols) * tileSize;
+                const sy = Math.floor(tileIdx / tsCols) * tileSize;
+                ctx.drawImage(tilesetImg, sx, sy, tileSize, tileSize, tx*tileSize, ty*tileSize, tileSize, tileSize);
+            }
+
+            let val = collisionData[i];
+            
+            // RENDU DES CALQUES
+            if(val === -1) { // Collision
+                ctx.fillStyle = "rgba(231, 76, 60, 0.6)"; 
+                ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                ctx.strokeStyle = "white";
+                ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+            } 
+            else if(val === -2) { // SPAWN POINT
+                ctx.fillStyle = "rgba(46, 204, 113, 0.6)"; // Vert
+                ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                ctx.strokeStyle = "#2ecc71";
+                ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                
+                ctx.font = "20px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("🚩", tx*tileSize + tileSize/2, ty*tileSize + tileSize/2 + 7);
+            }
+            else if(val > 0) { // Transition
+                ctx.fillStyle = "rgba(155, 89, 182, 0.7)"; 
+                ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 14px Segoe UI";
+                ctx.textAlign = "center";
+                ctx.shadowColor = "black";
+                ctx.shadowBlur = 4;
+                ctx.fillText(val, tx*tileSize + tileSize/2, ty*tileSize + tileSize/2 + 5);
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        // Draw grid over the entire map
+        const mapPixelWidth = mapW * tileSize;
+        const mapPixelHeight = mapH * tileSize;
+        ctx.strokeStyle = "rgba(255,255,255,0.05)";
+        for(let x=0; x<=mapPixelWidth; x+=tileSize) {
+            ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,mapPixelHeight); ctx.stroke();
+        }
+        for(let y=0; y<=mapPixelHeight; y+=tileSize) {
+            ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(mapPixelWidth,y); ctx.stroke();
+        }
+        
+        // Draw a border around the map boundaries
+        ctx.strokeStyle = "#555";
+        ctx.lineWidth = 2 / scale; // Keep border width consistent on zoom
+        ctx.strokeRect(0, 0, mapPixelWidth, mapPixelHeight);
+
+        ctx.restore();
+    }
+
+    function formatDataWithNewlines(data, width) {
+        let result = "";
+        for (let i = 0; i < data.length; i++) {
+            result += data[i];
+            if ((i + 1) % width === 0) result += "\n";
+            else result += ",";
+        }
+        return result.trim();
+    }
+
+    function exportFiles() {
+        if (!collisionData.includes(-2)) {
+            alert("Veuillez placer un point de spawn (-2) avant d'exporter !");
+            return;
+        }
+        const formattedMap = formatDataWithNewlines(mapData, mapW);
+        const formattedColl = formatDataWithNewlines(collisionData, mapW);
+        download("map.txt", formattedMap);
+        download("collisionMap.txt", formattedColl);
+    }
+
+    function download(filename, text) {
+        let element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    initData();
+    setMode('draw');
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+</script>
+
+</body>
+</html>

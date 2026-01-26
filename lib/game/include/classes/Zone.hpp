@@ -5,6 +5,7 @@
 #include <memory>
 #include "WorldEntity.hpp"
 #include "TileMap.hpp"
+#include <SFML/Graphics.hpp>
 
 struct ZoneTransition {
     int targetZoneId;
@@ -13,11 +14,12 @@ struct ZoneTransition {
 
 class Zone {
 public:
-    Zone(int id, unsigned int width, unsigned int height, std::vector<int> collisionMap, std::vector<std::unique_ptr<WorldEntity>> entities, sf::Texture& tileset, const std::vector<int>& visualMap);
+    Zone(int id, unsigned int width, unsigned int height, sf::Vector2i spawnPos, std::vector<int> collisionMap, std::vector<std::unique_ptr<WorldEntity>> entities, sf::Texture& tileset, const std::vector<int>& visualMap);
 
     int getId() const { return m_id; }
     unsigned int getWidth() const { return m_width; }
     unsigned int getHeight() const { return m_height; }
+    sf::Vector2i getSpawnPos() const { return m_spawnPos; }
     const std::vector<int>& getCollisionMap() const { return m_collisionMap; }
     std::vector<ZoneTransition>& getTransitions() { return m_transitions; }
 
@@ -36,6 +38,7 @@ public:
 private:
     int m_id;
     unsigned int m_width, m_height;
+    sf::Vector2i m_spawnPos;
     std::vector<int> m_collisionMap;
     std::vector<ZoneTransition> m_transitions;
     std::vector<std::unique_ptr<WorldEntity>> m_entities;

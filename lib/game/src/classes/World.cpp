@@ -46,20 +46,22 @@ void World::update(Player& player) {
 
     // 3. Si la valeur correspond à une transition
     if (tileValue > 0) {
-        auto& transitions = zone.getTransitions();
-        
-        // On cherche si une transition avec cet ID existe
-        auto it = std::find_if(transitions.begin(), transitions.end(),
-            [tileValue](const ZoneTransition& t) { 
-                return t.targetZoneId == tileValue; 
-            });
-
-        if (it != transitions.end()) {
-            // Logique de changement de zone
-            changerZone(it->targetZoneId);
+        // Logique de changement de zone
+        changerZone(tileValue);
             
-            // On place le joueur à sa nouvelle position
-            player.setLogicalPos(it->targetSpawnPos);
-        }
+        // On place le joueur à sa nouvelle position
+        player.setLogicalPos(m_zones[tileValue]->getSpawnPos());
+
+        // auto& transitions = zone.getTransitions();
+        
+        // // On cherche si une transition avec cet ID existe
+        // auto it = std::find_if(transitions.begin(), transitions.end(),
+        //     [tileValue](const ZoneTransition& t) { 
+        //         return t.targetZoneId == tileValue; 
+        //     });
+
+        // if (it != transitions.end()) {
+            
+        // }
     }
 }

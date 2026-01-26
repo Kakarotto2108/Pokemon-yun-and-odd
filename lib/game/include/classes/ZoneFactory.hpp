@@ -6,9 +6,21 @@
 #include "ResourceManager.hpp"
 #include "Npc.hpp"
 #include "Obj.hpp"
+#include <iostream>
 
 class ZoneFactory {
 public:
+    static sf::Vector2i getSpawnPositionForZone(const std::vector<int>& collisionMap, int width) {
+        for (size_t i = 0; i < collisionMap.size(); ++i) {
+            if (collisionMap[i] == -2) {
+                int x = i % width;
+                int y = i / width;
+                return sf::Vector2i(x, y);
+            }
+        }
+        return sf::Vector2i(0, 0); // Position par défaut si non trouvé
+    }
+
     static std::unique_ptr<Zone> createZone(int zoneId) {
         std::string path = "assets/zone/zone" + std::to_string(zoneId) + "/";
         unsigned int width, height;
@@ -45,13 +57,10 @@ public:
                 pokeball                          // 5. Item (optionnel)
             ));
         }
+        sf::Vector2i spawnPoint = getSpawnPositionForZone(collision, width);
 
         // 3. Fabriquer la zone
-        auto zone = std::make_unique<Zone>(zoneId, width, height, std::move(collision), std::move(entities), tileset, visual);
-
-        // 4. Ajouter les transitions (On pourrait aussi les charger d'un fichier)
-        if (zoneId == 1) zone->getTransitions().push_back({2, sf::Vector2i(5,1)});
-        if (zoneId == 2) zone->getTransitions().push_back({1, sf::Vector2i(5,5)});
+        auto zone = std::make_unique<Zone>(zoneId, width, height, spawnPoint, std::move(collision), std::move(entities), tileset, visual);
 
         return zone;
     }
