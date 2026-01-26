@@ -10,15 +10,29 @@
 
 class ZoneFactory {
 public:
-    static sf::Vector2i getSpawnPositionForZone(const std::vector<int>& collisionMap, int width) {
-        for (size_t i = 0; i < collisionMap.size(); ++i) {
-            if (collisionMap[i] == -2) {
-                int x = i % width;
-                int y = i / width;
-                return sf::Vector2i(x, y);
+    static sf::Vector2i getSpawnPositionForZone(const std::vector<int>& collisionMap, unsigned int width) {
+        for (unsigned int y = 0; y < width; ++y) {
+            for (unsigned int x = 0; x < width; ++x) {
+                if (collisionMap[x + y * width] == -2) {
+                    return sf::Vector2i(x, y);
+                }
             }
         }
-        return sf::Vector2i(0, 0); // Position par défaut si non trouvé
+        return sf::Vector2i(0, 0);
+    }
+
+    static std::map<int, sf::Vector2i> getSpawnPointsForZone(const std::vector<int>& collisionMap, unsigned int width) {
+        std::map<int, sf::Vector2i> spawnPoints;
+        for (unsigned int y = 0; y < width; ++y) {
+            for (unsigned int x = 0; x < width; ++x) {
+                int tileValue = collisionMap[x + y * width];
+                if (tileValue < -100) {
+                    int index = -tileValue - 100;
+                    spawnPoints[index] = sf::Vector2i(x, y);
+                }
+            }
+        }
+        return spawnPoints;
     }
 
     static std::unique_ptr<Zone> createZone(int zoneId) {
@@ -57,10 +71,11 @@ public:
                 pokeball                          // 5. Item (optionnel)
             ));
         }
-        sf::Vector2i spawnPoint = getSpawnPositionForZone(collision, width);
+        sf::Vector2i spawnPos = getSpawnPositionForZone(collision, width);
+        std::map<int, sf::Vector2i> spawnPoints = getSpawnPointsForZone(collision, width);
 
         // 3. Fabriquer la zone
-        auto zone = std::make_unique<Zone>(zoneId, width, height, spawnPoint, std::move(collision), std::move(entities), tileset, visual);
+        auto zone = std::make_unique<Zone>(zoneId, width, height, spawnPos, spawnPoints, std::move(collision), std::move(entities), tileset, visual);
 
         return zone;
     }

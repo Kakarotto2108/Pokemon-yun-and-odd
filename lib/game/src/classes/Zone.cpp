@@ -3,12 +3,14 @@
 
 Zone::Zone(int id, unsigned int width, unsigned int height,
            sf::Vector2i spawnPos,
+           std::map<int, sf::Vector2i> spawnPoints,
            std::vector<int> collisionMap,
            std::vector<std::unique_ptr<WorldEntity>> entities,
            sf::Texture& tileset,
            const std::vector<int>& visualMap)
     : m_id(id), m_width(width), m_height(height)
     , m_spawnPos(spawnPos)
+    , m_spawnPoints(std::move(spawnPos))
     , m_collisionMap(std::move(collisionMap))
     , m_entities(std::move(entities))
     , m_tileset(&tileset)
