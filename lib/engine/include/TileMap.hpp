@@ -1,53 +1,64 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include <string>
-#include "ResourceManager.hpp"
+#include <GL/gl.h>
 
-class TileMap : public sf::Drawable, public sf::Transformable {
+struct Vertex3D {
+    float x, y, z;
+    float u, v;
+    sf::Color color;
+};
+
+class TileMap : public sf::Transformable {
 public:
+    TileMap() : m_tileset(nullptr) {}
+
     bool load(const sf::Texture& texture, sf::Vector2u tileSize, const std::vector<int>& tiles, unsigned int width, unsigned int height) {
         m_tileset = &texture;
+        m_vertices.clear();
+        m_vertices.reserve(width * height * 4);
 
-        m_vertices.setPrimitiveType(sf::Quads);
-        m_vertices.resize(width * height * 4);
+        float texW = (float)m_tileset->getSize().x;
+        float texH = (float)m_tileset->getSize().y;
+        unsigned int columns = m_tileset->getSize().x / tileSize.x;
 
-        for (unsigned int i = 0; i < width; ++i) {
-            for (unsigned int j = 0; j < height; ++j) {
-                // Récupération du numéro de la tuile
+        for (unsigned int j = 0; j < height; ++j) {
+            for (unsigned int i = 0; i < width; ++i) {
                 int tileNumber = tiles[i + j * width];
+                if (tileNumber < 0) continue;
 
-                // Calcul de la position (tu, tv) dans le tileset
-                // On utilise m_tileset qui est maintenant une référence passée au load
-                unsigned int columns = m_tileset->getSize().x / tileSize.x;
-                int tu = tileNumber % columns;
-                int tv = tileNumber / columns;
+                // Coordonnées en pixels
+                float tu = (float)(tileNumber % columns) * tileSize.x;
+                float tv = (float)(tileNumber / columns) * tileSize.y;
+                float tsX = (float)tileSize.x;
+                float tsY = (float)tileSize.y;
 
-                sf::Vertex* quad = &m_vertices[(i + j * width) * 4];
+                // NORMALISATION pour OpenGL (0.0 à 1.0)
+                float u1 = tu / texW;
+                float v1 = tv / texH;
+                float u2 = (tu + tsX) / texW;
+                float v2 = (tv + tsY) / texH;
 
-                // Positions des 4 coins du Quad
-                quad[0].position = sf::Vector2f(i * tileSize.x, j * tileSize.y);
-                quad[1].position = sf::Vector2f((i + 1) * tileSize.x, j * tileSize.y);
-                quad[2].position = sf::Vector2f((i + 1) * tileSize.x, (j + 1) * tileSize.y);
-                quad[3].position = sf::Vector2f(i * tileSize.x, (j + 1) * tileSize.y);
+                float x = (float)i * tsX;
+                float y = (float)j * tsY;
+                float z = 0.0f;
 
-                // Coordonnées de texture correspondantes
-                quad[0].texCoords = sf::Vector2f(tu * tileSize.x, tv * tileSize.y);
-                quad[1].texCoords = sf::Vector2f((tu + 1) * tileSize.x, tv * tileSize.y);
-                quad[2].texCoords = sf::Vector2f((tu + 1) * tileSize.x, (tv + 1) * tileSize.y);
-                quad[3].texCoords = sf::Vector2f(tu * tileSize.x, (tv + 1) * tileSize.y);
+                sf::Color c = sf::Color::White;
+
+                // On envoie les UV normalisés
+                m_vertices.push_back({x,       y,       z, u1, v1, c});
+                m_vertices.push_back({x + tsX, y,       z, u2, v1, c});
+                m_vertices.push_back({x + tsX, y + tsY, z, u2, v2, c});
+                m_vertices.push_back({x,       y + tsY, z, u1, v2, c});
             }
         }
         return true;
     }
 
-private:
-    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
-        states.transform *= getTransform();
-        states.texture = m_tileset;
-        target.draw(m_vertices, states);
-    }
+    const std::vector<Vertex3D>& getVertices() const { return m_vertices; }
+    const sf::Texture* getTileset() const { return m_tileset; }
 
-    sf::VertexArray m_vertices;
+private:
+    std::vector<Vertex3D> m_vertices;
     const sf::Texture* m_tileset;
 };

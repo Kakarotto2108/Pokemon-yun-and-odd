@@ -22,6 +22,7 @@ public:
     void stopAnimation();
 
     sf::Vector2i getPosition() const;
+    const sf::Sprite& getSprite() const { return m_sprite; }
     sf::Vector2f getDrawPosition() const;
     sf::Vector2i getFacingTile() const;
     void setLogicalPos(const sf::Vector2i& pos);

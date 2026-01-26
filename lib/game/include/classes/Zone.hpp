@@ -20,7 +20,10 @@ public:
     unsigned int getWidth() const { return m_width; }
     unsigned int getHeight() const { return m_height; }
     const std::vector<int>& getCollisionMap() const { return m_collisionMap; }
-
+    const TileMap& getTileMap() const { return m_tileMap; }
+    const sf::Texture& getTileset() const { return *m_tileset; }
+    const std::vector<std::unique_ptr<WorldEntity>>& getEntities() const { return m_entities; }
+    
     bool isBlocking(int x, int y) const;
     void drawAll(sf::RenderWindow& window, const WorldEntity& player);
     WorldEntity* getEntityAt(int x, int y) const {

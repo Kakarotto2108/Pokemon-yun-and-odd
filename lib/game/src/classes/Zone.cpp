@@ -19,7 +19,7 @@ Zone::Zone(int id, unsigned int width, unsigned int height,
 }
 
 void Zone::drawAll(sf::RenderWindow& window, const WorldEntity& player) {
-    window.draw(m_tileMap);
+    //window.draw(m_tileMap);
 
     std::vector<const WorldEntity*> renderQueue;
     renderQueue.push_back(&player);

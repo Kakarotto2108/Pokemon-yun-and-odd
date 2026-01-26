@@ -1,5 +1,9 @@
 #include "Game.hpp"
 #include "DialogManager.hpp"
+#include <SFML/OpenGL.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 Game::Game(const GameConfig& config)
@@ -26,7 +30,7 @@ Game::Game(const GameConfig& config)
 void Game::run() {
     sf::Clock clock;
 
-    MessageBox dialogUI;
+    GameDialog dialogUI;
     dialogUI.setPosition({0.f, m_config.height - 135.f}); // Position par défaut en bas de l'écran
     DialogManager::getInstance().init(&dialogUI);
 
@@ -44,7 +48,7 @@ void Game::run() {
 
 void Game::update(float dt)
 {
-    m_playerController->update(m_world.getZoneActuelle(), dt);
+    m_playerController->update(m_world.getCurrentZone(), dt);
     
     m_world.update(m_player); 
     
@@ -61,17 +65,60 @@ void Game::handleEvents()
     }
 }
 
-void Game::render()
-{
-    m_window.clear();
+void Game::render() {
+    m_window.clear(sf::Color::Black);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.1f);
 
-    // --- Monde ---
-    m_window.setView(m_cameraView);
-    m_world.draw(m_window, m_player);
+    sf::Vector2f pPos = m_player.getDrawPosition();
 
-    // --- UI ---
+    glm::mat4 projectionMatrix = glm::perspective(
+        glm::radians(45.f), 
+        (float)m_config.width / (float)m_config.height, 
+        0.1f, 
+        3000.f
+    );
+
+    glm::vec3 cameraPos = glm::vec3(pPos.x, pPos.y + 200.f, -400.f); 
+    glm::vec3 cameraTarget = glm::vec3(pPos.x, pPos.y, 0.f);
+
+    glm::mat4 viewMatrix = glm::lookAt(
+        cameraPos,
+        cameraTarget,
+        glm::vec3(0.f, -1.f, 0.f) // On garde le Up inversé pour l'axe Y de SFML
+    );
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(glm::value_ptr(projectionMatrix));
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(viewMatrix));
+
+    // 2. Setup States
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING); // IMPORTANT pour éviter le noir
+    glColor4f(1.f, 1.f, 1.f, 1.f); // Force le blanc pour le mode "Unlit"
+
+    m_world.draw3D(m_window);
+
+    m_window.pushGLStates();
     m_window.setView(m_uiView);
     DialogManager::getInstance().draw(m_window);
+    m_window.popGLStates();
 
     m_window.display();
+
+    // m_window.clear(sf::Color::Black);
+    // // --- Monde ---
+    // m_window.setView(m_cameraView);
+    // m_world.draw(m_window, m_player);
+
+    // // --- UI ---
+    // m_window.setView(m_uiView);
+    // DialogManager::getInstance().draw(m_window);
+
+    // m_window.display();
 }

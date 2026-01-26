@@ -16,7 +16,7 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
             DialogManager::getInstance().next();
         } else {
             sf::Vector2i front = m_player.getFacingTile();
-            Zone& currentZone = m_world.getZoneActuelle();
+            Zone& currentZone = m_world.getCurrentZone();
             Interactable* interactable = dynamic_cast<Interactable*>(currentZone.getEntityAt(front.x, front.y));
 
             if (interactable)
