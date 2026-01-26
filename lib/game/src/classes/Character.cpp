@@ -2,6 +2,7 @@
 #include "ResourceManager.hpp"
 #include "Event.hpp"
 #include <cmath>
+#include <iostream>
 
 Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation)
     : WorldEntity(name, pos), 
@@ -21,6 +22,11 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
 
     m_sprite.setOrigin(32.f, 32.f); 
     setLogicalPos(m_logicalPos);
+}
+
+void Character::stopAnimation() {
+    m_isMoving = false;
+    m_animations[m_currentAnim].reset();
 }
 
 void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
@@ -63,8 +69,6 @@ void Character::update(float dt) {
         m_sprite.move(diff * MOVE_SPEED);
     } else {
         m_sprite.setPosition(m_targetPos);
-        // On ne met m_isMoving à false que si le controller ne demande plus de mouvement
-        // (La logique vue précédemment pour la fluidité)
     }
 }
 
@@ -87,7 +91,7 @@ sf::Vector2i Character::getFacingTile() const {
 void Character::setLogicalPos(const sf::Vector2i& pos) {
     m_logicalPos = pos;
     m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE/2.f, 
-                               m_logicalPos.y * TILE_SIZE + TILE_SIZE/2.f);
+                               m_logicalPos.y * TILE_SIZE);
     m_sprite.setPosition(m_targetPos);
 }
 

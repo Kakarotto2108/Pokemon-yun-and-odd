@@ -10,7 +10,7 @@ Zone::Zone(int id, unsigned int width, unsigned int height,
            const std::vector<int>& visualMap)
     : m_id(id), m_width(width), m_height(height)
     , m_spawnPos(spawnPos)
-    , m_spawnPoints(std::move(spawnPos))
+    , m_spawnPoints(std::move(spawnPoints))
     , m_collisionMap(std::move(collisionMap))
     , m_entities(std::move(entities))
     , m_tileset(&tileset)

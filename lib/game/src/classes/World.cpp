@@ -1,6 +1,7 @@
 #include "World.hpp"
 #include "ZoneFactory.hpp"
 #include <iostream>
+#include <cmath>
 
 World::World() : m_currentZoneId(1) {}
 
@@ -46,13 +47,14 @@ void World::update(Player& player) {
 
     // 3. Si la valeur correspond à une transition
     if (tileValue > 0) {
-        int targetZoneId = math::floor(tileValue);
+        int targetZoneId = std::floor(tileValue);
         int targetSpawnIndex = tileValue - targetZoneId;
 
         // Logique de changement de zone
         changerZone(targetZoneId);
             
         // On place le joueur à sa nouvelle position
+        player.stopAnimation();
         player.setLogicalPos(m_zones[targetZoneId]->getSpawnPos(targetSpawnIndex));
     }
 }
