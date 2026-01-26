@@ -4,6 +4,7 @@
 #include "Zone.hpp"
 #include "MapLoader.hpp"
 #include "ResourceManager.hpp"
+#include "ScriptManager.hpp"
 #include "Npc.hpp"
 #include "Obj.hpp"
 #include <iostream>
@@ -47,34 +48,39 @@ public:
         auto visual = MapLoader::loadFromFile(path + "map.txt", width, height);
         auto collision = MapLoader::loadFromFile(path + "collisionMap.txt", width, height);
         sf::Texture& tileset = TextureManager::getInstance().get(path + "tileset.png");
+        ScriptManager::getInstance().loadDialogues(path + "dialogues.txt");
 
         // 2. Créer les entités spécifiques à la zone
         std::vector<std::unique_ptr<WorldEntity>> entities;
+        std::ifstream entFile(path + "entities.txt");
+        std::string line;
 
-        if (zoneId == 1) {
-            // Note : pokeball doit rester en vie assez longtemps ou être copiée. 
-            // Si Npc prend une référence (Item&), attention à la portée !
-            static Item pokeball("Poké ball", ItemPocket::Balls, "Un objet...", true); 
-            
-            // Correction NPC : Ajoute le NOM en premier argument si ton constructeur le demande
-            entities.push_back(std::make_unique<Npc>(
-                "Camille",                         // Nom du PNJ
-                "assets/sprite/pnj/gabou.png",    // Sprite
-                sf::Vector2i(4, 2),               // Position
-                0,                                // Orientation
-                "Bonjour !",                      // Dialogue
-                pokeball                          // Item
-            ));
+        while (std::getline(entFile, line)) {
+            if (line.empty()) continue;
 
-            // Même logique pour Obj si c'est un Interactable
-            entities.push_back(std::make_unique<Obj>(
-                "Television",                     // 1. Nom
-                "assets/sprite/obj/IMG_1338.png", // 2. Texture Path
-                sf::Vector2i(5, 0),               // 3. Position
-                "Cette télé est un cadeau de maman.",      // 4. Dialogue
-                pokeball                          // 5. Item (optionnel)
-            ));
+            std::stringstream ss(line);
+            std::string type, name, sprite, diagKey, xStr, yStr, orienStr;
+
+            // On découpe la ligne : TYPE|NOM|SPRITE|X|Y|ORIEN|DIAG
+            std::getline(ss, type, '|');
+            std::getline(ss, name, '|');
+            std::getline(ss, sprite, '|');
+            std::getline(ss, xStr, '|');
+            std::getline(ss, yStr, '|');
+            std::getline(ss, orienStr, '|');
+            std::getline(ss, diagKey, '|');
+
+            sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
+            int orientation = std::stoi(orienStr);
+            std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
+
+            if (type == "NPC") {
+                entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey));
+            } else {
+                entities.push_back(std::make_unique<Obj>(name, fullSpritePath, pos, diagKey));
+            }
         }
+
         sf::Vector2i spawnPos = getSpawnPositionForZone(collision, width, height);
         std::map<int, sf::Vector2i> spawnPoints = getSpawnPointsForZone(collision, width, height);
 

@@ -1,0 +1,115 @@
+#include <map>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include "DialogManager.hpp"
+
+inline std::vector<std::string> split(const std::string& s, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(s);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+class ScriptManager {
+public:
+    static ScriptManager& getInstance() {
+        static ScriptManager inst;
+        return inst;
+    }
+
+    // Récupère un dialogue. S'il n'est pas en mémoire, il va le chercher.
+    const std::vector<DialogueStep>& getDialogue(const std::string& key) {
+        if (m_cache.find(key) == m_cache.end()) {
+            static std::vector<DialogueStep> empty;
+            return empty;
+        }  
+        return m_cache[key];
+    }
+
+     void loadDialogues(const std::string& path) {
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Erreur : Impossible d'ouvrir " << path << std::endl;
+            return;
+        }
+
+        std::string line;
+        std::string currentKey = "";
+        std::vector<DialogueStep> currentSteps;
+
+        while (std::getline(file, line)) {
+            // Nettoyage des espaces/retours chariot invisibles
+            if (!line.empty() && line.back() == '\r') line.pop_back();
+            if (line.empty() || line[0] == '#') continue; // Sauter lignes vides et commentaires
+
+            // Détection d'un nouveau bloc : [nom_du_dialogue]
+            if (line[0] == '[' && line.back() == ']') {
+                // Si on change de bloc, on sauvegarde le précédent s'il n'est pas vide
+                if (!currentKey.empty()) {
+                    m_cache[currentKey] = currentSteps;
+                    currentSteps.clear();
+                }
+                currentKey = line.substr(1, line.size() - 2);
+                continue;
+            }
+
+            // Lecture d'une ligne de dialogue : S: Texte | T: Type | A: Action
+            if (!currentKey.empty()) {
+                DialogueStep step;
+                
+                // On sépare par le pipe |
+                auto parts = split(line, '|');
+                for (auto& p : parts) {
+                    // On enlève les espaces autour
+                    size_t first = p.find_first_not_of(" ");
+                    size_t last = p.find_last_not_of(" ");
+                    std::string cleanPart = (first == std::string::npos) ? "" : p.substr(first, (last - first + 1));
+
+                    if (cleanPart.find("S:") == 0) {
+                        step.text = cleanPart.substr(2); // Récupère le texte après "S:"
+                    } 
+                    else if (cleanPart.find("T:") == 0) {
+                        std::string type = cleanPart.substr(2);
+                        if (type == "Object") step.type = BoxType::Object;
+                        else step.type = BoxType::Classic;
+                    } 
+                    else if (cleanPart.find("A:") == 0) {
+                        std::string actionData = cleanPart.substr(2);
+                        
+                        // On crée la lambda pour l'action
+                        step.action = [actionData]() {
+                            auto tokens = split(actionData, ':');
+                            if (tokens.empty()) return;
+
+                            if (tokens[0] == "GIVE_ITEM") {
+                                // Exemple: GIVE_ITEM:Pokeball:1
+                                std::cout << "DEBUG: Don de " << tokens[2] << " " << tokens[1] << std::endl;
+                                // Player::getInstance().getInventory().addItem(...);
+                            }
+                            else if (tokens[0] == "HEAL") {
+                                std::cout << "DEBUG: Soin de l'equipe" << std::endl;
+                            }
+                        };
+                    }
+                }
+                currentSteps.push_back(step);
+            }
+        }
+
+        // Ne pas oublier de sauvegarder le dernier bloc du fichier
+        if (!currentKey.empty()) {
+            m_cache[currentKey] = currentSteps;
+        }
+
+        file.close();
+    }
+
+private:
+    std::map<std::string, std::vector<DialogueStep>> m_cache;
+};

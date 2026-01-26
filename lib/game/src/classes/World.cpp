@@ -7,27 +7,19 @@
 #include <iostream>
 #include <cmath>
 
-World::World() : m_currentZoneId(1) {}
-
-void World::addZone(std::unique_ptr<Zone> zone) {
-    if (zone) {
-        int id = zone->getId();
-        m_zones[id] = std::move(zone);
-    }
-}
+World::World() {}
 
 Zone& World::getCurrentZone() {
-    return *m_zones.at(m_currentZoneId);
+    return *m_zone;
 }
 
 void World::switchZone(int id) {
-    if (m_zones.find(id) != m_zones.end()) {
-        m_currentZoneId = id;
-    }
+    if (m_zone->getId() == id) return;
+    m_zone = ZoneFactory::createZone(id);
 }
 
 int World::getCurrentZoneId() const {
-    return m_currentZoneId;
+    return m_zone->getId();
 }
 
 void World::draw(sf::RenderWindow& window, const WorldEntity& focus) {
@@ -207,10 +199,7 @@ void World::draw3D(sf::RenderWindow& window) {
 }
 
 void World::init() {
-    addZone(ZoneFactory::createZone(1));
-    addZone(ZoneFactory::createZone(2));
-
-    m_currentZoneId = 1;
+    m_zone = ZoneFactory::createZone(1);
 }
 
 void World::update(Player& player) {
@@ -231,6 +220,6 @@ void World::update(Player& player) {
             
         // On place le joueur à sa nouvelle position
         player.stopAnimation();
-        player.setLogicalPos(m_zones[targetZoneId]->getSpawnPos(targetSpawnIndex));
+        player.setLogicalPos(getCurrentZone().getSpawnPos(targetSpawnIndex));
     }
 }

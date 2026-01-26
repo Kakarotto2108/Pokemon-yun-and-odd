@@ -5,10 +5,10 @@
 
 class Npc : public Character, public Interactable {
 public:
-    Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos, int orientation, const std::string& dialogue, Item& item);
+    Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos, int orientation, const std::string& dialogueKey);
 
     void interact() override;
 
 private:
-    std::string m_dialogue;
+    std::string m_dialogueKey;
 };

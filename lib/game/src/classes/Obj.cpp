@@ -1,11 +1,13 @@
 #include "Obj.hpp"
 #include "ResourceManager.hpp"
+#include "ScriptManager.hpp"
+#include "DialogManager.hpp"
 #include <iostream>
 
 Obj::Obj(const std::string& name, const std::string& texturePath, 
-         const sf::Vector2i& pos, const std::string& dialogue, 
+         const sf::Vector2i& pos, const std::string& dialogueKey, 
          std::optional<Item> item)
-    : WorldEntity(name, pos), m_dialogue(dialogue), m_item(item) 
+    : WorldEntity(name, pos), m_dialogueKey(dialogueKey), m_item(item) 
 {
     // Chargement de la texture via ton Manager
     sf::Texture& tex = TextureManager::getInstance().get(texturePath);
@@ -17,12 +19,9 @@ Obj::Obj(const std::string& name, const std::string& texturePath,
     m_sprite.setScale(3.f, 3.f);
 }
 
-void Obj::interact() {
-    std::cout << m_dialogue << std::endl;
-    if (m_item) {
-        std::cout << "Vous avez trouvé : " << m_item->getName() << " !" << std::endl;
-        m_item = std::nullopt; // On ramasse l'objet
-    }
+void Obj::interact() {    
+    const auto& script = ScriptManager::getInstance().getDialogue(m_dialogueKey);
+    DialogManager::getInstance().startDialogue(script);
 }
 
 void Obj::draw(sf::RenderWindow& window) const {

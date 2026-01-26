@@ -1,32 +1,15 @@
 #include "Npc.hpp"
+#include "ScriptManager.hpp"
 #include "DialogManager.hpp"
 #include "Player.hpp"
 #include <iostream>
 
 Npc::Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos, 
-         int orientation, const std::string& dialogue, Item& item)
+         int orientation, const std::string& dialogueKey)
     : Character(name, sprite, pos, orientation), 
-      m_dialogue(dialogue) {}
+      m_dialogueKey(dialogueKey) {}
 
-void Npc::interact() {
-    std::vector<DialogueStep> script;
-
-    script.push_back({"Oh, tiens ! Prends ceci.", BoxType::Classic});
-
-    DialogueStep giveStep;
-    giveStep.text = "$[white]Vous recevez une $[blue]Pokéball $[white]!";
-    giveStep.type = BoxType::Object;
-    giveStep.action = [this]() {
-        Player::getInstance().getInventory().addItem(Item(
-            "Poké ball", 
-            ItemPocket::Balls, 
-            "Un objet...", 
-            true
-        ),1); 
-    };
-    
-    script.push_back(giveStep);
-    script.push_back({"Fais-en bon usage !", BoxType::Classic});
-
+void Npc::interact() {    
+    const auto& script = ScriptManager::getInstance().getDialogue(m_dialogueKey);
     DialogManager::getInstance().startDialogue(script);
 }

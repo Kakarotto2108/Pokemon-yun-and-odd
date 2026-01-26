@@ -8,7 +8,7 @@
 class Obj : public WorldEntity, public Interactable {
 public:
     Obj(const std::string& name, const std::string& texturePath, 
-        const sf::Vector2i& pos, const std::string& dialogue, 
+        const sf::Vector2i& pos, const std::string& dialogueKey, 
         std::optional<Item> item = std::nullopt);
     
     const sf::Sprite& getSprite() const { return m_sprite; }
@@ -20,7 +20,7 @@ public:
     void draw(sf::RenderWindow& window) const override;
 
 private:
-    std::string m_dialogue;
+    std::string m_dialogueKey;
     std::optional<Item> m_item;
     sf::Sprite m_sprite;
 };

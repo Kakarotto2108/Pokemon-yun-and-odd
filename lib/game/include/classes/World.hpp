@@ -41,7 +41,5 @@ public:
     void init();
 
 private:
-    // Stockage des zones identifiées par leur ID
-    std::map<int, std::unique_ptr<Zone>> m_zones; 
-    int m_currentZoneId;
+    std::unique_ptr<Zone> m_zone; 
 };
