@@ -7,7 +7,7 @@ S: Fais-en bon usage ! | T: Classic
 
 # Dialogue du Vieux Sage (Soin)
 [sage_conseil]
-S: Tes Pokemonitos ont l'air fatigués, mon enfant. | T: Classic
+S: Tes $[red]Pokemonitos $[black]ont l'air fatigués, mon enfant. | T: Classic
 S: Laisse-moi les soigner un instant... | T: Classic | A: HEAL
 S: Voilà ! Ils sont en pleine forme maintenant. | T: Classic
 

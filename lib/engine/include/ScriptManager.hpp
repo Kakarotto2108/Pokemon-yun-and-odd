@@ -16,6 +16,13 @@ inline std::vector<std::string> split(const std::string& s, char delimiter) {
     return tokens;
 }
 
+inline std::string trim(const std::string& s) {
+    size_t first = s.find_first_not_of(" \t\n\r");
+    if (first == std::string::npos) return "";
+    size_t last = s.find_last_not_of(" \t\n\r");
+    return s.substr(first, (last - first + 1));
+}
+
 class ScriptManager {
 public:
     static ScriptManager& getInstance() {
@@ -66,34 +73,32 @@ public:
                 // On sépare par le pipe |
                 auto parts = split(line, '|');
                 for (auto& p : parts) {
-                    // On enlève les espaces autour
-                    size_t first = p.find_first_not_of(" ");
-                    size_t last = p.find_last_not_of(" ");
-                    std::string cleanPart = (first == std::string::npos) ? "" : p.substr(first, (last - first + 1));
+                    std::string cleanPart = trim(p);
 
                     if (cleanPart.find("S:") == 0) {
-                        step.text = cleanPart.substr(2); // Récupère le texte après "S:"
+                        step.text = trim(cleanPart.substr(2));
                     } 
                     else if (cleanPart.find("T:") == 0) {
-                        std::string type = cleanPart.substr(2);
-                        if (type == "Object") step.type = BoxType::Object;
-                        else step.type = BoxType::Classic;
+                        std::string type = trim(cleanPart.substr(2)); // Nettoyage ici
+                        step.type = (type == "Object") ? BoxType::Object : BoxType::Classic;
                     } 
                     else if (cleanPart.find("A:") == 0) {
-                        std::string actionData = cleanPart.substr(2);
+                        std::string actionData = trim(cleanPart.substr(2)); // Nettoyage ici
                         
-                        // On crée la lambda pour l'action
                         step.action = [actionData]() {
                             auto tokens = split(actionData, ':');
                             if (tokens.empty()) return;
 
-                            if (tokens[0] == "GIVE_ITEM") {
-                                // Exemple: GIVE_ITEM:Pokeball:1
-                                std::cout << "DEBUG: Don de " << tokens[2] << " " << tokens[1] << std::endl;
-                                // Player::getInstance().getInventory().addItem(...);
+                            // On nettoie aussi chaque token pour être sûr
+                            std::string cmd = trim(tokens[0]);
+
+                            if (cmd == "GIVE_ITEM") {
+                                std::string itemID = trim(tokens[1]);
+                                int qty = std::stoi(trim(tokens[2]));
+                                std::cout << "Don de " << qty << " " << itemID << std::endl;
                             }
-                            else if (tokens[0] == "HEAL") {
-                                std::cout << "DEBUG: Soin de l'equipe" << std::endl;
+                            else if (cmd == "HEAL") {
+                                // ...
                             }
                         };
                     }

@@ -39,6 +39,10 @@ void DialogManager::next() {
         current.action(); // On exécute l'action liée à cette réplique
     }
 
+    if (current.type == BoxType::Object) {
+        current.text = "$[white]" + current.text;
+    }
+
     m_msgBox->setBoxType(current.type);
     m_msgBox->setText(current.text);
     m_msgBox->show();
