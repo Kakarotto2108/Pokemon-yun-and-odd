@@ -57,12 +57,15 @@
     <button class="btn" id="btn-trans" onclick="setMode('transition')">🚪 Transition (ID)</button>
     <button class="btn" id="btn-antitrans" onclick="setMode('antitransition')"> 🚩 Anti-Transition (spawnpointID) </button>
     
-    <div id="transition-settings" style="display:none; background: #1e2b38; padding: 10px; border-radius: 5px; border: 1px solid #9b59b6;">
+    <div id="transition-settings1" style="display:none; background: #1e2b38; padding: 10px; border-radius: 5px; border: 1px solid #9b59b6;">
         <div class="input-group">ID Zone Cible: <input type="number" id="target-zone-id" value="1" min="1"></div>
+    </div>
+    <div id="transition-settings2" style="display:none; background: #1e2b38; padding: 20px; border-radius: 5px; border: 1px solid #9b59b6;">
+        <div class="input-group">SpawnpointID Cible: <input type="number" id="target-porte-id" value="1" min="1"></div>
     </div>
 
     <div id="antitransition-settings" style="display:none; background: #1e2b38; padding: 10px; border-radius: 5px; border: 1px solid #9b59b6;">
-        <div class="input-group"> spawnpointID: <input type="number" id="target-porte-id" value="1" min="1"></div>
+        <div class="input-group"> spawnpointID: <input type="number" id="source-porte-id" value="1" min="1"></div>
     </div>
 
     <hr>
@@ -238,7 +241,10 @@
         if (btn) btn.classList.add('active-mode');
 
         // panneaux
-        document.getElementById('transition-settings').style.display =
+        document.getElementById('transition-settings1').style.display =
+            (m === 'transition') ? 'block' : 'none';
+
+        document.getElementById('transition-settings2').style.display =
             (m === 'transition') ? 'block' : 'none';
 
         document.getElementById('antitransition-settings').style.display =
@@ -255,6 +261,15 @@
         drawTileset();
         setMode('draw');
     };
+
+    function divideByNextPowerOf10(num) {
+        if (num === 0) return 0; // edge case
+        // Nombre de chiffres avant la virgule
+        const digits = Math.floor(Math.log10(Math.abs(num))) + 1;
+        // Puissance de 10 supérieure
+        const divisor = 10 ** digits;
+        return num / divisor;
+    }
 
     const handleInput = (e) => {
         if (isPanning) return;
@@ -295,17 +310,17 @@
                     if (collisionData[index] > 0) {
                         document.getElementById('target-zone-id').value = collisionData[index];
                     }
-                    collisionData[index] = parseInt(document.getElementById('target-zone-id').value) || 1;
+                    collisionData[index] = (parseFloat(document.getElementById('target-zone-id').value) + divideByNextPowerOf10((document.getElementById('target-porte-id').value)*10 + 1)) || 2;
                 }
                 else if (mode === 'antitransition') {
-                    const oldSpawnIndex = collisionData.indexOf(document.getElementById('target-porte-id').value * (-1)- 100);
+                    const oldSpawnIndex = collisionData.indexOf(document.getElementById('source-porte-id').value * (-1)- 100);
                     if (oldSpawnIndex !== -1) {
                         collisionData[oldSpawnIndex] = 0;
                     }
                     if (collisionData[index] < -100) {
-                        document.getElementById('target-porte-id').value = -collisionData[index];
+                        document.getElementById('source-porte-id').value = -collisionData[index];
                     }
-                    const spawnpointID = parseInt(document.getElementById('target-porte-id').value) || 1;
+                    const spawnpointID = parseInt(document.getElementById('source-porte-id').value) || 1;
                     collisionData[index] = -100 - spawnpointID;
                 }
             }
@@ -395,42 +410,73 @@
             if(val === -1) { // Collision
                 ctx.fillStyle = "rgba(231, 76, 60, 0.6)"; 
                 ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
-                ctx.strokeStyle = "white";
+                ctx.strokeStyle = "White";
                 ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
-            } 
-            else if(val === -2) { // SPAWN POINT
-                ctx.fillStyle = "rgba(46, 204, 113, 0.6)"; // Vert
-                ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
-                ctx.strokeStyle = "#2ecc71";
-                ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
-                
-                ctx.font = "20px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText("🚩", tx*tileSize + tileSize/2, ty*tileSize + tileSize/2 + 7);
             }
-            else if (val <= -100) { // Anti-Transition
-                ctx.fillStyle = "rgba(46, 204, 113, 0.6)"; // Vert
-                ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+            // =======================
+            // SPAWN POINT SIMPLE
+            // =======================
+            else if (val === -2) {
+
+                const x = tx * tileSize;
+                const y = ty * tileSize;
+
+                // Fond vert
+                ctx.fillStyle = "rgba(46, 204, 113, 0.6)";
+                ctx.fillRect(x, y, tileSize, tileSize);
 
                 // Drapeau
-                ctx.fillStyle = "white";
-                ctx.font = "bold 18px Segoe UI";
+                const flagX = x + tileSize / 2;
+                const flagY = y + tileSize / 2 + 6;
+
                 ctx.textAlign = "center";
+                ctx.font = "20px Arial";
                 ctx.shadowColor = "black";
-                ctx.shadowBlur = 4;
-                ctx.fillText("🚩", tx*tileSize + tileSize/2, ty*tileSize + tileSize/2 + 3);
+                ctx.shadowBlur = 3;
+                ctx.fillStyle = "rgba(255,255,255,0.6)";
 
-                // ID plus petit en dessous
-                let spawnpointID = (100 + val)*(-1);
+                ctx.fillText("🚩", flagX, flagY);
+            }
 
-                ctx.font = "bold 11px Segoe UI";
+
+            // =======================
+            // ANTI-TRANSITION
+            // =======================
+            else if (val <= -100) {
+
+                const x = tx * tileSize;
+                const y = ty * tileSize;
+
+                // Fond vert
+                ctx.fillStyle = "rgba(46, 204, 113, 0.6)";
+                ctx.fillRect(x, y, tileSize, tileSize);
+
+                // Drapeau
+                const flagX = x + tileSize / 2;
+                const flagY = y + tileSize / 2 + 6;
+
+                ctx.textAlign = "center";
+                ctx.font = "20px Arial";
+                ctx.shadowColor = "black";
+                ctx.shadowBlur = 3;
+                ctx.fillStyle = "rgba(255,255,255,0.6)";
+
+                ctx.fillText("🚩", flagX, flagY);
+
+                // ID en dessous
+                let spawnpointID = (100 + val) * (-1);
+
                 ctx.shadowBlur = 0;
+                ctx.font = "bold 11px Arial";
+
                 ctx.fillText(
                     spawnpointID,
-                    tx*tileSize + tileSize/2 + 3,
-                    ty*tileSize + tileSize/2 + 12
+                    flagX + 3,
+                    flagY + 7
                 );
             }
+
+
 
             else if(val > 0) { // Transition
                 ctx.fillStyle = "rgba(155, 89, 182, 0.7)"; 
