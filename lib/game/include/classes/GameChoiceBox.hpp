@@ -10,6 +10,7 @@ private:
     int m_scrollOffset = 0;
     const int MAX_VISIBLE_CHOICES = 6;
     sf::Sprite m_cursorSprite;
+    sf::Sprite m_indicatorSprite;
     sf::Clock m_inputClock; // Horloge pour gérer le cooldown
 
     GameChoiceBox();

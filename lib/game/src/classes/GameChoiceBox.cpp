@@ -4,8 +4,11 @@
 
 GameChoiceBox::GameChoiceBox() {
     std::string path = "assets/sprite/ui/cursor.png";
+    std::string indicatorPath = "assets/sprite/ui/cursor_indicator.png";
     m_cursorSprite.setTexture(TextureManager::getInstance().get(path));
     m_cursorSprite.setScale(3.f, 3.f);
+    m_indicatorSprite.setTexture(TextureManager::getInstance().get(indicatorPath));
+    m_indicatorSprite.setScale(3.f, 3.f);
     m_boxSprite.setTexture(TextureManager::getInstance().get("assets/sprite/ui/dialog_box.png"));
     m_boxSprite.setScale(1.f, 1.f);
 
@@ -149,21 +152,21 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     }
 
     // --- 4. Flèches de défilement ---
-    if (m_cursorSprite.getTexture()) {
-        sf::Vector2u cSize = m_cursorSprite.getTexture()->getSize();
-        m_cursorSprite.setOrigin(cSize.x / 2.f, cSize.y / 2.f);
+    if (m_indicatorSprite.getTexture()) {
+        sf::Vector2u cSize = m_indicatorSprite.getTexture()->getSize();
+        m_indicatorSprite.setOrigin(cSize.x / 2.f, cSize.y / 2.f);
         float arrowX = boxBounds.left + boxBounds.width - 25.f;
 
         if (m_scrollOffset > 0) {
-            m_cursorSprite.setRotation(-90.f);
-            m_cursorSprite.setPosition(arrowX, boxBounds.top + 25.f);
-            window.draw(m_cursorSprite);
+            m_indicatorSprite.setRotation(180.f);
+            m_indicatorSprite.setPosition(arrowX, boxBounds.top + 25.f);
+            window.draw(m_indicatorSprite);
         }
 
         if (m_scrollOffset + MAX_VISIBLE_CHOICES < static_cast<int>(m_choices.size())) {
-            m_cursorSprite.setRotation(90.f);
-            m_cursorSprite.setPosition(arrowX, boxBounds.top + boxBounds.height - 25.f);
-            window.draw(m_cursorSprite);
+            m_indicatorSprite.setRotation(0.f);
+            m_indicatorSprite.setPosition(arrowX, boxBounds.top + boxBounds.height - 25.f);
+            window.draw(m_indicatorSprite);
         }
     }
 }
