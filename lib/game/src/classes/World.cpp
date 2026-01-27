@@ -1,5 +1,6 @@
 #include "World.hpp"
 #include "ZoneFactory.hpp"
+#include "TransitionManager.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -176,7 +177,7 @@ void World::renderEntities(Zone& zone) {
     }
 }
 
-void World::draw3D(sf::RenderWindow& window) {
+void World::draw3D(sf::RenderTarget& target) {
     Zone& zone = getCurrentZone();
     
     // 1. Préparation des états OpenGL
@@ -207,19 +208,41 @@ void World::update(Player& player) {
     Zone& zone = getCurrentZone();
     sf::Vector2i pos = player.getPosition();
 
+    // --- DEBUG ---
+    int zoneWidth = zone.getWidth();
+    int zoneHeight = zone.getHeight();
+    int mapSize = zone.getCollisionMap().size();
+    int accessIndex = pos.x + pos.y * zoneWidth;
+
+    if (pos.x < 0 || pos.x >= zoneWidth || pos.y < 0 || pos.y >= zoneHeight || accessIndex >= mapSize) {
+        std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        std::cerr << "!! PLAYER IS OUT OF BOUNDS FOR THE ZONE !!" << std::endl;
+        std::cerr << "!! Player pos: (" << pos.x << ", " << pos.y << ")" << std::endl;
+        std::cerr << "!! Zone size: " << zoneWidth << "x" << zoneHeight << std::endl;
+        std::cerr << "!! Collision map size: " << mapSize << ", Access index: " << accessIndex << std::endl;
+        std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        return; // On empêche le crash
+    }
+    // --- FIN DEBUG ---
+
     // 2. Vérifier si la case actuelle est une case de collision/transition
-    int tileValue = zone.getCollisionMap()[pos.x + pos.y * zone.getWidth()];
+    int tileValue = zone.getCollisionMap()[accessIndex];
 
     // 3. Si la valeur correspond à une transition
-    if (tileValue > 0.f) {
+    if (tileValue > 0) { // Note: tileValue est un int, la comparaison avec 0.f marche mais c'est inhabituel
         int targetZoneId = tileValue >> 16;
         int targetSpawnIndex = tileValue & 0xFFFF;
 
-        // Logique de changement de zone
-        switchZone(targetZoneId);
-            
-        // On place le joueur à sa nouvelle position
-        player.stopAnimation();
-        player.setLogicalPos(getCurrentZone().getSpawnPos(targetSpawnIndex));
+        // Si on n'est pas déjà en train de changer de zone, on lance la transition
+        if (!TransitionManager::getInstance().isRunning()) {
+            // On récupère un type aléatoire ici
+            TransitionType randomEffect = TransitionManager::getInstance().getRandomType();
+
+            TransitionManager::getInstance().start(randomEffect, 0.8f, [=, &player](){
+                switchZone(targetZoneId);
+                player.stopAnimation();
+                player.setLogicalPos(getCurrentZone().getSpawnPos(targetSpawnIndex));
+            }, 0.5f);
+        }
     }
 }

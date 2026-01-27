@@ -19,6 +19,7 @@ private:
 
 private:
     GameConfig m_config;
+    sf::RenderTexture m_sceneBuffer;
     sf::RenderWindow m_window;
     Player& m_player;
     sf::View m_cameraView;

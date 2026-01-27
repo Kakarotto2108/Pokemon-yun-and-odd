@@ -1,4 +1,5 @@
 [DIAG_1]
 S: Bonjour, j'aime vraiment la tambouille que me prépare ma maman quand je mange des chapi chapeaux | T: Classic| A: NONE
 S: Comment ça va ? | T: Classic| A: NONE
+S: Tu es un $[red] ARABE $[black]\n mon jeune $[blue] Harry | T: Classic| A: NONE
 
