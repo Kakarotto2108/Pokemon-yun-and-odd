@@ -40,7 +40,7 @@ public:
         return m_cache[key];
     }
 
-     void loadDialogues(const std::string& path) {
+    void loadDialogues(const std::string& path) {
         std::ifstream file(path);
         if (!file.is_open()) {
             std::cerr << "Erreur : Impossible d'ouvrir " << path << std::endl;
@@ -97,6 +97,32 @@ public:
                                 std::string itemID = trim(tokens[1]);
                                 int qty = std::stoi(trim(tokens[2]));
                                 std::cout << "Don de " << qty << " " << itemID << std::endl;
+                            }
+                            if (cmd == "CHOICE") {
+                                std::map<std::string, std::string> choices;
+
+                                // On commence à i=1 car i=0 est la commande "CHOICE"
+                                for (size_t i = 1; i < tokens.size(); ++i) {
+                                    std::string rawChoice = trim(tokens[i]); // Récupère "{choix1, Evenement1}"
+
+                                    // 1. Enlever les accolades { }
+                                    if (!rawChoice.empty() && rawChoice.front() == '{' && rawChoice.back() == '}') {
+                                        rawChoice = rawChoice.substr(1, rawChoice.size() - 2);
+                                    }
+
+                                    // 2. Split sur la virgule pour séparer le texte de l'événement
+                                    auto choicePair = split(rawChoice, ',');
+
+                                    if (choicePair.size() == 2) {
+                                        std::string text = trim(choicePair[0]);
+                                        std::string event = trim(choicePair[1]);
+            
+                                        choices[text] = event;
+                                    }
+                                }
+
+                                GameChoiceBox::getInstance().init(choices);
+                                GameChoiceBox::getInstance().show();
                             }
                             else if (cmd == "HEAL") {
                                 // ...

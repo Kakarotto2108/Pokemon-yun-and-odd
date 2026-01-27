@@ -21,26 +21,42 @@ GameChoiceBox::GameChoiceBox() {
         if (std::abs(value) > 0.1f) { // Zone morte pour éviter les sticks trop sensibles
             if (value < 0) { // Haut
                 m_currentIndex--;
-                if (m_currentIndex < 0) m_currentIndex = static_cast<int>(m_choices.size()) - 1;
+                if (m_currentIndex < 0) {
+                    m_currentIndex = static_cast<int>(m_choices.size()) - 1;
+                    m_scrollOffset = std::max(0, static_cast<int>(m_choices.size()) - MAX_VISIBLE_CHOICES);
+                } else if (m_currentIndex < m_scrollOffset) {
+                    m_scrollOffset = m_currentIndex;
+                }
                 m_inputClock.restart(); // On relance le cooldown
             } 
             else if (value > 0) { // Bas
                 m_currentIndex++;
-                if (m_currentIndex >= static_cast<int>(m_choices.size())) m_currentIndex = 0;
+                if (m_currentIndex >= static_cast<int>(m_choices.size())) {
+                    m_currentIndex = 0;
+                    m_scrollOffset = 0;
+                } else if (m_currentIndex >= m_scrollOffset + MAX_VISIBLE_CHOICES) {
+                    m_scrollOffset++;
+                }
                 m_inputClock.restart(); // On relance le cooldown
             }
         }
     });
     Controller::getInstance().onActionPressed("Interact", [this]() {
         if (!m_visible) return;
+
+        // Sécurité : Si la boîte vient juste de s'ouvrir (moins de 0.2s), on ignore l'appui
+        // Cela évite de valider le choix avec la même touche qui a ouvert le menu.
+        if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
+
         // Ici on pourrait ajouter une action à exécuter lors de la sélection
-        std::cout << "Evenement du choix sélectionné : " << m_choices[getChoiceName()] << std::endl;
-        m_visible = false;
+        hide();
     });
 }
 
 void GameChoiceBox::init(std::map<std::string, std::string> choices) {
     m_choices = choices;
+    m_scrollOffset = 0;
+    m_inputClock.restart(); // On reset le timer à l'ouverture pour activer la sécurité
 }
 
 void GameChoiceBox::setChoiceIndex(int index) {
@@ -68,33 +84,38 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     // --- 1. Calculer la hauteur totale nécessaire pour le texte ---
     float totalTextHeight = 0.f;
     const float lineSpacing = 10.f; // espace entre les lignes
+    float singleLineHeight = 0.f;
 
-    for (const auto& choice : m_choices) {
-        setText(choice.first);
-        for (const auto& seg : m_segments) {
-            sf::Text t;
-            t.setFont(font);
-            t.setCharacterSize(28);
-            t.setString(sf::String::fromUtf8(seg.content.begin(), seg.content.end()));
-            totalTextHeight += t.getGlobalBounds().height + lineSpacing;
-        }
+    // On calcule la hauteur d'une seule ligne pour être plus robuste
+    if (!m_choices.empty()) {
+        sf::Text tempText("X", font, 28);
+        singleLineHeight = tempText.getGlobalBounds().height + lineSpacing;
+        int visibleCount = std::min(static_cast<int>(m_choices.size()), MAX_VISIBLE_CHOICES);
+        totalTextHeight = visibleCount * singleLineHeight;
     }
 
     // Ajouter un padding en haut et en bas
     const float verticalPadding = 10.f;
-    totalTextHeight += 3 * verticalPadding;
+    totalTextHeight += 3 * verticalPadding; // Padding pour le haut et le bas
 
     // --- 2. Ajuster la taille du sprite ---
     if (m_boxSprite.getTexture()) {
+        float originalWidth = static_cast<float>(m_boxSprite.getTexture()->getSize().x);
         float originalHeight = static_cast<float>(m_boxSprite.getTexture()->getSize().y);
 
-        float scaleX = 0.2f; // échelle fixe horizontalement
-        float scaleY = totalTextHeight / originalHeight; // ajustement vertical automatique
+        // Pour que la boîte grandisse vers le haut, on ancre son origine en bas.
+        // On ancre aussi à droite pour la positionner facilement sur le côté de l'écran.
+        m_boxSprite.setOrigin(originalWidth, originalHeight);
+
+        // On positionne le point d'ancrage (le coin bas-droit) de la boîte.
+        // Ici, on la place près du coin bas-droit de la fenêtre, au-dessus du dialogue principal.
+        m_boxSprite.setPosition(window.getSize().x - 20.f, window.getSize().y - 145.f);
+
+        float scaleX = 0.3f; // Un peu plus large pour le texte
+        float scaleY = totalTextHeight > 0 ? totalTextHeight / originalHeight : 0;
         m_boxSprite.setScale(sf::Vector2f(scaleX, scaleY));
     }
 
-    // On peut ajuster l'origine si nécessaire (ici centrée verticalement et légèrement décalée horizontalement)
-    m_boxSprite.setOrigin(-3000.f, 140.f); 
     window.draw(m_boxSprite);
 
     // --- 3. Positionner le texte à l'intérieur du sprite ---
@@ -104,21 +125,24 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     float currentX = boxBounds.left + paddingX;
     float currentY = boxBounds.top + verticalPadding;
 
-    m_cursorSprite.setPosition(currentX - 55.f, currentY + (m_currentIndex - 1) * (lineSpacing*2.65f));
+    // On positionne le curseur à côté du texte de l'index actuel
+    // On ajoute une petite marge (+5.f) pour un meilleur alignement vertical
+    int visibleIndex = m_currentIndex - m_scrollOffset;
+    m_cursorSprite.setPosition(currentX - 30.f, currentY + (visibleIndex * singleLineHeight) + 5.f);
     window.draw(m_cursorSprite);
 
-    for (const auto& choice : m_choices) {
-        setText(choice.first);
-        for (const auto& seg : m_segments) {
-            sf::Text t;
-            t.setFont(font);
-            t.setCharacterSize(28);
-            t.setFillColor(seg.color);
-            t.setString(sf::String::fromUtf8(seg.content.begin(), seg.content.end()));
-            t.setPosition(currentX, currentY);
+    // On avance l'itérateur jusqu'à l'offset de défilement
+    auto it = m_choices.begin();
+    for(int i = 0; i < m_scrollOffset; ++i) if(it != m_choices.end()) ++it;
 
-            currentY += t.getGlobalBounds().height + lineSpacing;
-            window.draw(t);
-        }
+    // On affiche seulement MAX_VISIBLE_CHOICES éléments
+    for (int i = 0; i < MAX_VISIBLE_CHOICES && it != m_choices.end(); ++i, ++it) {
+        // On dessine directement le texte de chaque choix
+        sf::Text t(sf::String::fromUtf8(it->first.begin(), it->first.end()), font, 28);
+        t.setFillColor(sf::Color::Black);
+        t.setPosition(currentX, currentY);
+        
+        window.draw(t);
+        currentY += singleLineHeight;
     }
 }

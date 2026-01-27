@@ -7,10 +7,17 @@ class GameChoiceBox : public GameDialog {
 private:
     std::map<std::string, std::string> m_choices;
     int m_currentIndex = 0;
+    int m_scrollOffset = 0;
+    const int MAX_VISIBLE_CHOICES = 6;
     sf::Sprite m_cursorSprite;
     sf::Clock m_inputClock; // Horloge pour gérer le cooldown
-public:
+
     GameChoiceBox();
+
+public:
+    GameChoiceBox(const GameChoiceBox&) = delete;
+    GameChoiceBox& operator=(const GameChoiceBox&) = delete;
+
     static GameChoiceBox& getInstance() {
         static GameChoiceBox instance;
         return instance;

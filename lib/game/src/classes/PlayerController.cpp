@@ -5,9 +5,11 @@
 
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
+        if (DialogManager::getInstance().isActive()) return;
         m_hAxis = val;
     });
     Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
+        if (DialogManager::getInstance().isActive()) return;
         m_vAxis = val;
     });
 
