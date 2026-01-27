@@ -35,7 +35,7 @@ public:
     void drawCharacter3D(const Character& character);
     void drawObjSprite3D(const Obj& obj);
     void renderEntities(Zone& zone);
-    void draw3D(sf::RenderWindow& window);
+    void draw3D(sf::RenderTarget& target);
     
     // Initialisation via Factory (L'implémentation utilisera ZoneFactory)
     void init();

@@ -7,6 +7,30 @@
 #include "DialogManager.hpp"
 #include "GameChoiceBox.hpp"
 
+inline std::string unescape(const std::string& s) {
+    std::string res;
+    res.reserve(s.length());
+    for (std::size_t i = 0; i < s.length(); ++i) {
+        if (s[i] == '\\' && i + 1 < s.length()) {
+            switch (s[i + 1]) {
+                case 'n':
+                    res += '\n';
+                    ++i;
+                    break;
+                case '\\':
+                    res += '\\';
+                    ++i;
+                    break;
+                default:
+                    res += s[i];
+            }
+        } else {
+            res += s[i];
+        }
+    }
+    return res;
+}
+
 inline std::vector<std::string> split(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -77,7 +101,7 @@ public:
                     std::string cleanPart = trim(p);
 
                     if (cleanPart.find("S:") == 0) {
-                        step.text = trim(cleanPart.substr(2));
+                        step.text = unescape(trim(cleanPart.substr(2)));
                     } 
                     else if (cleanPart.find("T:") == 0) {
                         std::string type = trim(cleanPart.substr(2)); // Nettoyage ici
