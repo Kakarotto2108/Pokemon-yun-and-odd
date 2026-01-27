@@ -4,27 +4,44 @@
     <meta charset="UTF-8">
     <title>Poke-Editor v3.6 - Spawn Points</title>
     <style>
-        body { display: flex; font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; margin: 0; height: 100vh; overflow: hidden; }
-        #toolbar { width: 300px; background: #34495e; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.3); z-index: 10; overflow-y: auto; }
-        #viewport { flex-grow: 1; overflow: hidden; background: #1a1a1a; cursor: crosshair; }
+        body { display: flex; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a1a; color: white; margin: 0; height: 100vh; overflow: hidden; }
         
-        canvas { display: block; }
-        #map-canvas { /* Now sized by JS */ }
+        /* Toolbar à gauche */
+        #toolbar { width: 300px; min-width: 300px; background: #2c3e50; padding: 15px; display: flex; flex-direction: column; gap: 8px; border-right: 2px solid #34495e; overflow-y: auto; }
         
-        #tileset-container { min-height: 200px; max-height: 400px; resize: vertical; overflow: auto; background: #95a5a6; border: 2px solid #3498db; margin-top: 10px; }
+        /* Viewport au centre */
+        #viewport { 
+            flex-grow: 1; 
+            position: relative; 
+            overflow: hidden; 
+            background: #111; 
+            display: flex; 
+            flex-direction: column; /* Ajouté */
+            align-items: center; 
+            justify-content: center; 
+        }     
+
+        /* Inspecteur à droite */
+        #inspector { width: 320px; min-width: 320px; background: #2c3e50; padding: 15px; border-left: 2px solid #34495e; overflow-y: auto;  /* Masqué par défaut */ }
+
+        canvas { box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
-        .btn { background: #3498db; border: none; color: white; padding: 8px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; text-align: left; }
-        .btn:hover { background: #2980b9; }
-        .btn-green { background: #27ae60; margin-top: 10px; text-align: center; }
-        .active-mode { outline: 3px solid #e74c3c; background: #2980b9; }
+        /* Style des cartes de dialogue */
+        .diag-row { background: #34495e; padding: 10px; border-radius: 6px; border-left: 4px solid #3498db; display: flex; flex-direction: column; gap: 8px; position: relative; }
+        .diag-row textarea { background: #1a1a1a; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px; font-family: inherit; resize: none; }
+        .diag-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8em; font-weight: bold; color: #3498db; }
         
-        .input-group { display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; }
-        input { background: #2c3e50; border: 1px solid #7f8c8d; color: white; padding: 4px; border-radius: 3px; width: 60px; }
-        #target-zone-id { width: 80px; font-size: 1.1em; color: #f1c40f; text-align: center; border: 1px solid #9b59b6; }
+        /* UI Elements */
+        .btn { background: #3498db; border: none; color: white; padding: 8px 12px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #2980b9; transform: translateY(-1px); }
+        .btn-green { background: #27ae60; }
+        .btn-red { background: #e74c3c; padding: 2px 6px; font-size: 0.8em; }
+        .active-mode { background: #e74c3c !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
         
-        hr { border: 0; border-top: 1px solid #555; width: 100%; margin: 10px 0; }
-        .info { font-size: 0.75em; color: #bdc3c7; line-height: 1.4; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; }
-        .highlight { color: #f1c40f; font-weight: bold; }
+        .input-group { display: flex; align-items: center; justify-content: space-between; font-size: 0.85em; margin-bottom: 4px; }
+        input, select { background: #1a1a1a; border: 1px solid #555; color: white; padding: 5px; border-radius: 4px; }
+        
+        hr { border: 0; border-top: 1px solid #444; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -39,7 +56,10 @@
     <h3>Chargement</h3>
     <div class="input-group">Map: &nbsp; <input type="file" id="upload-map-txt" accept=".txt" style="width: 170px;"></div>
     <div class="input-group">Collisions: &nbsp; <input type="file" id="upload-collision-txt" accept=".txt" style="width: 170px;"></div>
-    <button class="btn" style="margin-top: 5px" onclick="loadMapFiles()">📂 Charger</button>
+    <div class="input-group">Entités: &nbsp; <input type="file" id="upload-entities-txt" accept=".txt" style="width: 170px;"></div>
+    <div class="input-group">Dialogues: <input type="file" id="upload-dialogues-txt" accept=".txt" style="width: 170px;"></div>
+    <button class="btn" style="margin-top: 5px" onclick="loadAllFiles()">📂 Charger Pack</button>
+    <hr>
     
     <hr>
     <h3>Tileset</h3>
@@ -68,6 +88,8 @@
         <div class="input-group"> spawnpointID: <input type="number" id="source-porte-id" value="1" min="1"></div>
     </div>
 
+    <button class="btn" id="btn-enti" onclick="setMode('entities')">👤 Entités (NPC/OBJ)</button>
+
     <hr>
     <button class="btn btn-green" onclick="exportFiles()">💾 Exporter .txt</button>
     <div class="info">
@@ -81,6 +103,32 @@
     <canvas id="map-canvas"></canvas>
 </div>
 
+<div id="inspector">
+    <h3 style="color: #f1c40f; margin-top: 0;">Inspecteur</h3>
+    
+    <div id="entity-settings">
+        <div class="input-group">Type: <select id="ent-type"><option value="NPC">NPC</option><option value="OBJ">OBJET</option></select></div>
+        <div class="input-group">Nom: <input type="text" id="ent-name" value="Pierre" style="width:120px;"></div>
+        <div class="input-group">Sprite ID: <input type="number" id="ent-sprite" value="0"></div>
+        <div class="input-group">Orientation: <select id="ent-orien"><option value="DOWN">Bas</option><option value="UP">Haut</option><option value="LEFT">Gauche</option><option value="RIGHT">Droite</option></select></div>
+        <div class="input-group">Diag Key: <input type="text" id="ent-diag" value="DIAG_1" style="width:120px;"></div>
+        
+        <hr>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; color: #3498db;">Dialogues</h4>
+            <button class="btn" onclick="addDialogueRow()" style="padding: 2px 8px; background: #27ae60;">+</button>
+        </div>
+
+        <div id="dialogue-list" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+            </div>
+        
+        <p style="font-size: 0.7em; color: #bdc3c7; margin-top: 15px;">
+            Note: La clé de dialogue doit correspondre au fichier dialogues.txt lors de l'export.
+        </p>
+    </div>
+</div>
+
 <script>
     let tileSize = 32;
     let mapW = 20;
@@ -90,6 +138,8 @@
     
     let mapData = [];
     let collisionData = []; 
+    let entities = []; // Liste d'objets {type, name, sprite, x, y, orien, diagKey}
+    let dialogues = {}; // Objet { diagKey: [ {text, type, action}, ... ] }
 
     let scale = 1.0;
     let viewX = 0;
@@ -105,52 +155,95 @@
     const tsCtx = tsCanvas.getContext('2d');
     let tilesetImg = new Image();
 
+    document.querySelectorAll('#entity-settings input, #entity-settings select').forEach(input => {
+        input.addEventListener('input', () => {
+            if (selectedEntity) {
+                selectedEntity.type = document.getElementById('ent-type').value;
+                selectedEntity.name = document.getElementById('ent-name').value;
+                selectedEntity.sprite = parseInt(document.getElementById('ent-sprite').value);
+                selectedEntity.orien = document.getElementById('ent-orien').value;
+                selectedEntity.diagKey = document.getElementById('ent-diag').value;
+                drawMap();
+                renderDialogueList(); // Important si on change la Diag Key
+            }
+        });
+    });
+
     function resizeCanvas() {
         mapCanvas.width = viewport.clientWidth;
         mapCanvas.height = viewport.clientHeight;
         if (mapData.length > 0) drawMap();
     }
 
-    function loadMapFiles() {
-        const mapFileInput = document.getElementById('upload-map-txt');
-        const collisionFileInput = document.getElementById('upload-collision-txt');
+    async function loadAllFiles() {
+        const mapFile = document.getElementById('upload-map-txt').files[0];
+        const collFile = document.getElementById('upload-collision-txt').files[0];
+        const entFile = document.getElementById('upload-entities-txt').files[0];
+        const diagFile = document.getElementById('upload-dialogues-txt').files[0];
 
-        if (mapFileInput.files.length === 0 || collisionFileInput.files.length === 0) {
-            alert("Veuillez sélectionner les fichiers map.txt et collisionMap.txt.");
+        if (!mapFile || !collFile) {
+            alert("Au minimum, sélectionnez map.txt et collisionMap.txt");
             return;
         }
 
-        const mapFile = mapFileInput.files[0];
-        const collisionFile = collisionFileInput.files[0];
+        try {
+            // Chargement Map et Collisions
+            const mapText = await mapFile.text();
+            const collText = await collFile.text();
+            parseAndLoadMap(mapText, collText);
 
-        Promise.all([
-            mapFile.text(),
-            collisionFile.text()
-        ]).then(([mapContent, collisionContent]) => {
-            parseAndLoadMap(mapContent, collisionContent);
-        }).catch(error => {
-            console.error("Erreur lors de la lecture des fichiers:", error);
-            alert("Une erreur est survenue lors de la lecture des fichiers.");
-        });
+            // Chargement Entités (optionnel)
+            if (entFile) {
+                const entText = await entFile.text();
+                parseEntities(entText);
+            }
+
+            // Chargement Dialogues (optionnel)
+            if (diagFile) {
+                const diagText = await diagFile.text();
+                parseDialogues(diagText);
+            }
+
+            drawMap();
+            alert("Pack chargé avec succès !");
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors du chargement des fichiers.");
+        }
     }
 
     function parseAndLoadMap(mapContent, collisionContent) {
         try {
             tileSize = parseInt(document.getElementById('tile-size').value) || 32;
 
-            const mapRows = mapContent.trim().split('\n');
-            const newMapW = mapRows[0].split(',').length;
-            const newMapH = mapRows.length;
-            const newMapData = mapRows.join(',').split(',').map(Number);
+            // On nettoie les espaces et on sépare par ligne, en ignorant les lignes vides
+            const mapRows = mapContent.trim().split(/\r?\n/).filter(line => line.trim());
+            const collisionRows = collisionContent.trim().split(/\r?\n/).filter(line => line.trim());
 
-            const collisionRows = collisionContent.trim().split('\n');
-            const newCollisionData = collisionRows.join(',').split(',').map(Number);
+            // Extraction de la largeur (basée sur la première ligne)
+            const newMapW = mapRows[0].split(',').filter(cell => cell.trim() !== "").length;
+            const newMapH = mapRows.length;
+
+            // Transformation en tableau de nombres pur (on nettoie chaque cellule)
+            const newMapData = mapRows.join(',').split(',')
+                                .filter(cell => cell.trim() !== "")
+                                .map(num => parseInt(num.trim()));
+
+            const newCollisionData = collisionRows.join(',').split(',')
+                                        .filter(cell => cell.trim() !== "")
+                                        .map(num => parseFloat(num.trim())); // Float pour gérer tes anciens IDs si besoin
+
+            // Vérification de sécurité
+            if (newMapData.length !== (newMapW * newMapH)) {
+                throw new Error(`Taille map incohérente : attendu ${newMapW * newMapH}, reçu ${newMapData.length}`);
+            }
 
             if (newMapData.length !== newCollisionData.length) {
-                alert("Les fichiers de map et de collision n'ont pas la même taille !");
+                alert(`Erreur de synchronisation : Map (${newMapData.length} cases) vs Collisions (${newCollisionData.length} cases)`);
                 return;
             }
 
+            // Assignation
             mapW = newMapW;
             mapH = newMapH;
             mapData = newMapData;
@@ -159,11 +252,10 @@
             document.getElementById('map-w').value = mapW;
             document.getElementById('map-h').value = mapH;
             
-            scale = 1.0; // Reset zoom
+            scale = 1.0;
             viewX = (viewport.clientWidth - mapW * tileSize) / 2;
             viewY = (viewport.clientHeight - mapH * tileSize) / 2;
             
-            // Redraw tileset canvas if image is loaded
             if (tilesetImg.complete && tilesetImg.src) {
                 tsCanvas.width = tilesetImg.width;
                 tsCanvas.height = tilesetImg.height;
@@ -171,12 +263,11 @@
             }
             
             drawMap();
-
             alert("Map chargée avec succès !");
 
         } catch (e) {
-            console.error("Erreur lors du parsing des fichiers de map:", e);
-            alert("Erreur lors du parsing des fichiers de map. Vérifiez le format.");
+            console.error("Détails de l'erreur :", e);
+            alert("Erreur lors du parsing : " + e.message);
         }
     }
 
@@ -229,26 +320,28 @@
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    function setMode(m) { 
-        mode = m; 
+    function setMode(m) {
+        mode = m;
+        // Update boutons
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active-mode'));
+        const currentBtn = document.getElementById('btn-' + m.substring(0,4));
+        if(currentBtn) currentBtn.classList.add('active-mode');
 
-        // reset boutons
-        document.querySelectorAll('.btn')
-            .forEach(b => b.classList.remove('active-mode'));
+        // Affichage des réglages à gauche
+        document.getElementById('transition-settings1').style.display = (m === 'transition') ? 'block' : 'none';
+        document.getElementById('transition-settings2').style.display = (m === 'transition') ? 'block' : 'none';
+        document.getElementById('antitransition-settings').style.display = (m === 'antitransition') ? 'block' : 'none';
 
-        const btnId = 'btn-' + m.substring(0,4);
-        const btn = document.getElementById(btnId);
-        if (btn) btn.classList.add('active-mode');
-
-        // panneaux
-        document.getElementById('transition-settings1').style.display =
-            (m === 'transition') ? 'block' : 'none';
-
-        document.getElementById('transition-settings2').style.display =
-            (m === 'transition') ? 'block' : 'none';
-
-        document.getElementById('antitransition-settings').style.display =
-            (m === 'antitransition') ? 'block' : 'none';
+        // Affichage de l'INSPECTEUR à droite
+        const inspector = document.getElementById('inspector');
+        if (m === 'entities') {
+            inspector.style.display = 'block';
+        } else {
+            inspector.style.display = 'none';
+        }
+        
+        // Recalculer la taille du canvas car les barres latérales ont pu changer
+        resizeCanvas(); 
     }
 
 
@@ -261,15 +354,6 @@
         drawTileset();
         setMode('draw');
     };
-
-    function divideByNextPowerOf10(num) {
-        if (num === 0) return 0; // edge case
-        // Nombre de chiffres avant la virgule
-        const digits = Math.floor(Math.log10(Math.abs(num))) + 1;
-        // Puissance de 10 supérieure
-        const divisor = 10 ** digits;
-        return num / divisor;
-    }
 
     const handleInput = (e) => {
         if (isPanning) return;
@@ -308,9 +392,12 @@
                 }
                 else if (mode === 'transition') {
                     if (collisionData[index] > 0) {
-                        document.getElementById('target-zone-id').value = collisionData[index];
+                        const existingZoneId = collisionData[index] >> 16;
+                        const existingPorteId = collisionData[index] & 0xFFFF;
+                        document.getElementById('target-zone-id').value = existingZoneId;
+                        document.getElementById('target-porte-id').value = existingPorteId;
                     }
-                    collisionData[index] = (parseFloat(document.getElementById('target-zone-id').value) + divideByNextPowerOf10((document.getElementById('target-porte-id').value)*10 + 1)) || 2;
+                    collisionData[index] = (parseInt(document.getElementById('target-zone-id').value) << 16) | parseInt(document.getElementById('target-porte-id').value);
                 }
                 else if (mode === 'antitransition') {
                     const oldSpawnIndex = collisionData.indexOf(document.getElementById('source-porte-id').value * (-1)- 100);
@@ -322,6 +409,35 @@
                     }
                     const spawnpointID = parseInt(document.getElementById('source-porte-id').value) || 1;
                     collisionData[index] = -100 - spawnpointID;
+                }
+                else if (mode === 'entities') {
+                    // Chercher si une entité existe déjà à cet endroit
+                    const found = entities.find(e => e.x === x && e.y === y);
+
+                    if (found) {
+                        // Sélectionner l'entité existante
+                        selectedEntity = found;
+                        // Remplir les champs de l'inspecteur
+                        document.getElementById('ent-type').value = found.type;
+                        document.getElementById('ent-name').value = found.name;
+                        document.getElementById('ent-sprite').value = found.sprite;
+                        document.getElementById('ent-orien').value = found.orien;
+                        document.getElementById('ent-diag').value = found.diagKey;
+                    } else {
+                        // Créer une nouvelle entité
+                        const newEnt = {
+                            type: document.getElementById('ent-type').value,
+                            name: document.getElementById('ent-name').value,
+                            sprite: parseInt(document.getElementById('ent-sprite').value),
+                            x: x,
+                            y: y,
+                            orien: document.getElementById('ent-orien').value,
+                            diagKey: document.getElementById('ent-diag').value
+                        };
+                        entities.push(newEnt);
+                        selectedEntity = newEnt;
+                    }
+                    renderDialogueList(); // Rafraîchir la liste des dialogues
                 }
             }
             drawMap();
@@ -479,15 +595,29 @@
 
 
             else if(val > 0) { // Transition
+                const x = tx * tileSize;
+                const y = ty * tileSize;
+
                 ctx.fillStyle = "rgba(155, 89, 182, 0.7)"; 
-                ctx.fillRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                ctx.fillRect(x, y, tileSize, tileSize);
                 ctx.fillStyle = "white";
                 ctx.font = "bold 14px Segoe UI";
                 ctx.textAlign = "center";
                 ctx.shadowColor = "black";
                 ctx.shadowBlur = 4;
-                ctx.fillText(val, tx*tileSize + tileSize/2, ty*tileSize + tileSize/2 + 5);
-                ctx.shadowBlur = 0;
+
+                const targetZoneId = val >> 16;
+                const spawnPointId = val & 0xFFFF;
+
+                ctx.fillText(targetZoneId, tx*tileSize + tileSize/2, ty*tileSize + tileSize/2 + 2);
+                ctx.shadowBlur = 4;
+                ctx.font = "bold 8px Arial";
+
+                ctx.fillText(
+                    spawnPointId,
+                    x + tileSize / 2,
+                    y + tileSize / 2 + 10
+                );
             }
         }
         
@@ -507,6 +637,21 @@
         ctx.lineWidth = 2 / scale; // Keep border width consistent on zoom
         ctx.strokeRect(0, 0, mapPixelWidth, mapPixelHeight);
 
+        // --- Rendu des Entités ---
+        entities.forEach(ent => {
+            const ex = ent.x * tileSize;
+            const ey = ent.y * tileSize;
+            ctx.fillStyle = ent.type === "NPC" ? "#f1c40f" : "#e67e22"; // Jaune pour NPC, Orange pour OBJ
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(ex + tileSize/2, ey + tileSize/2, tileSize/3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = "white";
+            ctx.font = "10px Arial";
+            ctx.fillText(ent.name, ex + tileSize/2, ey + 10);
+        });
+
         ctx.restore();
     }
 
@@ -520,15 +665,145 @@
         return result.trim();
     }
 
-    function exportFiles() {
-        if (!collisionData.includes(-2)) {
-            alert("Veuillez placer un point de spawn (-2) avant d'exporter !");
+    function parseEntities(content) {
+        entities = content.split('\n').filter(line => line.trim() && !line.startsWith('#')).map(line => {
+            const [type, name, sprite, x, y, orien, diagKey] = line.split('|');
+            return { type, name, sprite, x: parseInt(x), y: parseInt(y), orien, diagKey };
+        });
+    }
+
+    function parseDialogues(content) {
+        dialogues = {};
+        let currentKey = null;
+        
+        content.split('\n').forEach(line => {
+            line = line.trim();
+            if (!line || line.startsWith('#')) return;
+
+            if (line.startsWith('[') && line.endsWith(']')) {
+                currentKey = line.substring(1, line.length - 1);
+                dialogues[currentKey] = [];
+            } else if (currentKey) {
+                const parts = line.split('|');
+                
+                if (parts.length >= 1) {
+                    // On utilise .replace() sans le ^ et on ajoute .trim() à la fin
+                    const text = parts[0] ? parts[0].replace(/S:\s*/i, "").trim() : "";
+                    const type = parts[1] ? parts[1].replace(/T:\s*/i, "").trim() : "Classic";
+                    const action = parts[2] ? parts[2].replace(/A:\s*/i, "").trim() : "NONE";
+
+                    console.log(`Parsed: Text="${text}", Type="${type}", Action="${action}"`);
+
+                    dialogues[currentKey].push({
+                        text: text,
+                        type: type,
+                        action: action
+                    });
+                }
+            }
+        });
+    }
+
+    // Ajoute une nouvelle ligne de dialogue vide
+    function addDialogueRow() {
+        const key = document.getElementById('ent-diag').value;
+        
+        if (!key) {
+            alert("Indiquez une Diag Key d'abord");
             return;
         }
+
+        if (!dialogues[key]) {
+            dialogues[key] = [];
+        }
+
+        dialogues[key].push({ 
+            text: "Nouveau dialogue", 
+            type: "Classic", 
+            action: "NONE" 
+        });
+        
+        renderDialogueList();
+    }
+
+    // Affiche la liste des dialogues pour la clé actuelle
+    function renderDialogueList() {
+        const list = document.getElementById('dialogue-list');
+        list.innerHTML = "";
+        const key = document.getElementById('ent-diag').value;
+        const currentDialogues = dialogues[key] || [];
+
+        currentDialogues.forEach((diag, index) => {
+            const row = document.createElement('div');
+            row.className = 'diag-row';
+            row.innerHTML = `
+                <div class="diag-header">
+                    <span>DIALOGUE #${index + 1}</span>
+                    <button class="btn btn-red" onclick="removeDiag(${index})">Suppr.</button>
+                </div>
+                <textarea rows="2" oninput="updateDiag(${index}, 'text', this.value)" placeholder="Texte...">${diag.text}</textarea>
+                <div class="input-group">
+                    Type: 
+                    <select onchange="updateDiag(${index}, 'type', this.value)">
+                        <option value="Classic" ${diag.type === 'Classic' ? 'selected' : ''}>Classic</option>
+                        <option value="Object" ${diag.type === 'Object' ? 'selected' : ''}>Object</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    Action: <input type="text" value="${diag.action}" oninput="updateDiag(${index}, 'action', this.value)" placeholder="HEAL, GIVE...">
+                </div>
+            `;
+            list.appendChild(row);
+        });
+    }
+
+    // Mise à jour des données en temps réel
+    function updateDiag(index, field, value) {
+        const key = document.getElementById('ent-diag').value;
+        dialogues[key][index][field] = value;
+    }
+
+    function removeDiag(index) {
+        const key = document.getElementById('ent-diag').value;
+        dialogues[key].splice(index, 1);
+        renderDialogueList();
+    }
+
+    function moveDiag(index, direction) {
+        const key = document.getElementById('ent-diag').value;
+        const target = index + direction;
+        if (target < 0 || target >= dialogues[key].length) return;
+        
+        const temp = dialogues[key][index];
+        dialogues[key][index] = dialogues[key][target];
+        dialogues[key][target] = temp;
+        renderDialogueList();
+    }
+
+    function exportFiles() {
         const formattedMap = formatDataWithNewlines(mapData, mapW);
         const formattedColl = formatDataWithNewlines(collisionData, mapW);
+        
+        // Formatage Entities
+        const formattedEnt = entities.map(e => 
+            `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${e.orien}|${e.diagKey}`
+        ).join('\n');
+
+        // Formatage Dialogues
+        let formattedDiag = "";
+        for (let key in dialogues) {
+            formattedDiag += `[${key}]\n`;
+            dialogues[key].forEach(d => {
+                // Format: texte|type|action
+                formattedDiag += `S: ${d.text} | T: ${d.type}| A: ${d.action}\n`;
+            });
+            formattedDiag += `\n`;
+        }
+
         download("map.txt", formattedMap);
         download("collisionMap.txt", formattedColl);
+        download("entities.txt", formattedEnt);
+        download("dialogues.txt", formattedDiag);
     }
 
     function download(filename, text) {
