@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include "DialogManager.hpp"
+#include "GameChoiceBox.hpp"
 
 inline std::vector<std::string> split(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;

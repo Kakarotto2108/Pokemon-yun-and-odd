@@ -29,7 +29,7 @@ Game::Game(const GameConfig& config)
 
 void Game::run() {
     sf::Clock clock;
-
+    
     GameDialog dialogUI;
     dialogUI.setPosition({0.f, m_config.height - 135.f}); // Position par défaut en bas de l'écran
     DialogManager::getInstance().init(&dialogUI);

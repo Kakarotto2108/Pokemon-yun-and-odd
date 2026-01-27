@@ -1,4 +1,4 @@
 [DIAG_1]
-S: Bonjour, j'aime vraiment la tambouille que me prépare ma maman quand je mange des chapi chapeaux | T: Classic| A: NONE
+S: Bonjour | T: Classic| A: NONE
 S: Comment ça va ? | T: Classic| A: NONE
 

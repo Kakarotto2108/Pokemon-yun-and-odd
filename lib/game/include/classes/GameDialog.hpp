@@ -25,17 +25,20 @@ public:
     void hide() { m_visible = false; }
     bool isVisible() const { return m_visible; }
 
-    void draw(sf::RenderWindow& window);
+    virtual void draw(sf::RenderWindow& window);
 
 private:
     void parseText(const std::string& text);
     sf::Color getColorFromName(const std::string& name);
 
-    sf::Sprite m_boxSprite;
+protected :sf::Sprite m_boxSprite;
     std::vector<TextSegment> m_segments; // Le texte découpé par couleur
     
     bool m_visible = false;
-    sf::Vector2f m_pos;
+    sf::Vector2f m_pos; 
+    
 };
+
+
 
 #endif

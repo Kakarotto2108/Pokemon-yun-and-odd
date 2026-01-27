@@ -2,6 +2,7 @@
 #define DIALOGMANAGER_HPP
 
 #include "GameDialog.hpp"
+#include "GameChoiceBox.hpp"
 #include <queue>
 #include <functional>
 #include <vector>
