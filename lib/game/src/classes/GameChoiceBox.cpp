@@ -128,6 +128,8 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     // On positionne le curseur à côté du texte de l'index actuel
     // On ajoute une petite marge (+5.f) pour un meilleur alignement vertical
     int visibleIndex = m_currentIndex - m_scrollOffset;
+    m_cursorSprite.setRotation(0.f);
+    m_cursorSprite.setOrigin(0.f, 0.f);
     m_cursorSprite.setPosition(currentX - 30.f, currentY + (visibleIndex * singleLineHeight) + 5.f);
     window.draw(m_cursorSprite);
 
@@ -144,5 +146,24 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
         
         window.draw(t);
         currentY += singleLineHeight;
+    }
+
+    // --- 4. Flèches de défilement ---
+    if (m_cursorSprite.getTexture()) {
+        sf::Vector2u cSize = m_cursorSprite.getTexture()->getSize();
+        m_cursorSprite.setOrigin(cSize.x / 2.f, cSize.y / 2.f);
+        float arrowX = boxBounds.left + boxBounds.width - 25.f;
+
+        if (m_scrollOffset > 0) {
+            m_cursorSprite.setRotation(-90.f);
+            m_cursorSprite.setPosition(arrowX, boxBounds.top + 25.f);
+            window.draw(m_cursorSprite);
+        }
+
+        if (m_scrollOffset + MAX_VISIBLE_CHOICES < static_cast<int>(m_choices.size())) {
+            m_cursorSprite.setRotation(90.f);
+            m_cursorSprite.setPosition(arrowX, boxBounds.top + boxBounds.height - 25.f);
+            window.draw(m_cursorSprite);
+        }
     }
 }
