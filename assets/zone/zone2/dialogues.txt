@@ -1,21 +1,4 @@
-# Dialogue de Camille (Don d'objet)
-[camille_intro]
-S: Je te mange. | T: Classic
-S: Tiens, prends ceci, ça t'aidera pour ton voyage ! | T: Classic
-S: Vous recevez une POKEBALL ! | T: Object | A: GIVE_ITEM:Pokeball:1
-S: Fais-en bon usage ! | T: Classic
+[DIAG_1]
+S: Bonjour, j'aime vraiment la tambouille que me prépare ma maman quand je mange des chapi chapeaux | T: Classic| A: NONE
+S: Comment ça va ? | T: Classic| A: NONE
 
-# Dialogue du Vieux Sage (Soin)
-[sage_conseil]
-S: Grrrrrr. | T: Classic
-S: Laisse-moi les soigner un instant... | T: Classic | A: HEAL
-S: Voilà ! Ils sont en pleine forme maintenant. | T: Classic
-
-# Dialogue de la Télévision
-[tv_maison]
-S: C'est ta console de jeux préférée. | T: Classic
-S: ... mais tu n'as pas le temps de jouer maintenant ! | T: Classic
-
-# Cas d'un coffre
-[coffre_vide]
-S: Le coffre est désespérément vide. | T: Classic

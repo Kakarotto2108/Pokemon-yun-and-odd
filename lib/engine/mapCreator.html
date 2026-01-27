@@ -109,7 +109,7 @@
     <div id="entity-settings">
         <div class="input-group">Type: <select id="ent-type"><option value="NPC">NPC</option><option value="OBJ">OBJET</option></select></div>
         <div class="input-group">Nom: <input type="text" id="ent-name" value="Pierre" style="width:120px;"></div>
-        <div class="input-group">Sprite ID: <input type="number" id="ent-sprite" value="0"></div>
+        <div class="input-group">Sprite name: <input type="text" id="ent-sprite" value="gabou.png"></div>
         <div class="input-group">Orientation: <select id="ent-orien"><option value="DOWN">Bas</option><option value="UP">Haut</option><option value="LEFT">Gauche</option><option value="RIGHT">Droite</option></select></div>
         <div class="input-group">Diag Key: <input type="text" id="ent-diag" value="DIAG_1" style="width:120px;"></div>
         
@@ -161,7 +161,7 @@
             if (selectedEntity) {
                 selectedEntity.type = document.getElementById('ent-type').value;
                 selectedEntity.name = document.getElementById('ent-name').value;
-                selectedEntity.sprite = parseInt(document.getElementById('ent-sprite').value);
+                selectedEntity.sprite = document.getElementById('ent-sprite').value;
                 selectedEntity.orien = document.getElementById('ent-orien').value;
                 selectedEntity.diagKey = document.getElementById('ent-diag').value;
                 drawMap();
@@ -386,6 +386,7 @@
                         selectedEntity = null;
                         document.getElementById('dialogue-list').innerHTML = "";
                     }
+                    collisionDate[index] = 0;
 
                     drawMap();
                     return;
@@ -447,7 +448,7 @@
                         const newEnt = {
                             type: document.getElementById('ent-type').value,
                             name: document.getElementById('ent-name').value,
-                            sprite: parseInt(document.getElementById('ent-sprite').value),
+                            sprite: document.getElementById('ent-sprite').value,
                             x: x,
                             y: y,
                             orien: document.getElementById('ent-orien').value,
@@ -455,6 +456,7 @@
                         };
                         entities.push(newEnt);
                         selectedEntity = newEnt;
+                        collisionData[index] = -1;
                     }
                     renderDialogueList(); // Rafraîchir la liste des dialogues
                 }
@@ -809,9 +811,17 @@
         const formattedColl = formatDataWithNewlines(collisionData, mapW);
         
         // Formatage Entities
-        const formattedEnt = entities.map(e => 
-            `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${e.orien}|${e.diagKey}`
-        ).join('\n');
+        const orienMap = {
+            DOWN: 0,
+            UP: 1,
+            LEFT: 2,
+            RIGHT: 3
+        };
+
+        const formattedEnt = entities.map(e => {
+            const o = orienMap[e.orien] ?? 0;
+            return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey}`;
+        }).join('\n');
 
         // Formatage Dialogues
         let formattedDiag = "";
