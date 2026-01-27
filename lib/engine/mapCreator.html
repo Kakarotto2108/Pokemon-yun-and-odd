@@ -147,6 +147,7 @@
     let isPanning = false;
     let lastMouseX = 0;
     let lastMouseY = 0;
+    let selectedEntity = null;
     
     const mapCanvas = document.getElementById('map-canvas');
     const viewport = document.getElementById('viewport');
@@ -356,7 +357,7 @@
     };
 
     const handleInput = (e) => {
-        if (isPanning) return;
+        if (isPanning || e.altKey) return;
         if (e.buttons !== 1 && e.buttons !== 2) return; // Only left/right click
 
         const rect = viewport.getBoundingClientRect();
@@ -372,7 +373,25 @@
         
         if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
             const index = y * mapW + x;
-            
+            // === SUPPRESSION ENTITÉ AU CLIC DROIT ===
+            if (e.buttons === 2 && mode === 'entities') {
+                const entIndex = entities.findIndex(ent => ent.x === x && ent.y === y);
+
+                if (entIndex !== -1) {
+                    // Supprimer
+                    entities.splice(entIndex, 1);
+
+                    // Si c'était celle sélectionnée
+                    if (selectedEntity && selectedEntity.x === x && selectedEntity.y === y) {
+                        selectedEntity = null;
+                        document.getElementById('dialogue-list').innerHTML = "";
+                    }
+
+                    drawMap();
+                    return;
+                }
+            }
+
             if (e.buttons === 2) { // Right click
                 if (mode === 'draw') mapData[index] = 0;
                 else collisionData[index] = 0;
@@ -448,7 +467,8 @@
     viewport.addEventListener('mousemove', handleInput);
     viewport.addEventListener('contextmenu', (e) => e.preventDefault());
 
-    // --- Pan and Zoom ---
+    // --- Pan and Zoom (ALT + Drag) ---
+
     viewport.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomIntensity = 0.1;
@@ -460,44 +480,48 @@
         const mouseY = e.clientY - rect.top;
 
         scale += delta * zoomIntensity * scale;
-        scale = Math.max(0.2, Math.min(scale, 4)); // Clamp scale
+        scale = Math.max(0.2, Math.min(scale, 4));
 
-        // Adjust view transformation to zoom towards the mouse
         viewX = mouseX - (mouseX - viewX) * (scale / oldScale);
         viewY = mouseY - (mouseY - viewY) * (scale / oldScale);
 
         drawMap();
-    }, { passive: false }); // passive:false is important for preventDefault
+    }, { passive: false });
 
-    viewport.addEventListener('mousedown', (e) => {
-        if (e.button === 1) { // Middle mouse button
+    viewport.addEventListener("mousedown", (e) => {
+        if (e.button === 0 && e.altKey) {
             isPanning = true;
             lastMouseX = e.clientX;
             lastMouseY = e.clientY;
-            viewport.style.cursor = 'grabbing';
+            viewport.style.cursor = "grabbing";
             e.preventDefault();
         }
     });
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener("mousemove", (e) => {
+        if (!isPanning) return;
+
+        const dx = e.clientX - lastMouseX;
+        const dy = e.clientY - lastMouseY;
+
+        viewX += dx;
+        viewY += dy;
+
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+
+        drawMap();
+    });
+
+    window.addEventListener("mouseup", () => {
         if (isPanning) {
-            const dx = e.clientX - lastMouseX;
-            const dy = e.clientY - lastMouseY;
-            viewX += dx;
-            viewY += dy;
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-            drawMap();
+            isPanning = false;
+            viewport.style.cursor = "crosshair";
         }
     });
 
-    window.addEventListener('mouseup', (e) => {
-        if (e.button === 1 && isPanning) {
-            isPanning = false;
-            viewport.style.cursor = 'crosshair';
-        }
-    });
     // --- End Pan and Zoom ---
+
 
     function drawMap() {
         ctx.fillStyle = "#1a1a1a";
