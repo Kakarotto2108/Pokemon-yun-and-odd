@@ -1,1 +1,1 @@
-NPC|Pierre|gabou.png|2|5|0|DIAG_1
+NPC|Pierre|gabou.png|2|4|0|DIAG_1

@@ -762,22 +762,51 @@
         currentDialogues.forEach((diag, index) => {
             const row = document.createElement('div');
             row.className = 'diag-row';
+
+            // Parse l'action pour séparer la commande des arguments
+            const actionParts = diag.action.split(':');
+            const actionCmd = actionParts[0] || 'NONE';
+            const actionArgs = actionParts.slice(1);
+
+            let actionParamsHTML = '';
+            if (actionCmd === 'GIVE_ITEM') {
+                const itemName = actionArgs[0] || 'Pokeball';
+                const itemQty = actionArgs[1] || '1';
+                actionParamsHTML = `
+                    <div class="input-group">
+                        Item ID: <input type="text" value="${itemName}" oninput="updateActionParams(${index}, this.value, 0)">
+                    </div>
+                    <div class="input-group">
+                        Quantité: <input type="number" value="${itemQty}" oninput="updateActionParams(${index}, this.value, 1)" min="1">
+                    </div>
+                `;
+            }
+            if (actionCmd === 'CHOICE') {
+                actionParamsHTML = '<div style="margin-top:5px; padding-left:10px; border-left: 2px solid #555;">';
+                actionArgs.forEach((arg, i) => {
+                    let content = arg.replace(/^\{|\}$/g, '');
+                    let parts = content.split(',');
+                    let cText = parts[0] ? parts[0].trim() : '';
+                    let cEvent = parts[1] ? parts[1].trim() : '';
+                    actionParamsHTML += `
+                        <div class="input-group" style="margin-bottom: 2px;">
+                            <input type="text" placeholder="Choix" value="${cText}" style="width: 70px;" oninput="updateChoiceParam(${index}, ${i}, 0, this.value)">
+                            <input type="text" placeholder="Event" value="${cEvent}" style="width: 70px;" oninput="updateChoiceParam(${index}, ${i}, 1, this.value)">
+                            <button class="btn btn-red" onclick="removeChoice(${index}, ${i})">X</button>
+                        </div>`;
+                });
+                actionParamsHTML += `<button class="btn" style="font-size:0.8em; padding:2px 5px; margin-top:5px;" onclick="addChoice(${index})">+ Choix</button></div>`;
+            }
+
             row.innerHTML = `
                 <div class="diag-header">
                     <span>DIALOGUE #${index + 1}</span>
                     <button class="btn btn-red" onclick="removeDiag(${index})">Suppr.</button>
                 </div>
                 <textarea rows="2" oninput="updateDiag(${index}, 'text', this.value)" placeholder="Texte...">${diag.text}</textarea>
-                <div class="input-group">
-                    Type: 
-                    <select onchange="updateDiag(${index}, 'type', this.value)">
-                        <option value="Classic" ${diag.type === 'Classic' ? 'selected' : ''}>Classic</option>
-                        <option value="Object" ${diag.type === 'Object' ? 'selected' : ''}>Object</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    Action: <input type="text" value="${diag.action}" oninput="updateDiag(${index}, 'action', this.value)" placeholder="HEAL, GIVE...">
-                </div>
+                <div class="input-group">Type: <select onchange="updateDiag(${index}, 'type', this.value)"><option value="Classic" ${diag.type === 'Classic' ? 'selected' : ''}>Classic</option><option value="Object" ${diag.type === 'Object' ? 'selected' : ''}>Object</option></select></div>
+                <div class="input-group">Action: <select onchange="updateActionCmd(${index}, this.value)"><option value="NONE" ${actionCmd === 'NONE' ? 'selected' : ''}>NONE</option><option value="GIVE_ITEM" ${actionCmd === 'GIVE_ITEM' ? 'selected' : ''}>GIVE_ITEM</option><option value="HEAL" ${actionCmd === 'HEAL' ? 'selected' : ''}>HEAL</option><option value="CHOICE" ${actionCmd === 'CHOICE' ? 'selected' : ''}>CHOICE</option></select></div>
+                <div id="action-params-${index}">${actionParamsHTML}</div>
             `;
             list.appendChild(row);
         });
@@ -787,6 +816,77 @@
     function updateDiag(index, field, value) {
         const key = document.getElementById('ent-diag').value;
         dialogues[key][index][field] = value;
+    }
+
+    // Met à jour la commande d'action et réinitialise les paramètres
+    function updateActionCmd(index, newCmd) {
+        const key = document.getElementById('ent-diag').value;
+        if (!dialogues[key] || !dialogues[key][index]) return;
+
+        let newAction = newCmd;
+        // Si la nouvelle commande a besoin de paramètres, on les initialise
+        if (newCmd === 'GIVE_ITEM') {
+            newAction = 'GIVE_ITEM:Pokeball:1';
+        } else if (newCmd === 'CHOICE') {
+            newAction = 'CHOICE:{Oui,NEXT}:{Non,CLOSE}';
+        }
+        
+        dialogues[key][index].action = newAction;
+        
+        // On redessine la liste pour afficher les nouveaux champs
+        renderDialogueList();
+    }
+
+    // Met à jour un paramètre spécifique de l'action
+    function updateActionParams(index, value, paramIndex) {
+        const key = document.getElementById('ent-diag').value;
+        if (!dialogues[key] || !dialogues[key][index]) return;
+
+        const actionParts = dialogues[key][index].action.split(':');
+        const actionCmd = actionParts[0];
+        let params = actionParts.slice(1);
+
+        while (params.length <= paramIndex) {
+            params.push('');
+        }
+        params[paramIndex] = value;
+
+        dialogues[key][index].action = [actionCmd, ...params].join(':');
+    }
+
+    function updateChoiceParam(diagIndex, choiceIndex, fieldType, value) {
+        const key = document.getElementById('ent-diag').value;
+        if (!dialogues[key] || !dialogues[key][diagIndex]) return;
+
+        const diag = dialogues[key][diagIndex];
+        const parts = diag.action.split(':');
+        
+        let targetIndex = choiceIndex + 1;
+        if (targetIndex >= parts.length) return;
+
+        let content = parts[targetIndex].replace(/^\{|\}$/g, '');
+        let subParts = content.split(',');
+        if (subParts.length < 2) subParts = [content, ""];
+
+        if (fieldType === 0) subParts[0] = value;
+        else subParts[1] = value;
+
+        parts[targetIndex] = `{${subParts[0]},${subParts[1]}}`;
+        diag.action = parts.join(':');
+    }
+
+    function addChoice(diagIndex) {
+        const key = document.getElementById('ent-diag').value;
+        dialogues[key][diagIndex].action += ":{Choix,NEXT}";
+        renderDialogueList();
+    }
+
+    function removeChoice(diagIndex, choiceIndex) {
+        const key = document.getElementById('ent-diag').value;
+        let parts = dialogues[key][diagIndex].action.split(':');
+        parts.splice(choiceIndex + 1, 1);
+        dialogues[key][diagIndex].action = parts.join(':');
+        renderDialogueList();
     }
 
     function removeDiag(index) {

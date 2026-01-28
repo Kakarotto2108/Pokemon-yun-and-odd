@@ -1,5 +1,6 @@
 [DIAG_1]
 S: Bonjour | T: Classic| A: NONE
 S: Comment ça va ? | T: Classic| A: NONE
-S: Quel objet veux tu ? | T: Classic| A: CHOICE:{choix1, Evenement1}:{choix2, Evenement2}:{choix3, Evenement3}:{choix4, Evenement4}:{choix5, Evenement5}:{choix6, Evenement6}:{choix7, Evenement7}:{choix8, Evenement8}
-S: Mais juste, de rien en fait | T: Classic| A : NONE
+S: Quel objet veux tu ? | T: Classic| A: CHOICE:{Choix1,NEXT}:{Choix2,NEXT}:{Choix3,NEXT}
+S: Mais juste, de rien en fait | T: Classic| A: A : NONE
+
