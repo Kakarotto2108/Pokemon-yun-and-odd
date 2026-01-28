@@ -59,10 +59,10 @@ void Game::update(float dt) {
     // Ou on laisse tourner, selon ton choix de Game Design.
     if(!TransitionManager::getInstance().isRunning()) {
          m_playerController->update(m_world.getCurrentZone(), dt);
-         m_world.update(m_player); 
-         m_player.update(dt);
+         m_world.update(dt, m_player); 
     }
-    m_cameraView.setCenter(m_player.getDrawPosition());
+
+    //m_cameraView.setCenter(m_player.getDrawPosition());
 }
 
 void Game::handleEvents()

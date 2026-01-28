@@ -40,7 +40,7 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
 }
 
 void PlayerController::update(Zone& zone, float dt) {
-    if (m_moveTimer.getElapsedTime().asSeconds() < m_moveDelay && m_player.getIsMoving()) return;
+    if (m_moveTimer.getElapsedTime().asSeconds() < m_player.getMoveDelay() && m_player.getIsMoving()) return;
 
     sf::Vector2i direction(0, 0);
 

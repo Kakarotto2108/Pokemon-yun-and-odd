@@ -16,5 +16,4 @@ private:
     float m_vAxis = 0.f;
     
     sf::Clock m_moveTimer;
-    const float m_moveDelay = 0.2f; // Vitesse de répétition du pas
 };

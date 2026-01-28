@@ -35,30 +35,7 @@ void World::drawCharacter3D(const Character& character) {
     sf::Vector2f pos = character.getDrawPosition();
     sf::IntRect texRect = sprite.getTextureRect();
 
-    // 1. Sauvegarder la matrice actuelle et extraire la position du monde
-    glPushMatrix();
-    
-    // On se déplace à la position du joueur au sol (Z=0)
-    glTranslatef(pos.x, pos.y + 48.f, 0.0f);
-
-    // 2. Annuler la rotation de la ModelView
-    // On récupère la matrice actuelle
-    float m[16];
-    glGetFloatv(GL_MODELVIEW_MATRIX, m);
-
-    // On réinitialise la partie rotation (les 3x3 premières colonnes) 
-    // à une matrice identité, tout en gardant la translation.
-    for(int i=0; i<3; i++) {
-        for(int j=0; j<3; j++) {
-            if (i == j) m[i*4+j] = 1.0f;
-            else m[i*4+j] = 0.0f;
-        }
-    }
-    
-    // On recharge la matrice modifiée
-    glLoadMatrixf(m);
-
-    // 3. Préparer les dimensions et UV
+    // --- RECALCUL DES DIMENSIONS ET UV ---
     float w = (float)texRect.width;
     float h = (float)texRect.height;
     float tw = (float)texture->getSize().x;
@@ -69,17 +46,32 @@ void World::drawCharacter3D(const Character& character) {
     float u2 = (texRect.left + texRect.width) / tw;
     float v2 = (texRect.top + texRect.height) / th;
 
-    // 4. Dessiner le Quad (maintenant qu'on est "face écran", les axes sont simples)
+    glPushMatrix();
+    
+    // On positionne le sprite. Le Z est légèrement ajusté par le Y pour éviter le Z-fighting
+    glTranslatef(pos.x, pos.y + 48.f, pos.y * 0.0001f);
+
+    // Billboard : on annule la rotation de la caméra
+    float m[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, m);
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) {
+            if (i == j) m[i*4+j] = 1.0f;
+            else m[i*4+j] = 0.0f;
+        }
+    }
+    glLoadMatrixf(m);
+
+    // Dessin
     sf::Texture::bind(texture);
     glBegin(GL_QUADS);
-        // On inverse le signe de la hauteur (h au lieu de -h)
-        glTexCoord2f(u1, v2); glVertex3f(-w/2.f, 0.f, 0.f); // Pied gauche
-        glTexCoord2f(u2, v2); glVertex3f( w/2.f, 0.f, 0.f); // Pied droite
-        glTexCoord2f(u2, v1); glVertex3f( w/2.f, h,   0.f); // Tête droite
-        glTexCoord2f(u1, v1); glVertex3f(-w/2.f, h,   0.f); // Tête gauche
+        glTexCoord2f(u1, v2); glVertex3f(-w/2.f, 0.f, 0.f); 
+        glTexCoord2f(u2, v2); glVertex3f( w/2.f, 0.f, 0.f);
+        glTexCoord2f(u2, v1); glVertex3f( w/2.f, h,   0.f); 
+        glTexCoord2f(u1, v1); glVertex3f(-w/2.f, h,   0.f);
     glEnd();
 
-    glPopMatrix(); // On restaure la matrice originale pour ne pas casser le reste
+    glPopMatrix();
     sf::Texture::bind(NULL);
 }
 
@@ -255,46 +247,50 @@ void World::init() {
     m_zone = ZoneFactory::createZone(1);
 }
 
-void World::update(Player& player) {
+void World::update(float dt, Player& player) {
     // 1. Récupérer la zone actuelle
     Zone& zone = getCurrentZone();
     sf::Vector2i pos = player.getPosition();
 
-    // --- DEBUG ---
-    int zoneWidth = zone.getWidth();
-    int zoneHeight = zone.getHeight();
-    int mapSize = zone.getCollisionMap().size();
-    int accessIndex = pos.x + pos.y * zoneWidth;
-
-    if (pos.x < 0 || pos.x >= zoneWidth || pos.y < 0 || pos.y >= zoneHeight || accessIndex >= mapSize) {
-        std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-        std::cerr << "!! PLAYER IS OUT OF BOUNDS FOR THE ZONE !!" << std::endl;
-        std::cerr << "!! Player pos: (" << pos.x << ", " << pos.y << ")" << std::endl;
-        std::cerr << "!! Zone size: " << zoneWidth << "x" << zoneHeight << std::endl;
-        std::cerr << "!! Collision map size: " << mapSize << ", Access index: " << accessIndex << std::endl;
-        std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-        return; // On empêche le crash
+    // Mise à jour de toutes les entités de la zone (PNJ, etc.)
+    player.update(dt, zone);
+    for (auto& entity : zone.getEntities()) {
+        Character* character = dynamic_cast<Character*>(entity.get());
+        if (character) {
+            character->update(dt, zone);
+        }   
     }
-    // --- FIN DEBUG ---
 
-    // 2. Vérifier si la case actuelle est une case de collision/transition
-    int tileValue = zone.getCollisionMap()[accessIndex];
+    // 2. Calcul de l'index pour la collision/transition
+    // On transforme les coordonnées (x, y) en index 1D pour le tableau
+    int mapWidth = zone.getWidth();
+    int accessIndex = pos.y * mapWidth + pos.x;
 
-    // 3. Si la valeur correspond à une transition
-    if (tileValue > 0) { // Note: tileValue est un int, la comparaison avec 0.f marche mais c'est inhabituel
-        int targetZoneId = tileValue >> 16;
-        int targetSpawnIndex = tileValue & 0xFFFF;
+    // Sécurité : on vérifie que l'index est bien dans les limites du tableau
+    const std::vector<int>& collisionMap = zone.getCollisionMap();
+    if (accessIndex >= 0 && accessIndex < static_cast<int>(collisionMap.size())) {
+        
+        int tileValue = collisionMap[accessIndex];
 
-        // Si on n'est pas déjà en train de changer de zone, on lance la transition
-        if (!TransitionManager::getInstance().isRunning()) {
-            // On récupère un type aléatoire ici
-            TransitionType randomEffect = TransitionManager::getInstance().getRandomType();
+        // 3. Si la valeur correspond à une transition (tileValue > 0)
+        if (tileValue > 0) {
+            // Extraction des données stockées dans l'entier (ID zone et Index de spawn)
+            int targetZoneId = tileValue >> 16;
+            int targetSpawnIndex = tileValue & 0xFFFF;
 
-            TransitionManager::getInstance().start(randomEffect, 0.8f, [=, &player](){
-                switchZone(targetZoneId);
-                player.stopAnimation();
-                player.setLogicalPos(getCurrentZone().getSpawnPos(targetSpawnIndex));
-            }, 0.5f);
+            // Si on n'est pas déjà en train de changer de zone, on lance la transition
+            if (!TransitionManager::getInstance().isRunning()) {
+                TransitionType randomEffect = TransitionManager::getInstance().getRandomType();
+
+                TransitionManager::getInstance().start(randomEffect, 0.8f, [this, targetZoneId, targetSpawnIndex, &player](){
+                    // Changement effectif de zone
+                    this->switchZone(targetZoneId);
+                    
+                    // On arrête le mouvement du joueur et on le téléporte au spawn de la nouvelle zone
+                    player.stopAnimation();
+                    player.setLogicalPos(this->getCurrentZone().getSpawnPos(targetSpawnIndex));
+                }, 0.5f);
+            }
         }
     }
 }

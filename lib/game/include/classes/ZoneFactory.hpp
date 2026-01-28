@@ -8,6 +8,7 @@
 #include "Npc.hpp"
 #include "Obj.hpp"
 #include "ItemGround.hpp"
+#include "CharacterPath.hpp"
 #include <iostream>
 
 class ZoneFactory {
@@ -86,7 +87,8 @@ public:
                     std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
 
                     if (type == "NPC") {
-                        entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey));
+                        auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.0f);
+                        entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey, std::move(path)));
                     } else {
                         entities.push_back(std::make_unique<Obj>(name, fullSpritePath, pos, diagKey));
                     }

@@ -4,12 +4,13 @@
 #include <cmath>
 #include <iostream>
 
-Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation)
+Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path)
     : WorldEntity(name, pos), 
       m_name(name),
       m_orientation(orientation), 
       m_currentAnim("WalkDown"),
-      m_isMoving(false)
+      m_isMoving(false),
+      m_path(std::move(path))
 {
     // Attention au chemin : assure-toi que le dossier existe
     sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get(spriteSheetName);
@@ -58,7 +59,11 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     }
 }
 
-void Character::update(float dt) {
+void Character::update(float dt, Zone& zone) {
+    if (m_path) {
+        m_path->update(dt, *this, zone);
+    }
+
     if (m_isMoving) {
         m_animations[m_currentAnim].update(dt);
     }

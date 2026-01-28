@@ -5,7 +5,7 @@
 
 class Npc : public Character, public Interactable {
 public:
-    Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos, int orientation, const std::string& dialogueKey);
+    Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos, int orientation, const std::string& dialogueKey, std::unique_ptr<CharacterPath> path = nullptr);
 
     void interact() override;
 

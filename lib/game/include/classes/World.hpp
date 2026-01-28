@@ -30,7 +30,7 @@ public:
     void switchZone(int zoneId);
     
     // Orchestration (Délègue à la Zone actuelle - Information Expert)
-    void update(Player& player);
+    void update(float dt, Player& player);
     void draw(sf::RenderWindow& window, const WorldEntity& focus);
     void drawTileMap3D(const TileMap& tileMap);
     void drawCharacter3D(const Character& character);

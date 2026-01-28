@@ -10,14 +10,18 @@
 #include "Zone.hpp"
 #include "Item.hpp"
 #include "Inventory.hpp"
+#include "CharacterPath.hpp"
+
+class Zone;
+class CharacterPath;
 
 class Character : public WorldEntity {
 public:
-    Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation);
+    Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path = nullptr);
     virtual ~Character() = default;
 
     virtual void moveRequest(sf::Vector2i direction, Zone& zone);
-    virtual void update(float dt);
+    virtual void update(float dt, Zone& zone);
     void draw(sf::RenderWindow& window) const;
     void stopAnimation();
 
@@ -32,6 +36,12 @@ public:
     void receiveItem(const Item& item);
     Inventory& getInventory() { return m_inventory; }
 
+    void setPath(std::unique_ptr<CharacterPath> path) { m_path = std::move(path); }
+    bool hasPath() const { return m_path != nullptr; }
+
+    void setMoveDelay(float delay) { m_moveDelay = delay; }
+    float getMoveDelay() const { return m_moveDelay; }
+    
 protected:
     std::string m_name;
     sf::Vector2f m_targetPos;
@@ -46,4 +56,6 @@ protected:
     const float MOVE_SPEED = 0.2f; 
 
     Inventory m_inventory;
+    std::unique_ptr<CharacterPath> m_path;
+    float m_moveDelay = 0.2f; 
 };
