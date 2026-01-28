@@ -31,6 +31,7 @@ public:
 
     void receiveItem(const Item& item);
     Inventory& getInventory() { return m_inventory; }
+    void RemoveItem(const Item& item, int quantity = 1);
 
 protected:
     std::string m_name;

@@ -14,5 +14,6 @@ S: C'est ta console de jeux préférée. | T: Classic| A: NONE
 S: ... mais tu n'as pas le temps de jouer maintenant ! | T: Classic| A: NONE
 
 [coffre_vide]
-S: Le coffre est désespérément vide. | T: Classic| A: NONE
+S: Sur cette télévision, vous trouvez une potion | T: Classic| A: NONE
+S: Vous recevez une potion ! | T: Object| A: GIVE_ITEM:Potion:1
 

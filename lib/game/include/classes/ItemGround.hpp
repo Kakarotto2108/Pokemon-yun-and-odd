@@ -2,6 +2,7 @@
 #include "Interactable.hpp"
 #include "WorldEntity.hpp"
 #include <iostream>
+#include <SFML/Graphics.hpp>
 
 class Iog : public WorldEntity, public Interactable {
 public:
@@ -10,6 +11,7 @@ public:
     void interact() override;
     const sf::Sprite& getSprite() const { return m_sprite; }
     void draw(sf::RenderWindow& window) const override;
+    ~Iog() override = default;    
 
 private:
     sf::Sprite m_sprite;

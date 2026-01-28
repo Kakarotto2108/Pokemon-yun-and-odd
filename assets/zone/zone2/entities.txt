@@ -1,2 +1,1 @@
 NPC|Pierre|gabou.png|2|4|0|DIAG_1
-IOG|potion|3|5|

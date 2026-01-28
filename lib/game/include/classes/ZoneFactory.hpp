@@ -8,6 +8,7 @@
 #include "Npc.hpp"
 #include "Obj.hpp"
 #include "ItemGround.hpp"
+#include "GameSession.hpp"
 #include <iostream>
 
 class ZoneFactory {
@@ -70,7 +71,13 @@ public:
                     std::getline(ss, xStr, '|');
                     std::getline(ss, yStr, '|');
                     sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
-                    entities.push_back(std::make_unique<Iog>(name, pos));
+                    
+                    // Vérification de persistance : Si l'objet a déjà été ramassé, on ne le crée pas.
+                    std::string uniqueId = "IOG_" + std::to_string(zoneId) + "_" + std::to_string(pos.x) + "_" + std::to_string(pos.y);
+                    
+                    if (!GameSession::getInstance().hasCollectedItem(uniqueId)) {
+                        entities.push_back(std::make_unique<Iog>(name, pos));
+                    }
                 }
                 else if (type == "NPC" || type == "OBJ") {
                     std::string name, sprite, diagKey, xStr, yStr, orienStr;

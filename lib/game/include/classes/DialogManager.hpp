@@ -9,6 +9,8 @@
 #include <string>
 #include <memory>
 
+class WorldEntity; // Forward declaration
+
 struct DialogueStep {
     std::string text;
     BoxType type = BoxType::Classic;
@@ -30,16 +32,18 @@ public:
     void init(GameDialog* msgBox) { m_msgBox = msgBox; }
 
     void addLine(const std::string& text, BoxType type = BoxType::Classic);
-    void startDialogue(const std::vector<DialogueStep>& steps);
+    void startDialogue(const std::vector<DialogueStep>& steps, WorldEntity* speaker = nullptr);
     void next();
 
     bool isActive() const { return m_active; }
     void draw(sf::RenderWindow& window);
+    WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
 
 private:
     DialogManager() = default; // Constructeur privé
 
     GameDialog* m_msgBox = nullptr;
+    WorldEntity* m_currentSpeaker = nullptr;
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
 };

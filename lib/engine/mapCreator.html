@@ -458,7 +458,7 @@
                         };
                         entities.push(newEnt);
                         selectedEntity = newEnt;
-                        if (newEnt.type !== 'IOG') collisionData[index] = -1;
+                        collisionData[index] = -1;
                     }
                     
                     updateInspectorUI(selectedEntity.type);
@@ -671,7 +671,9 @@
         entities.forEach(ent => {
             const ex = ent.x * tileSize;
             const ey = ent.y * tileSize;
-            ctx.fillStyle = ent.type === "NPC" ? "#f1c40f" : "#e67e22"; // Jaune pour NPC, Orange pour OBJ
+            ctx.fillStyle = ent.type === "NPC" ? "rgba(241, 196, 15, 0.8)" :
+                            ent.type === "OBJ" ?  "rgba(52, 152, 219, 0.8)" :
+                            "rgba(155, 89, 182, 0.8)"; // IOG
             ctx.globalAlpha = 0.8;
             ctx.beginPath();
             ctx.arc(ex + tileSize/2, ey + tileSize/2, tileSize/3, 0, Math.PI * 2);

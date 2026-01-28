@@ -31,13 +31,13 @@ public:
     
     // Orchestration (Délègue à la Zone actuelle - Information Expert)
     void update(Player& player);
-    void draw(sf::RenderWindow& window, const WorldEntity& focus);
     void drawTileMap3D(const TileMap& tileMap);
     void drawCharacter3D(const Character& character);
     void drawObjSprite3D(const Obj& obj);
     void drawIogSprite3D(const Iog& iog);
     void renderEntities(Zone& zone);
     void draw3D(sf::RenderTarget& target);
+    void destroyEntity(WorldEntity* entity);
     
     // Initialisation via Factory (L'implémentation utilisera ZoneFactory)
     void init();

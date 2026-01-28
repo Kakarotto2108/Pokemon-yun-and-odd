@@ -2,4 +2,4 @@ NPC|Camille|gabou.png|4|2|0|camille_intro
 NPC|Vieux Sage|gabou.png|5|5|0|sage_conseil
 OBJ|Television|IMG_1338.png|5|0|0|tv_maison
 OBJ|Coffre|IMG_1338.png|1|3|0|coffre_vide
-IOG|Pokeball|0|5
+IOG|Potion|2|5
