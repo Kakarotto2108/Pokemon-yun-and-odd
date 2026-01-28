@@ -7,6 +7,7 @@
 #include "ScriptManager.hpp"
 #include "Npc.hpp"
 #include "Obj.hpp"
+#include "ItemGround.hpp"
 #include <iostream>
 
 class ZoneFactory {
@@ -59,25 +60,41 @@ public:
             if (line.empty()) continue;
 
             std::stringstream ss(line);
-            std::string type, name, sprite, diagKey, xStr, yStr, orienStr;
-
-            // On découpe la ligne : TYPE|NOM|SPRITE|X|Y|ORIEN|DIAG
+            std::string type;
             std::getline(ss, type, '|');
-            std::getline(ss, name, '|');
-            std::getline(ss, sprite, '|');
-            std::getline(ss, xStr, '|');
-            std::getline(ss, yStr, '|');
-            std::getline(ss, orienStr, '|');
-            std::getline(ss, diagKey, '|');
 
-            sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
-            int orientation = std::stoi(orienStr);
-            std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
+            try {
+                if (type == "IOG") {
+                    std::string name, xStr, yStr;
+                    std::getline(ss, name, '|');
+                    std::getline(ss, xStr, '|');
+                    std::getline(ss, yStr, '|');
+                    sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
+                    entities.push_back(std::make_unique<Iog>(name, pos));
+                }
+                else if (type == "NPC" || type == "OBJ") {
+                    std::string name, sprite, diagKey, xStr, yStr, orienStr;
+                    std::getline(ss, name, '|');
+                    std::getline(ss, sprite, '|');
+                    std::getline(ss, xStr, '|');
+                    std::getline(ss, yStr, '|');
+                    std::getline(ss, orienStr, '|');
+                    std::getline(ss, diagKey, '|');
 
-            if (type == "NPC") {
-                entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey));
-            } else {
-                entities.push_back(std::make_unique<Obj>(name, fullSpritePath, pos, diagKey));
+                    sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
+                    int orientation = std::stoi(orienStr);
+                    std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
+
+                    if (type == "NPC") {
+                        entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey));
+                    } else {
+                        entities.push_back(std::make_unique<Obj>(name, fullSpritePath, pos, diagKey));
+                    }
+                } else {
+                    std::cerr << "Warning: Unknown entity type '" << type << "' in entities.txt for zone " << zoneId << std::endl;
+                }
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "Error parsing entity line in zone " << zoneId << ": \"" << line << "\". Reason: " << e.what() << std::endl;
             }
         }
 

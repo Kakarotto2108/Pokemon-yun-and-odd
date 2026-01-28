@@ -57,7 +57,7 @@ void Game::update(float dt) {
 
     // On bloque l'update du monde/joueur si on est en plein milieu d'une transition ? 
     // Ou on laisse tourner, selon ton choix de Game Design.
-    if(!TransitionManager::getInstance().isRunning() || true) {
+    if(!TransitionManager::getInstance().isRunning()) {
          m_playerController->update(m_world.getCurrentZone(), dt);
          m_world.update(m_player); 
          m_player.update(dt);
@@ -140,7 +140,7 @@ void Game::render() {
     
     sf::Sprite sceneSprite(m_sceneBuffer.getTexture());
     m_window.draw(sceneSprite);
-
+    
     // On dessine la transition
     TransitionManager::getInstance().render(m_window, m_sceneBuffer.getTexture());
 
@@ -151,4 +151,3 @@ void Game::render() {
     m_window.popGLStates(); // Restaure les états pour le prochain tour
     m_window.display();
 }
-

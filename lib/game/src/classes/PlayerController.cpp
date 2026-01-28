@@ -1,19 +1,29 @@
 #include "PlayerController.hpp"
 #include "Interactable.hpp"
 #include "DialogManager.hpp"
+#include "TransitionManager.hpp"
 #include <iostream>
 
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
-        if (DialogManager::getInstance().isActive()) return;
+        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning()) {
+            m_hAxis = 0.f;
+            return;
+        }
         m_hAxis = val;
     });
     Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
-        if (DialogManager::getInstance().isActive()) return;
+        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning()) {
+            m_vAxis = 0.f;
+            return;
+        }
         m_vAxis = val;
     });
 
     Controller::getInstance().onActionPressed("Interact", [this]() {
+        // On bloque toute interaction pendant une transition
+        if (TransitionManager::getInstance().isRunning()) return;
+        
         if (DialogManager::getInstance().isActive()) {
             DialogManager::getInstance().next();
         } else {

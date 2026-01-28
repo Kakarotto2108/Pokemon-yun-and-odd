@@ -88,7 +88,7 @@
         <div class="input-group"> spawnpointID: <input type="number" id="source-porte-id" value="1" min="1"></div>
     </div>
 
-    <button class="btn" id="btn-enti" onclick="setMode('entities')">👤 Entités (NPC/OBJ)</button>
+    <button class="btn" id="btn-enti" onclick="setMode('entities')">👤 Entités (NPC/OBJ/IOG)</button>
 
     <hr>
     <button class="btn btn-green" onclick="exportFiles()">💾 Exporter .txt</button>
@@ -107,25 +107,26 @@
     <h3 style="color: #f1c40f; margin-top: 0;">Inspecteur</h3>
     
     <div id="entity-settings">
-        <div class="input-group">Type: <select id="ent-type"><option value="NPC">NPC</option><option value="OBJ">OBJET</option></select></div>
-        <div class="input-group">Nom: <input type="text" id="ent-name" value="Pierre" style="width:120px;"></div>
-        <div class="input-group">Sprite name: <input type="text" id="ent-sprite" value="gabou.png"></div>
-        <div class="input-group">Orientation: <select id="ent-orien"><option value="DOWN">Bas</option><option value="UP">Haut</option><option value="LEFT">Gauche</option><option value="RIGHT">Droite</option></select></div>
-        <div class="input-group">Diag Key: <input type="text" id="ent-diag" value="DIAG_1" style="width:120px;"></div>
+        <div class="input-group">Type: <select id="ent-type" onchange="updateInspectorUI(this.value)"><option value="NPC">NPC</option><option value="OBJ">OBJET</option><option value="IOG">IOG</option></select></div>
+        <div class="input-group" id="ent-name-group"><span id="ent-name-label">Nom:</span> <input type="text" id="ent-name" value="Pierre" style="width:120px;"></div>
+        <div class="input-group" id="ent-sprite-group">Sprite name: <input type="text" id="ent-sprite" value="gabou.png"></div>
+        <div class="input-group" id="ent-orien-group">Orientation: <select id="ent-orien"><option value="DOWN">Bas</option><option value="UP">Haut</option><option value="LEFT">Gauche</option><option value="RIGHT">Droite</option></select></div>
         
-        <hr>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h4 style="margin: 0; color: #3498db;">Dialogues</h4>
-            <button class="btn" onclick="addDialogueRow()" style="padding: 2px 8px; background: #27ae60;">+</button>
-        </div>
-
-        <div id="dialogue-list" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+        <div id="dialogues-section">
+            <div class="input-group" id="ent-diag-group">Diag Key: <input type="text" id="ent-diag" value="DIAG_1" style="width:120px;"></div>
+            <hr>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; color: #3498db;">Dialogues</h4>
+                <button class="btn" onclick="addDialogueRow()" style="padding: 2px 8px; background: #27ae60;">+</button>
             </div>
-        
-        <p style="font-size: 0.7em; color: #bdc3c7; margin-top: 15px;">
-            Note: La clé de dialogue doit correspondre au fichier dialogues.txt lors de l'export.
-        </p>
+
+            <div id="dialogue-list" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                </div>
+            
+            <p style="font-size: 0.7em; color: #bdc3c7; margin-top: 15px;">
+                Note: La clé de dialogue doit correspondre au fichier dialogues.txt lors de l'export.
+            </p>
+        </div>
     </div>
 </div>
 
@@ -444,6 +445,7 @@
                         document.getElementById('ent-orien').value = found.orien;
                         document.getElementById('ent-diag').value = found.diagKey;
                     } else {
+                        if (document.getElementById('ent-type').value === 'IOG') collisionData[index] = 0;
                         // Créer une nouvelle entité
                         const newEnt = {
                             type: document.getElementById('ent-type').value,
@@ -456,8 +458,10 @@
                         };
                         entities.push(newEnt);
                         selectedEntity = newEnt;
-                        collisionData[index] = -1;
+                        if (newEnt.type !== 'IOG') collisionData[index] = -1;
                     }
+                    
+                    updateInspectorUI(selectedEntity.type);
                     renderDialogueList(); // Rafraîchir la liste des dialogues
                 }
             }
@@ -730,6 +734,19 @@
         });
     }
 
+    function updateInspectorUI(type) {
+        const isIog = (type === 'IOG');
+        
+        document.getElementById('ent-sprite-group').style.display = isIog ? 'none' : 'flex';
+        document.getElementById('ent-orien-group').style.display = isIog ? 'none' : 'flex';
+        document.getElementById('dialogues-section').style.display = isIog ? 'none' : 'block';
+
+        const nameLabel = document.getElementById('ent-name-label');
+        if (nameLabel) {
+            nameLabel.textContent = isIog ? 'Objet ID:' : 'Nom:';
+        }
+    }
+
     // Ajoute une nouvelle ligne de dialogue vide
     function addDialogueRow() {
         const key = document.getElementById('ent-diag').value;
@@ -920,7 +937,11 @@
 
         const formattedEnt = entities.map(e => {
             const o = orienMap[e.orien] ?? 0;
-            return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey}`;
+            if (e.type === 'IOG') {
+                // Les IOG n'ont pas de sprite, orientation ou diagKey dans le fichier
+                return `${e.type}|${e.name}|${e.x}|${e.y}`;
+            }
+            return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}`;
         }).join('\n');
 
         // Formatage Dialogues

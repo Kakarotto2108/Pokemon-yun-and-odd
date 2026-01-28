@@ -148,6 +148,53 @@ void World::drawObjSprite3D(const Obj& obj) {
     sf::Texture::bind(NULL);
 }
 
+void World::drawIogSprite3D(const Iog& iog) {
+    const sf::Sprite& sprite = iog.getSprite();
+    const sf::Texture* texture = sprite.getTexture();
+    if (!texture) return;
+
+    sf::Vector2f pos = static_cast<sf::Vector2f>(iog.getPosition()) * 32.f;
+    
+    sf::IntRect texRect = sprite.getTextureRect();
+    if (texRect.width == 0 || texRect.height == 0) {
+        texRect = sf::IntRect(0, 0, texture->getSize().x, texture->getSize().y);
+    }
+
+    glPushMatrix();
+    // On positionne l'objet au milieu de sa case (x+16) et sur le sol (y+32)
+    glTranslatef(pos.x + 16.f, pos.y + 32.f, 0.0f); 
+       
+    // Logique "Billboard" pour que le sprite fasse toujours face à la caméra
+    float m[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, m);
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) {
+            if (i == j) m[i*4+j] = 1.0f;
+            else m[i*4+j] = 0.0f;
+        }
+    }
+    glLoadMatrixf(m);
+    
+    glScalef(sprite.getScale().x, sprite.getScale().y, 1.0f);
+
+    float w = (float)texRect.width;
+    float h = (float)texRect.height;
+    float u1 = (float)texRect.left / texture->getSize().x;
+    float v1 = (float)texRect.top / texture->getSize().y;
+    float u2 = (float)(texRect.left + texRect.width) / texture->getSize().x;
+    float v2 = (float)(texRect.top + texRect.height) / texture->getSize().y;
+
+    sf::Texture::bind(texture);
+    glBegin(GL_QUADS);
+        glTexCoord2f(u1, v2); glVertex3f(-w/2.f, 0.f, 0.f); // Pied gauche
+        glTexCoord2f(u2, v2); glVertex3f( w/2.f, 0.f, 0.f); // Pied droite
+        glTexCoord2f(u2, v1); glVertex3f( w/2.f, h,   0.f); // Tête droite
+        glTexCoord2f(u1, v1); glVertex3f(-w/2.f, h,   0.f); // Tête gauche
+    glEnd();
+    glPopMatrix();
+    sf::Texture::bind(NULL);
+}
+
 void World::renderEntities(Zone& zone) {
     // 1. Créer une liste de pointeurs vers tout ce qui doit être dessiné
     std::vector<WorldEntity*> entitiesToDraw;
@@ -172,6 +219,11 @@ void World::renderEntities(Zone& zone) {
             Obj* obj = dynamic_cast<Obj*>(entity);
             if (obj) {
                 drawObjSprite3D(*obj);
+            } else {
+                Iog* iog = dynamic_cast<Iog*>(entity);
+                if (iog) {
+                    drawIogSprite3D(*iog);
+                }
             }
         }
     }

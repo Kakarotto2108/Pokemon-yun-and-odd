@@ -6,6 +6,8 @@
 #include <iostream>
 #include "DialogManager.hpp"
 #include "GameChoiceBox.hpp"
+#include "Player.hpp"
+#include "Item.hpp"
 
 inline std::string unescape(const std::string& s) {
     std::string res;
@@ -118,9 +120,13 @@ public:
                             std::string cmd = trim(tokens[0]);
 
                             if (cmd == "GIVE_ITEM") {
-                                std::string itemID = trim(tokens[1]);
-                                int qty = std::stoi(trim(tokens[2]));
-                                std::cout << "Don de " << qty << " " << itemID << std::endl;
+                                if (tokens.size() >= 3) {
+                                    std::string itemID = trim(tokens[1]);
+                                    int qty = std::stoi(trim(tokens[2]));
+                                    // On crée un objet Item pour l'ajouter à l'inventaire.
+                                    Item item(itemID, ItemPocket::Items, "Objet reçu.");
+                                    Player::getInstance().getInventory().addItem(item, qty);
+                                }
                             }
                             if (cmd == "CHOICE") {
                                 std::map<std::string, std::string> choices;

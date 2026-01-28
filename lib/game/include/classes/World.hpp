@@ -10,6 +10,7 @@
 #include "Player.hpp"
 #include "Character.hpp"
 #include "Obj.hpp"
+#include "ItemGround.hpp"
 
 
 class Player;
@@ -34,6 +35,7 @@ public:
     void drawTileMap3D(const TileMap& tileMap);
     void drawCharacter3D(const Character& character);
     void drawObjSprite3D(const Obj& obj);
+    void drawIogSprite3D(const Iog& iog);
     void renderEntities(Zone& zone);
     void draw3D(sf::RenderTarget& target);
     

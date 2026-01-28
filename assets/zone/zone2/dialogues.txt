@@ -4,3 +4,5 @@ S: Comment ça va ? | T: Classic| A: NONE
 S: Quel objet veux tu ? | T: Classic| A: CHOICE:{Choix1,NEXT}:{Choix2,NEXT}:{Choix3,NEXT}
 S: Mais juste, de rien en fait | T: Classic| A: A : NONE
 
+
+
