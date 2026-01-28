@@ -103,3 +103,7 @@ void Character::setLogicalPos(const sf::Vector2i& pos) {
 void Character::receiveItem(const Item& item) {
     m_inventory.addItem(item);
 }
+
+void Character::RemoveItem(const Item& item, int quantity) {
+    m_inventory.removeItem(item, quantity);
+}   

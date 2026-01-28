@@ -11,5 +11,5 @@ Npc::Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos,
 
 void Npc::interact() {    
     const auto& script = ScriptManager::getInstance().getDialogue(m_dialogueKey);
-    DialogManager::getInstance().startDialogue(script);
+    DialogManager::getInstance().startDialogue(script, this);
 }

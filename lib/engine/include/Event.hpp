@@ -33,8 +33,11 @@ private:
     std::vector<Listener> listeners;
 };
 
+class WorldEntity; // Forward declaration
+
 // Events List
 struct GameEvents {
     static Event<int, int> OnPlayerMove; 
     static Event<std::string> OnDialogueTrigger;
+    static Event<WorldEntity*> OnEntityDestroyed;
 };

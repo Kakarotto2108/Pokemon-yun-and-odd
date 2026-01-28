@@ -35,6 +35,7 @@ public:
 
     void receiveItem(const Item& item);
     Inventory& getInventory() { return m_inventory; }
+    void RemoveItem(const Item& item, int quantity = 1);
 
     void setPath(std::unique_ptr<CharacterPath> path) { m_path = std::move(path); }
     bool hasPath() const { return m_path != nullptr; }

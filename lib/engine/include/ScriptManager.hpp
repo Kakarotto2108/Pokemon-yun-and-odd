@@ -7,6 +7,7 @@
 #include "DialogManager.hpp"
 #include "GameChoiceBox.hpp"
 #include "Player.hpp"
+#include "Obj.hpp"
 #include "Item.hpp"
 
 inline std::string unescape(const std::string& s) {
@@ -111,21 +112,48 @@ public:
                     } 
                     else if (cleanPart.find("A:") == 0) {
                         std::string actionData = trim(cleanPart.substr(2)); // Nettoyage ici
+                        std::string capturedKey = currentKey;
+                        int stepIndex = currentSteps.size();
                         
-                        step.action = [actionData]() {
+                        step.action = [this, actionData, capturedKey, stepIndex]() {
                             auto tokens = split(actionData, ':');
                             if (tokens.empty()) return;
 
                             // On nettoie aussi chaque token pour être sûr
                             std::string cmd = trim(tokens[0]);
 
-                            if (cmd == "GIVE_ITEM") {
-                                if (tokens.size() >= 3) {
+                            if (cmd == "GIVE_ITEM") {                             
+                                Player::getInstance().getInventory().debugPrint();
+                                if (tokens.size() >= 2) {
                                     std::string itemID = trim(tokens[1]);
                                     int qty = std::stoi(trim(tokens[2]));
-                                    // On crée un objet Item pour l'ajouter à l'inventaire.
-                                    Item item(itemID, ItemPocket::Items, "Objet reçu.");
-                                    Player::getInstance().getInventory().addItem(item, qty);
+                                    
+                                    // On retire l'objet de l'inventaire du PNJ qui parle
+                                    WorldEntity* speaker = DialogManager::getInstance().getCurrentSpeaker();
+                                    Character* speakerChar = dynamic_cast<Character*>(speaker);
+                                    if (speakerChar) {
+                                        // On crée un objet Item pour l'ajouter à l'inventaire.
+                                        Item item(itemID, ItemPocket::Items, "Objet reçu d'un PNJ.");
+                                        if (speakerChar->getInventory().getQuantity(item) >= qty) {
+                                            speakerChar->RemoveItem(item, qty);
+                                            Player::getInstance().getInventory().addItem(item, qty);
+                                        }
+                                    }
+                                    Obj* obj = dynamic_cast<Obj*>(speaker);
+                                    if (obj) {
+                                        obj->giveItem();
+                                        // On crée un objet Item pour l'ajouter à l'inventaire.
+                                        Item item(itemID, ItemPocket::Items, "Objet reçu d'un PNJ.");
+                                        Player::getInstance().getInventory().addItem(item, qty);
+                                    }
+                                    // On "supprime" la ligne pour les prochaines fois en la vidant.
+                                    if (m_cache.count(capturedKey)) {
+                                        auto& stepsInCache = m_cache.at(capturedKey);
+                                        if (stepIndex >= 0 && static_cast<std::size_t>(stepIndex) < stepsInCache.size()) {
+                                            stepsInCache[stepIndex].text = "";
+                                            stepsInCache[stepIndex].action = nullptr;
+                                        }
+                                    }
                                 }
                             }
                             if (cmd == "CHOICE") {

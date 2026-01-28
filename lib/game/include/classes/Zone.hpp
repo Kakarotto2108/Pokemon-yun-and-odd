@@ -23,9 +23,10 @@ public:
     const TileMap& getTileMap() const { return m_tileMap; }
     const sf::Texture& getTileset() const { return *m_tileset; }
     const std::vector<std::unique_ptr<WorldEntity>>& getEntities() const { return m_entities; }
+    void destroyCollision(int x, int y);
     
     bool isBlocking(int x, int y) const;
-    void drawAll(sf::RenderWindow& window, const WorldEntity& player);
+    bool removeEntity(WorldEntity* entity);
     WorldEntity* getEntityAt(int x, int y) const {
         for (const auto& ent : m_entities) {
             sf::Vector2i pos = ent->getPosition();

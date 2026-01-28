@@ -2,6 +2,7 @@
 #include "Character.hpp"
 #include "Player.hpp"
 #include <algorithm>
+#include <iostream>
 
 Zone::Zone(int id, unsigned int width, unsigned int height,
            sf::Vector2i spawnPos,
@@ -18,23 +19,6 @@ Zone::Zone(int id, unsigned int width, unsigned int height,
     , m_tileset(&tileset)
 {
     m_tileMap.load(*m_tileset, sf::Vector2u(32, 32), visualMap, m_width, m_height);
-}
-
-void Zone::drawAll(sf::RenderWindow& window, const WorldEntity& player) {
-    //window.draw(m_tileMap);
-
-    std::vector<const WorldEntity*> renderQueue;
-    renderQueue.push_back(&player);
-    
-    for (const auto& e : m_entities) {
-        renderQueue.push_back(dynamic_cast<const WorldEntity*>(e.get()));
-    }
-
-    std::sort(renderQueue.begin(), renderQueue.end(), [](const WorldEntity* a, const WorldEntity* b) {
-        return a->getPosition().y < b->getPosition().y;
-    });
-
-    for (const auto* e : renderQueue) e->draw(window);
 }
 
 bool Zone::isBlocking(int x, int y) const {
@@ -55,4 +39,22 @@ bool Zone::isBlocking(int x, int y) const {
         }
     }
     return m_collisionMap[x + y * m_width] == -1;
+}
+
+void Zone::destroyCollision(int x, int y) {
+    if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return;
+    m_collisionMap[x + y * m_width] = 0;
+}
+
+bool Zone::removeEntity(WorldEntity* entity) {
+    auto it = std::remove_if(m_entities.begin(), m_entities.end(), 
+        [entity](const std::unique_ptr<WorldEntity>& ptr) {
+            return ptr.get() == entity;
+        });
+    
+    if (it != m_entities.end()) {
+        m_entities.erase(it, m_entities.end());
+        return true;
+    }
+    return false;
 }

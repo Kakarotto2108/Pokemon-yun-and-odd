@@ -13,6 +13,8 @@ public:
     
     const sf::Sprite& getSprite() const { return m_sprite; }
 
+    void giveItem() { m_item.reset(); }
+
     // Obligatoire pour Interactable
     void interact() override;
 

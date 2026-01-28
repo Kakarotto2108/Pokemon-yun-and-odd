@@ -7,6 +7,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <cmath>
+#include "Event.hpp"
+#include <fstream>
+#include "GameSession.hpp"
 
 World::World() {}
 
@@ -21,10 +24,6 @@ void World::switchZone(int id) {
 
 int World::getCurrentZoneId() const {
     return m_zone->getId();
-}
-
-void World::draw(sf::RenderWindow& window, const WorldEntity& focus) {
-    getCurrentZone().drawAll(window, focus);
 }
 
 void World::drawCharacter3D(const Character& character) {
@@ -245,6 +244,9 @@ void World::draw3D(sf::RenderTarget& target) {
 
 void World::init() {
     m_zone = ZoneFactory::createZone(1);
+    GameEvents::OnEntityDestroyed.subscribe([this](WorldEntity* e) {
+        destroyEntity(e);
+    });
 }
 
 void World::update(float dt, Player& player) {
@@ -293,4 +295,16 @@ void World::update(float dt, Player& player) {
             }
         }
     }
+}
+
+void World::destroyEntity(WorldEntity* entity) {
+    if (!m_zone) return;
+    
+    // On sauvegarde le fait que cet objet a été ramassé pour cette session
+    sf::Vector2i pos = entity->getPosition();
+    std::string uniqueId = "IOG_" + std::to_string(m_zone->getId()) + "_" + std::to_string(pos.x) + "_" + std::to_string(pos.y);
+    GameSession::getInstance().addCollectedItem(uniqueId);
+
+    m_zone->destroyCollision(pos.x, pos.y);
+    m_zone->removeEntity(entity);
 }

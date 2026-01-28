@@ -1,11 +1,14 @@
 #include "Game.hpp"
 #include "DialogManager.hpp"
 #include "TransitionManager.hpp"
+#include "Event.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+
+Event<WorldEntity*> GameEvents::OnEntityDestroyed;
 
 Game::Game(const GameConfig& config)
     : m_window(sf::VideoMode(config.width, config.height), config.title)
