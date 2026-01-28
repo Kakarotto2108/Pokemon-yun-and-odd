@@ -16,6 +16,7 @@ void CharacterPath::addDirection(const sf::Vector2i& dir) {
 }
 
 void CharacterPath::update(float dt, Character& character, Zone& zone) {
+    if (!m_running) return;
     if (m_timer.getElapsedTime().asSeconds() < character.getMoveDelay() && character.getIsMoving()) return;
 
     sf::Vector2i nextMove(0, 0);
@@ -25,9 +26,12 @@ void CharacterPath::update(float dt, Character& character, Zone& zone) {
             nextMove = generateRandomDirection();
         } else if (m_type == PathType::SIMPLE && m_currentIndex < m_path.size()) {
             nextMove = m_path[m_currentIndex++];
-        } else if (m_type == PathType::LOOP && !m_path.empty()) {
+        } else if (m_type == PathType::PINGPONG && !m_path.empty()) {
             nextMove = m_path[m_currentIndex];
             updateLoopIndex();
+        } else if (m_type == PathType::LOOP && !m_path.empty()) {
+            nextMove = m_path[m_currentIndex];
+            m_currentIndex = (m_currentIndex + 1) % m_path.size();
         }
         m_timer.restart();
     }
@@ -54,4 +58,17 @@ void CharacterPath::updateLoopIndex() {
         if (m_currentIndex > 0) m_currentIndex--;
         else { m_forward = true; for(auto& d : m_path) d = -d; }
     }
+}
+
+void CharacterPath::start() {
+    m_running = true;
+    m_timer.restart();
+}
+
+void CharacterPath::pause() {
+    m_running = false;
+}
+
+bool CharacterPath::isRunning() const {
+    return m_running;
 }

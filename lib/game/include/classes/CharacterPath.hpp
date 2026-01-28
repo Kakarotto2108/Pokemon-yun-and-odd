@@ -8,7 +8,7 @@
 class Character;
 class Zone;
 
-enum class PathType { RANDOM, SIMPLE, LOOP };
+enum class PathType { RANDOM, SIMPLE, LOOP, PINGPONG };
 
 class CharacterPath {
 public:
@@ -16,6 +16,10 @@ public:
 
     void addDirection(const sf::Vector2i& dir);
     void update(float dt, Character& character, Zone& zone);
+
+    void start();
+    void pause();
+    bool isRunning() const;
 
 private:
     sf::Vector2i generateRandomDirection();
@@ -28,6 +32,7 @@ private:
     bool m_forward;
     float m_moveInterval;
     sf::Clock m_timer;
+    bool m_running = true;
 };
 
 #endif

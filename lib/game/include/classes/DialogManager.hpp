@@ -30,7 +30,7 @@ public:
     void init(GameDialog* msgBox) { m_msgBox = msgBox; }
 
     void addLine(const std::string& text, BoxType type = BoxType::Classic);
-    void startDialogue(const std::vector<DialogueStep>& steps);
+    void startDialogue(const std::vector<DialogueStep>& steps, std::function<void()> actionAfter = nullptr);
     void next();
 
     bool isActive() const { return m_active; }
@@ -42,6 +42,7 @@ private:
     GameDialog* m_msgBox = nullptr;
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
+    std::function<void()> m_actionAfter = nullptr;
 };
 
 #endif

@@ -29,6 +29,8 @@ public:
     const sf::Sprite& getSprite() const { return m_sprite; }
     sf::Vector2f getDrawPosition() const;
     sf::Vector2i getFacingTile() const;
+    int getOrientation() const { return m_orientation; }
+    void setOrientation(int orientation);
     void setLogicalPos(const sf::Vector2i& pos);
     std::string getName() const { return m_name; }
     bool getIsMoving() const { return m_isMoving; }

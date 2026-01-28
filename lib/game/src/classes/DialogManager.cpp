@@ -5,7 +5,7 @@ void DialogManager::addLine(const std::string& text, BoxType type) {
     m_queue.push({text, type});
 }
 
-void DialogManager::startDialogue(const std::vector<DialogueStep>& steps) {
+void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, std::function<void()> actionAfter) {
     if (!m_msgBox) {
         std::cerr << "[DialogManager] Erreur : Pas de MessageBox liée (init non appelé)\n";
         return;
@@ -21,6 +21,8 @@ void DialogManager::startDialogue(const std::vector<DialogueStep>& steps) {
         m_active = true;
         next(); 
     }
+
+    m_actionAfter = actionAfter;
 }
 
 void DialogManager::next() {
@@ -29,6 +31,8 @@ void DialogManager::next() {
     if (m_queue.empty()) {
         m_active = false;
         m_msgBox->hide();
+        if (m_actionAfter) m_actionAfter();
+        m_actionAfter = nullptr;
         return;
     }
 

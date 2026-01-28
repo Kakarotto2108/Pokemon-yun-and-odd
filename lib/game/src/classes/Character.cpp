@@ -30,6 +30,17 @@ void Character::stopAnimation() {
     m_animations[m_currentAnim].reset();
 }
 
+void Character::setOrientation(int orientation) {
+    m_orientation = orientation;
+    switch (m_orientation) {
+        case 0: m_currentAnim = "WalkDown"; break;
+        case 1: m_currentAnim = "WalkLeft"; break;
+        case 2: m_currentAnim = "WalkRight"; break;
+        case 3: m_currentAnim = "WalkUp"; break;
+        default: m_currentAnim = "WalkDown"; break;
+    }
+}
+
 void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     if (direction.x == 0 && direction.y == 0) {
         m_isMoving = false;
@@ -60,6 +71,8 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
 }
 
 void Character::update(float dt, Zone& zone) {
+    m_sprite.setTextureRect(m_animations[m_currentAnim].getUVRect());
+
     if (m_path) {
         m_path->update(dt, *this, zone);
     }
@@ -67,7 +80,6 @@ void Character::update(float dt, Zone& zone) {
     if (m_isMoving) {
         m_animations[m_currentAnim].update(dt);
     }
-    m_sprite.setTextureRect(m_animations[m_currentAnim].getUVRect());
 
     sf::Vector2f diff = m_targetPos - m_sprite.getPosition();
     if (std::abs(diff.x) > 0.5f || std::abs(diff.y) > 0.5f) {
