@@ -87,7 +87,7 @@ public:
                     std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
 
                     if (type == "NPC") {
-                        auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.0f);
+                        auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f);
                         entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey, std::move(path)));
                     } else {
                         entities.push_back(std::make_unique<Obj>(name, fullSpritePath, pos, diagKey));

@@ -41,6 +41,9 @@ public:
 
     void setMoveDelay(float delay) { m_moveDelay = delay; }
     float getMoveDelay() const { return m_moveDelay; }
+
+    void setCollision(bool collision) { isColliding = collision; }
+    bool getCollision() const { return isColliding; }
     
 protected:
     std::string m_name;
@@ -58,4 +61,5 @@ protected:
     Inventory m_inventory;
     std::unique_ptr<CharacterPath> m_path;
     float m_moveDelay = 0.2f; 
+    bool isColliding = true;
 };

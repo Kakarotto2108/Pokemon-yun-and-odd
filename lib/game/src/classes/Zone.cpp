@@ -1,4 +1,6 @@
 #include "Zone.hpp"
+#include "Character.hpp"
+#include "Player.hpp"
 #include <algorithm>
 
 Zone::Zone(int id, unsigned int width, unsigned int height,
@@ -37,5 +39,20 @@ void Zone::drawAll(sf::RenderWindow& window, const WorldEntity& player) {
 
 bool Zone::isBlocking(int x, int y) const {
     if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return true;
+    for (const auto& ent : m_entities) {
+        Character* character = dynamic_cast<Character*>(ent.get());
+        if (character && character->getCollision()) {
+            sf::Vector2i pos = character->getPosition();
+            if (pos.x == x && pos.y == y) {
+                return true;
+            }
+        }
+    }
+    if (Player::getInstance().getCollision()) {
+        sf::Vector2i playerPos = Player::getInstance().getPosition();
+        if (playerPos.x == x && playerPos.y == y) {
+            return true;
+        }
+    }
     return m_collisionMap[x + y * m_width] == -1;
 }
