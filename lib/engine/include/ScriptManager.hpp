@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include "CharacterPath.hpp"
 #include "DialogManager.hpp"
 #include "GameChoiceBox.hpp"
 #include "Player.hpp"
@@ -122,8 +123,7 @@ public:
                             // On nettoie aussi chaque token pour être sûr
                             std::string cmd = trim(tokens[0]);
 
-                            if (cmd == "GIVE_ITEM") {                             
-                                Player::getInstance().getInventory().debugPrint();
+                            if (cmd == "GIVE_ITEM") {
                                 if (tokens.size() >= 2) {
                                     std::string itemID = trim(tokens[1]);
                                     int qty = std::stoi(trim(tokens[2]));
@@ -156,7 +156,7 @@ public:
                                     }
                                 }
                             }
-                            if (cmd == "CHOICE") {
+                            else if (cmd == "CHOICE") {
                                 std::map<std::string, std::string> choices;
 
                                 // On commence à i=1 car i=0 est la commande "CHOICE"
@@ -181,6 +181,9 @@ public:
 
                                 GameChoiceBox::getInstance().init(choices);
                                 GameChoiceBox::getInstance().show();
+                            }
+                            else if (cmd == "MOVE") {
+                                //WorldEntity* speaker = DialogManager::getInstance().getCurrentSpeaker();
                             }
                             else if (cmd == "HEAL") {
                                 // ...

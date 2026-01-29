@@ -150,13 +150,7 @@ public:
                             std::getline(ss, action, '|');
                             PathType pathType = (action == "RANDOM") ? PathType::RANDOM : (action == "SIMPLE") ? PathType::SIMPLE : (action == "LOOP") ? PathType::LOOP : PathType::PINGPONG;
                             auto path = std::make_unique<CharacterPath>(pathType, 2.f);
-                            if (action == "SIMPLE") {
-                                std::string dirStr;
-                                std::getline(ss, dirStr, '|');
-                                auto direction = parseDirections(dirStr);
-                                path->addDestination(pos, direction[0]);
-                            }
-                            if (action == "PINGPONG") {
+                            if (action == "SIMPLE" || action == "PINGPONG") {
                                 std::string dirStr;
                                 std::getline(ss, dirStr, '|');
                                 auto direction = parseDirections(dirStr);
