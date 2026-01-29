@@ -33,6 +33,31 @@ int Inventory::getQuantity(const Item& item) const
     return (itemIt != pocketIt->second.end()) ? itemIt->second : 0;
 }
 
+nlohmann::json Inventory::toJson() const {
+    nlohmann::json j;
+    for (auto& [pocket, items] : m_pockets) {
+        nlohmann::json pocketJson;
+        for (auto& [item, count] : items) {
+            pocketJson[item] = count;
+        }
+        j[static_cast<int>(pocket)] = pocketJson;
+    }
+    return j;
+}
+
+Inventory Inventory::fromJson(const nlohmann::json& j) {
+    Inventory inventory;
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        ItemPocket pocket = static_cast<ItemPocket>(std::stoi(it.key()));
+        Pocket items;
+        for (auto itemIt = it.value().begin(); itemIt != it.value().end(); ++itemIt) {
+            items[itemIt.key()] = itemIt.value();
+        }
+        inventory.m_pockets[pocket] = items;
+    }
+    return inventory;
+}
+
 void Inventory::debugPrint() const {
     for (auto& [pocket, items] : m_pockets) {
         std::string pocketName;

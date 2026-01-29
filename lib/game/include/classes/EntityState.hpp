@@ -2,6 +2,7 @@
 #include <SFML/System.hpp>
 #include <nlohmann/json.hpp>
 #include <string>
+#include "Inventory.hpp"
 
 enum class EntityType {
     NPC,
@@ -15,6 +16,7 @@ struct EntityState {
     sf::Vector2i position;
     int orientation = 0;
     std::string dialogKey;
+    std::unique_ptr<Inventory> inventory = nullptr;
 
     // ---------------- Serialize ----------------
     nlohmann::json toJson() const {
@@ -25,6 +27,10 @@ struct EntityState {
         j["dialogKey"] = dialogKey;
         j["texturePath"] = texturePath;
         j["type"] = static_cast<int>(type);
+        if (inventory)
+            j["inventory"] = inventory->toJson();
+        else
+            j["inventory"] = nlohmann::json::array();
         return j;
     }
 
@@ -37,6 +43,10 @@ struct EntityState {
         state.dialogKey = j.value("dialogKey", "");
         state.texturePath = j.value("texturePath", "");
         state.type = static_cast<EntityType>(j.value("type", 0));
+        if (!j["inventory"].is_null())
+            state.inventory = std::make_unique<Inventory>(Inventory::fromJson(j["inventory"]));
+        else
+            state.inventory = nullptr;
 
         if(state.position.x < 0) state.position.x = 0;
         if(state.position.y < 0) state.position.y = 0;

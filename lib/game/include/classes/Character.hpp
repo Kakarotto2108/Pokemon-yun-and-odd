@@ -18,7 +18,7 @@ class CharacterPath;
 
 class Character : public WorldEntity {
 public:
-    Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path = nullptr);
+    Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path = nullptr, const Inventory& inventory = Inventory());
     virtual ~Character() = default;
 
     virtual void moveRequest(sf::Vector2i direction, Zone& zone);
@@ -36,8 +36,11 @@ public:
     std::string getName() const { return m_name; }
     bool getIsMoving() const { return m_isMoving; }
 
+    Inventory& getInventory() { return *m_inventory; }
+    void setInventory(const Inventory& inventory) {
+        m_inventory = std::make_unique<Inventory>(inventory);
+    }
     void receiveItem(const Item& item);
-    Inventory& getInventory() { return m_inventory; }
     void RemoveItem(const Item& item, int quantity = 1);
 
     void setPath(std::unique_ptr<CharacterPath> path) { m_path = std::move(path); }
@@ -52,14 +55,18 @@ public:
     void applyState(const EntityState& state) override {
         WorldEntity::applyState(state);
         setOrientation(state.orientation);
+        if (state.inventory)
+            m_inventory = std::make_unique<Inventory>(*state.inventory);
     }
 
     EntityState getState() const override {
         EntityState state = WorldEntity::getState();
         state.texturePath = m_texturePath;
         state.orientation = m_orientation;
+        state.inventory = std::make_unique<Inventory>(*m_inventory);
         return state;
     }
+
     
 protected:
     std::string m_name;
@@ -75,7 +82,7 @@ protected:
     const float TILE_SIZE = 32.f;
     const float MOVE_SPEED = 0.2f; 
 
-    Inventory m_inventory;
+    std::unique_ptr<Inventory> m_inventory;
     std::unique_ptr<CharacterPath> m_path;
     float m_moveDelay = 0.2f; 
     bool isColliding = true;

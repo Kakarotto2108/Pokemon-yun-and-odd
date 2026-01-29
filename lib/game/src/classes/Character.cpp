@@ -4,13 +4,14 @@
 #include <cmath>
 #include <iostream>
 
-Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path)
+Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path, const Inventory& inventory)
     : WorldEntity(name, pos), 
       m_name(name),
       m_texturePath(spriteSheetName),
       m_orientation(orientation), 
       m_currentAnim("WalkDown"),
       m_isMoving(false),
+      m_inventory(std::make_unique<Inventory>(inventory)),
       m_path(std::move(path))
 {
     // Attention au chemin : assure-toi que le dossier existe
@@ -114,9 +115,9 @@ void Character::setLogicalPos(const sf::Vector2i& pos) {
 }
 
 void Character::receiveItem(const Item& item) {
-    m_inventory.addItem(item);
+    m_inventory->addItem(item, 1);
 }
 
 void Character::RemoveItem(const Item& item, int quantity) {
-    m_inventory.removeItem(item, quantity);
+    m_inventory->removeItem(item, quantity);
 }   

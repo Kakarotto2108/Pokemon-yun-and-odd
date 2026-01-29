@@ -2,6 +2,7 @@
 #include <vector>
 #include "Item.hpp"
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 #include <map>
 using Pocket = std::unordered_map<std::string, int>;
 
@@ -14,6 +15,9 @@ public:
 
     int getQuantity(const Item& item) const;
     void debugPrint() const;
+
+    nlohmann::json toJson() const;
+    static Inventory fromJson(const nlohmann::json& j);
 private:
     std::map<ItemPocket, Pocket> m_pockets;  
 };
