@@ -11,6 +11,7 @@
 #include "Item.hpp"
 #include "Inventory.hpp"
 #include "CharacterPath.hpp"
+#include "EntityState.hpp"
 
 class Zone;
 class CharacterPath;
@@ -29,6 +30,8 @@ public:
     const sf::Sprite& getSprite() const { return m_sprite; }
     sf::Vector2f getDrawPosition() const;
     sf::Vector2i getFacingTile() const;
+    int getOrientation() const { return m_orientation; }
+    void setOrientation(int orientation);
     void setLogicalPos(const sf::Vector2i& pos);
     std::string getName() const { return m_name; }
     bool getIsMoving() const { return m_isMoving; }
@@ -45,9 +48,22 @@ public:
 
     void setCollision(bool collision) { isColliding = collision; }
     bool getCollision() const { return isColliding; }
+
+    void applyState(const EntityState& state) override {
+        WorldEntity::applyState(state);
+        setOrientation(state.orientation);
+    }
+
+    EntityState getState() const override {
+        EntityState state = WorldEntity::getState();
+        state.texturePath = m_texturePath;
+        state.orientation = m_orientation;
+        return state;
+    }
     
 protected:
     std::string m_name;
+    std::string m_texturePath;
     sf::Vector2f m_targetPos;
     int m_orientation;
     

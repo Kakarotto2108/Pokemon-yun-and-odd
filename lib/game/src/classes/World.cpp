@@ -18,7 +18,8 @@ Zone& World::getCurrentZone() {
 }
 
 void World::switchZone(int id) {
-    if (m_zone->getId() == id) return;
+    // if (m_zone->getId() == id) return;
+    
     m_zone = ZoneFactory::createZone(id);
 }
 
@@ -286,6 +287,7 @@ void World::update(float dt, Player& player) {
 
                 TransitionManager::getInstance().start(randomEffect, 0.8f, [this, targetZoneId, targetSpawnIndex, &player](){
                     // Changement effectif de zone
+                    GameInstance::getInstance().saveZoneState(m_zone->getId(), m_zone->getEntities());
                     this->switchZone(targetZoneId);
                     
                     // On arrête le mouvement du joueur et on le téléporte au spawn de la nouvelle zone

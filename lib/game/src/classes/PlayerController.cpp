@@ -2,7 +2,24 @@
 #include "Interactable.hpp"
 #include "DialogManager.hpp"
 #include "TransitionManager.hpp"
+#include "GameInstance.hpp"
 #include <iostream>
+
+PlayerController* PlayerController::s_instance = nullptr;
+
+PlayerController* PlayerController::getInstance() {
+    return s_instance;
+}
+
+void PlayerController::create(World& world, Player& player) {
+    if (!s_instance)
+        s_instance = new PlayerController(world, player);
+}
+
+void PlayerController::destroy() {
+    delete s_instance;
+    s_instance = nullptr;
+}
 
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
@@ -37,9 +54,28 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
             }
         }
     });
+
+    Controller::getInstance().onActionPressed("Save", [this]() {
+        GameInstance::getInstance().saveZoneState(m_world.getCurrentZoneId(), m_world.getCurrentZone().getEntities());
+        GameInstance::getInstance().saveToFileEncrypted("savegame.dat");
+        std::cout << "Game saved (encrypted)." << std::endl;
+    }); 
+
+    Controller::getInstance().onActionPressed("Load", [this]() {
+        try {
+            GameInstance::getInstance().loadFromFileEncrypted("savegame.dat");
+            std::cout << "Game loaded (encrypted)." << std::endl;
+            // Après le chargement, on doit recharger la zone actuelle
+            int currentZoneId = m_world.getCurrentZoneId();
+            m_world.switchZone(currentZoneId);
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to load game: " << e.what() << std::endl;
+        }
+    });
 }
 
 void PlayerController::update(Zone& zone, float dt) {
+    if (!m_inputEnabled) return;
     if (m_moveTimer.getElapsedTime().asSeconds() < m_player.getMoveDelay() && m_player.getIsMoving()) return;
 
     sf::Vector2i direction(0, 0);

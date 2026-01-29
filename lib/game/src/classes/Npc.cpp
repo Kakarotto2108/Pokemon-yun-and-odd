@@ -1,6 +1,7 @@
 #include "Npc.hpp"
 #include "ScriptManager.hpp"
 #include "DialogManager.hpp"
+#include "CharacterPath.hpp"    
 #include "Player.hpp"
 #include <iostream>
 
@@ -9,7 +10,13 @@ Npc::Npc(const std::string& name, const std::string& sprite, sf::Vector2i pos,
     : Character(name, sprite, pos, orientation, std::move(path)), 
       m_dialogueKey(dialogueKey) {}
 
-void Npc::interact() {    
+void Npc::interact() {
+    setOrientation(3 - Player::getInstance().getOrientation());   
+    m_path->pause();
     const auto& script = ScriptManager::getInstance().getDialogue(m_dialogueKey);
-    DialogManager::getInstance().startDialogue(script, this);
+    DialogManager::getInstance().startDialogue(script, [this]() {
+        if (hasPath()) {
+            m_path->start();
+        }
+    });
 }

@@ -25,6 +25,6 @@ private:
     sf::View m_cameraView;
     sf::View m_uiView;
 
-    std::unique_ptr<PlayerController> m_playerController;
+    PlayerController* m_playerController = nullptr;
     World m_world;
 };

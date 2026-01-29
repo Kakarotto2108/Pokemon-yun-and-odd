@@ -9,8 +9,9 @@ Obj::Obj(const std::string& name, const std::string& texturePath,
          std::optional<Item> item)
     : WorldEntity(name, pos), m_dialogueKey(dialogueKey), m_item(item) 
 {
+    m_texturePath = texturePath;
     // Chargement de la texture via ton Manager
-    sf::Texture& tex = TextureManager::getInstance().get(texturePath);
+    sf::Texture& tex = TextureManager::getInstance().get(m_texturePath);
     m_sprite.setTexture(tex);
     
     // Positionnement graphique (TILE_SIZE à adapter selon tes constantes)
