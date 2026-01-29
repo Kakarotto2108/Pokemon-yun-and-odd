@@ -2,7 +2,11 @@
 S: Oh, bonjour ! Je ne t'avais pas vu arriver. | T: Classic| A: NONE
 S: Tiens, prends ceci, ça t'aidera pour ton voyage ! | T: Classic| A: NONE
 S: Vous recevez une POKEBALL ! | T: Object| A: GIVE_ITEM:Pokeball:1
+S: Kakarotto place l'objet dans la poche Pokéball | T: Object| A: CHANGE_DIAG:camille_intro_2
 S: Fais-en bon usage ! | T: Classic| A: NONE
+
+[camille_intro_2]
+S: Alors ? Comment tu trouves ma pokéball ? |T: Classic| A: None
 
 [sage_conseil]
 S: Tes $[red]Pokemonitos $[black]ont l'air fatigués, mon enfant. | T: Classic| A: NONE

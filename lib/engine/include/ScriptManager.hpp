@@ -8,6 +8,7 @@
 #include "DialogManager.hpp"
 #include "GameChoiceBox.hpp"
 #include "Player.hpp"
+#include "Npc.hpp"
 #include "Obj.hpp"
 #include "Item.hpp"
 
@@ -165,6 +166,8 @@ public:
                                             speakerChar->RemoveItem(item, qty);
                                             Player::getInstance().getInventory().addItem(item, qty);
                                         }
+                                        else {
+                                            cmd = "CHANGE_DIAG"
                                     }
                                     Obj* obj = dynamic_cast<Obj*>(speaker);
                                     if (obj) {
@@ -243,6 +246,14 @@ public:
                                 
                                 speakerChar->setPath(std::move(path));
                                 speakerChar->getPath()->start();
+                            }
+                            if (cmd == "CHANGE_DIAG") {
+                                WorldEntity* speaker = DialogManager::getInstance().getCurrentSpeaker();
+                                Npc* npc = dynamic_cast<Npc*>(speaker);
+                                if (tokens.size() >= 2) {
+                                    std::string diagKey = trim(tokens[1]);
+                                    npc->setDialogueKey(diagKey);
+                                }
                             }
                             else if (cmd == "HEAL") {
                                 // ...

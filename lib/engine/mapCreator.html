@@ -111,7 +111,7 @@
         <div class="input-group" id="ent-name-group"><span id="ent-name-label">Nom:</span> <input type="text" id="ent-name" value="Pierre" style="width:120px;"></div>
         <div class="input-group" id="ent-sprite-group">Sprite name: <input type="text" id="ent-sprite" value="gabou.png"></div>
         <div class="input-group" id="ent-orien-group">Orientation: <select id="ent-orien"><option value="DOWN">Bas</option><option value="UP">Haut</option><option value="LEFT">Gauche</option><option value="RIGHT">Droite</option></select></div>
-        <div class="input-group" id="ent-move-group">Type Deplacement Initial: <select id="ent-move" onchange="updateInspectorMove(this.value)"><option value = "RANDOM">Random</option><option value="SIMPLE">Simple</option><option value="PINGPONG">Ping Pong</option><option value="LOOP">Boucle</option></select></div>
+        <div class="input-group" id="ent-move-group">Type Deplacement Initial: <select id="ent-move" onchange="updateInspectorMove(this.value)"><option value="NONE">Aucun</option><option value = "RANDOM">Random</option><option value="SIMPLE">Simple</option><option value="PINGPONG">Ping Pong</option><option value="LOOP">Boucle</option></select></div>
         <div class="input-group" id="ent-dest-group">Destination(s): <input type="text" id="ent-dest" placeholder="{5,2};{8,2}">
         </div>
         <div id="dialogues-section">
@@ -803,7 +803,7 @@
     } 
     
     function updateInspectorMove(move) {
-        const isRandomMove = (move === 'RANDOM');
+        const isRandomMove = (move === 'RANDOM' || move === 'NONE');
         document.getElementById('ent-dest-group').style.display = isRandomMove ? 'none' : 'flex';
     }
     // Ajoute une nouvelle ligne de dialogue vide
@@ -1052,7 +1052,15 @@
                 // Les IOG n'ont pas de sprite, orientation ou diagKey dans le fichier
                 return `${e.type}|${e.name}|${e.x}|${e.y}`;
             }
-            return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}|${e.actionType ?? ''}|${e.destination ?? ''}`;
+            if (e.actionType === 'RANDOM') {
+                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}|${e.actionType}`;
+            }
+            else if (e.actionType === 'SIMPLE' || e.actionType === 'PINGPONG' || e.actionType === 'LOOP') {
+                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}|${e.actionType}|${e.destination ?? ''}`;
+            }
+            else {
+                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}`;
+            }
         }).join('\n');
 
         // Formatage Dialogues

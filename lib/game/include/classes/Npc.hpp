@@ -22,6 +22,10 @@ public:
         return state;
     }
 
+    void setDialogueKey(const std::string& key) {
+        m_dialogueKey = key;
+    }
+
 private:
     std::string m_dialogueKey;
 };
