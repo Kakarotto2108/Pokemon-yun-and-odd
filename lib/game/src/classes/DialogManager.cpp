@@ -11,8 +11,7 @@ void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, std::f
         std::cerr << "[DialogManager] Erreur : Pas de MessageBox liée (init non appelé)\n";
         return;
     }
-
-    m_currentSpeaker = speaker;
+    
     while(!m_queue.empty()) m_queue.pop();
 
     for (const auto& step : steps) {

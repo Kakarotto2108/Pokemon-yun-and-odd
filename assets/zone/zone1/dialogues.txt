@@ -15,3 +15,4 @@ S: ... mais tu n'as pas le temps de jouer maintenant ! | T: Classic| A: NONE
 
 [coffre_vide]
 S: Le coffre est désespérément vide. | T: Classic| A: NONE
+

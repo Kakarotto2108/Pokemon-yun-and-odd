@@ -15,6 +15,8 @@ public:
     CharacterPath(PathType type, float moveInterval = 1.0f);
 
     void addDirection(const sf::Vector2i& dir);
+    void addDestination(const sf::Vector2i& currentPos, const sf::Vector2i& dest);
+    void addDestinationLoop(const sf::Vector2i& currentPos, const std::vector<sf::Vector2i>& dest);
     void update(float dt, Character& character, Zone& zone);
 
     void start();

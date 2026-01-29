@@ -22,7 +22,7 @@ Obj::Obj(const std::string& name, const std::string& texturePath,
 
 void Obj::interact() {    
     const auto& script = ScriptManager::getInstance().getDialogue(m_dialogueKey);
-    DialogManager::getInstance().startDialogue(script, this);
+    DialogManager::getInstance().startDialogue(script);
 }
 
 void Obj::draw(sf::RenderWindow& window) const {

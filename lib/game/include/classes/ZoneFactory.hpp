@@ -44,6 +44,33 @@ public:
         return spawnPoints;
     }
 
+    static std::vector<sf::Vector2i> parseDirections(const std::string& str)
+    {
+        std::size_t pos = 0;
+        std::vector<sf::Vector2i> directions;
+
+        while (true)
+        {
+            std::size_t open = str.find('{', pos);
+            if (open == std::string::npos)
+                break;
+
+            std::size_t comma = str.find(',', open);
+            std::size_t close = str.find('}', comma);
+
+            if (comma == std::string::npos || close == std::string::npos)
+                break;
+
+            int x = std::stoi(str.substr(open + 1, comma - open - 1));
+            int y = std::stoi(str.substr(comma + 1, close - comma - 1));
+
+            directions.push_back(sf::Vector2i(x, y));
+
+            pos = close + 1;
+        }
+        return directions;
+    }
+
     static std::unique_ptr<Zone> createZone(int zoneId) {
         std::string path = "assets/zone/zone" + std::to_string(zoneId) + "/";
         unsigned int width, height;
@@ -119,7 +146,28 @@ public:
                         std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
 
                         if (type == "NPC") {
-                            auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f);
+                            std::string action;
+                            std::getline(ss, action, '|');
+                            PathType pathType = (action == "RANDOM") ? PathType::RANDOM : (action == "SIMPLE") ? PathType::SIMPLE : (action == "LOOP") ? PathType::LOOP : PathType::PINGPONG;
+                            auto path = std::make_unique<CharacterPath>(pathType, 2.f);
+                            if (action == "SIMPLE") {
+                                std::string dirStr;
+                                std::getline(ss, dirStr, '|');
+                                auto direction = parseDirections(dirStr);
+                                path->addDestination(pos, direction[0]);
+                            }
+                            if (action == "PINGPONG") {
+                                std::string dirStr;
+                                std::getline(ss, dirStr, '|');
+                                auto direction = parseDirections(dirStr);
+                                path->addDestination(pos, direction[0]);
+                            }
+                            if (action == "LOOP") {
+                                std::string dirStr;
+                                std::getline(ss, dirStr, '|');
+                                auto directions = parseDirections(dirStr);
+                                path->addDestinationLoop(pos, directions);
+                            }
                             auto npc = std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey, std::move(path));
                             zoneState.entities[npc->getName()] = npc->getState();
                             entities.push_back(std::move(npc));

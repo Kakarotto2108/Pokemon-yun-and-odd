@@ -17,7 +17,7 @@ GameChoiceBox::GameChoiceBox() {
 
         // --- GESTION DU COOLDOWN ---
         // Si moins de 0.2 secondes se sont écoulées, on ignore l'input
-        if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) {
+        if (m_inputClock.getElapsedTime().asSeconds() < 0.05f) {
             return;
         }
 
@@ -49,7 +49,7 @@ GameChoiceBox::GameChoiceBox() {
 
         // Sécurité : Si la boîte vient juste de s'ouvrir (moins de 0.2s), on ignore l'appui
         // Cela évite de valider le choix avec la même touche qui a ouvert le menu.
-        if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
+        if (m_inputClock.getElapsedTime().asSeconds() < 0.05f) return;
 
         // Ici on pourrait ajouter une action à exécuter lors de la sélection
         hide();

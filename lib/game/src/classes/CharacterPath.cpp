@@ -15,6 +15,35 @@ void CharacterPath::addDirection(const sf::Vector2i& dir) {
     m_path.push_back(dir);
 }
 
+void CharacterPath::addDestination(const sf::Vector2i& currentPos, const sf::Vector2i& dest)
+{
+    sf::Vector2i delta = dest - currentPos;
+
+    // Horizontal
+    int stepX = (delta.x > 0) ? 1 : -1;
+    for (int i = 0; i < std::abs(delta.x); ++i)
+    {
+        m_path.push_back({stepX, 0});
+    }
+
+    // Vertical
+    int stepY = (delta.y > 0) ? 1 : -1;
+    for (int i = 0; i < std::abs(delta.y); ++i)
+    {
+        m_path.push_back({0, stepY});
+    }
+}
+
+void CharacterPath::addDestinationLoop(const sf::Vector2i& currentPos, const std::vector<sf::Vector2i>& dest)
+{
+    sf::Vector2i pos = currentPos;
+    for (const auto& d : dest) {
+        addDestination(pos, d);
+        pos = d;
+    }
+    addDestination(pos, currentPos);
+}
+
 void CharacterPath::update(float dt, Character& character, Zone& zone) {
     if (!m_running) return;
     if (m_timer.getElapsedTime().asSeconds() < character.getMoveDelay() && character.getIsMoving()) return;
