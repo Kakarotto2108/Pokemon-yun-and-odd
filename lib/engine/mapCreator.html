@@ -832,6 +832,25 @@
                 });
                 actionParamsHTML += `<button class="btn" style="font-size:0.8em; padding:2px 5px; margin-top:5px;" onclick="addChoice(${index})">+ Choix</button></div>`;
             }
+            if (actionCmd === 'MOVE') {
+                const moveType = actionArgs[0] || 'SIMPLE';
+                const destCoords = actionArgs[1] ? actionArgs[1].replace(/^\{|\}$/g, '') : '8,5';
+                actionParamsHTML = `
+                    <div class="input-group">
+                        Move Type: 
+                        <select onchange="updateActionParams(${index}, this.value, 0)">
+                            <option value="RANDOM" ${moveType === 'RANDOM' ? 'selected' : ''}>RANDOM</option>
+                            <option value="SIMPLE" ${moveType === 'SIMPLE' ? 'selected' : ''}>SIMPLE</option>
+                            <option value="PINGPONG" ${moveType === 'PINGPONG' ? 'selected' : ''}>PINGPONG</option>
+                            <option value="LOOP" ${moveType === 'LOOP' ? 'selected' : ''}>LOOP</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        Destinations (x,y): 
+                        <input type="text" value="${destCoords}" oninput="updateActionParams(${index}, this.value, 1)" placeholder="Ex: 8,5">
+                    </div>
+                `;
+            }
 
             row.innerHTML = `
                 <div class="diag-header">
@@ -840,7 +859,7 @@
                 </div>
                 <textarea rows="2" oninput="updateDiag(${index}, 'text', this.value)" placeholder="Texte...">${diag.text}</textarea>
                 <div class="input-group">Type: <select onchange="updateDiag(${index}, 'type', this.value)"><option value="Classic" ${diag.type === 'Classic' ? 'selected' : ''}>Classic</option><option value="Object" ${diag.type === 'Object' ? 'selected' : ''}>Object</option></select></div>
-                <div class="input-group">Action: <select onchange="updateActionCmd(${index}, this.value)"><option value="NONE" ${actionCmd === 'NONE' ? 'selected' : ''}>NONE</option><option value="GIVE_ITEM" ${actionCmd === 'GIVE_ITEM' ? 'selected' : ''}>GIVE_ITEM</option><option value="HEAL" ${actionCmd === 'HEAL' ? 'selected' : ''}>HEAL</option><option value="CHOICE" ${actionCmd === 'CHOICE' ? 'selected' : ''}>CHOICE</option></select></div>
+                <div class="input-group">Action: <select onchange="updateActionCmd(${index}, this.value)"><option value="NONE" ${actionCmd === 'NONE' ? 'selected' : ''}>NONE</option><option value="GIVE_ITEM" ${actionCmd === 'GIVE_ITEM' ? 'selected' : ''}>GIVE_ITEM</option><option value="HEAL" ${actionCmd === 'HEAL' ? 'selected' : ''}>HEAL</option><option value="CHOICE" ${actionCmd === 'CHOICE' ? 'selected' : ''}>CHOICE</option><option value="MOVE" ${actionCmd === 'MOVE' ? 'selected' : ''}>MOVE</option></select></div>
                 <div id="action-params-${index}">${actionParamsHTML}</div>
             `;
             list.appendChild(row);
@@ -864,6 +883,9 @@
             newAction = 'GIVE_ITEM:Pokeball:1';
         } else if (newCmd === 'CHOICE') {
             newAction = 'CHOICE:{Oui,NEXT}:{Non,CLOSE}';
+        }
+        else if (newCmd === 'MOVE') {
+            newAction = 'MOVE:SIMPLE:{8,5}';
         }
         
         dialogues[key][index].action = newAction;
