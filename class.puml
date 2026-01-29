@@ -1,9 +1,9 @@
 @startuml PokemonYunOdd_Class_Diagram
 
-' --- Configuration visuelle professionnelle ---
+' --- Visual Configuration ---
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
-skinparam nodesep 60
+skinparam nodesep 80
 skinparam ranksep 60
 skinparam shadowing true
 skinparam roundcorner 10
@@ -20,23 +20,28 @@ skinparam package {
     BorderColor #BDC3C7
 }
 
-' --- Titre ---
-title Diagramme de Classes - Pokemon Yun & Odd
+skinparam note {
+    BackgroundColor #FEFEFE
+    BorderColor #34495E
+}
+
+title Detailed Class Diagram - Pokemon Yun & Odd
 
 ' ==========================================
-' PACKAGE: ENGINE / CORE
+' PACKAGE: CORE / ENGINE
 ' ==========================================
-package "Engine & Core" {
+package "Core & Engine" <<Frame>> {
 
     class Game {
         - m_config : GameConfig
+        - m_sceneBuffer : sf::RenderTexture
         - m_window : sf::RenderWindow
         - m_player : Player&
         - m_cameraView : sf::View
         - m_uiView : sf::View
-        - m_playerController : unique_ptr<PlayerController>
+        - m_playerController : PlayerController*
         - m_world : World
-        + Game(config : GameConfig)
+        + Game(config : const GameConfig&)
         + run() : void
         - handleEvents() : void
         - update(dt : float) : void
@@ -44,96 +49,154 @@ package "Engine & Core" {
     }
 
     struct GameConfig {
-        + width : uint
-        + height : uint
-        + title : string
-        + playerName : string
+        + width : unsigned int
+        + height : unsigned int
+        + title : std::string
+        + playerName : std::string
     }
 
-    class "ResourceManager<T>" as ResourceManager << (S,#FF7700) Singleton >> {
-        - resources : map<string, unique_ptr<T>>
+    class "ResourceManager<Resource>" as ResourceManager << (T,#FFD700) Template, (S,#FF7700) Singleton >> {
+        - resources : "std::map<std::string, std::unique_ptr<Resource>>"
         - ResourceManager()
-        + {static} getInstance() : ResourceManager&
-        + get(filepath : string) : T&
+        + {static} getInstance() : ResourceManager<Resource>&
+        + get(filepath : const std::string&) : Resource&
         + clear() : void
     }
-    note right of ResourceManager : Gère Texture, Font, SoundBuffer
-
-    class TileMap {
-        - m_vertices : sf::VertexArray
-        - m_tileset : const sf::Texture*
-        + load(texture, tileSize, tiles, w, h) : bool
-        - draw(target, states) : void
-    }
+    note right of ResourceManager
+      Manages loading and storage of resources
+      like Textures, Fonts, and SoundBuffers.
+      Prevents duplicate loading.
+    end note
+    
+    ResourceManager <.down. "TextureManager"
+    ResourceManager <.down. "FontManager"
+    ResourceManager <.down. "SoundManager"
+    
+    hide "TextureManager"
+    hide "FontManager"
+    hide "SoundManager"
 
     class Controller << (S,#FF7700) Singleton >> {
+        - actionMapping : "std::map<std::string, sf::Keyboard::Key>"
+        - axisMapping : "std::map<std::string, std::pair<sf::Keyboard::Key, sf::Keyboard::Key>>"
+        - pressedActions : "std::set<std::string>"
+        - pressedCallbacks : "std::map<std::string, std::vector<ActionCallback>>"
+        - releasedCallbacks : "std::map<std::string, std::vector<ActionCallback>>"
+        - axisCallbacks : "std::map<std::string, std::vector<AxisCallback>>"
         + {static} getInstance() : Controller&
-        + onAxisChanged(...)
-        + onActionPressed(...)
-        + handleInput(window)
+        + onActionPressed(action: std::string, callback: ActionCallback) : void
+        + onActionReleased(action: std::string, callback: ActionCallback) : void
+        + onAxisChanged(axis: std::string, callback: AxisCallback) : void
+        + handleInput(window: sf::RenderWindow&) : void
     }
+    
+    class TransitionManager << (S,#FF7700) Singleton >> {
+        - m_active : bool
+        - m_progress : float
+        - m_type : TransitionType
+        - m_shader : sf::Shader
+        + {static} getInstance() : TransitionManager&
+        + init(windowSize: sf::Vector2u) : void
+        + start(type: TransitionType, durationIn: float, action: std::function<void()>, durationOut: float) : void
+        + update(dt: float) : void
+        + render(window: sf::RenderWindow&, sceneTexture: const sf::Texture&) : void
+        + isRunning() : bool
+    }
+    
+    enum TransitionType {
+        None, Fade, Distortion, Pixelate, RadialWipe, Glitch,
+        Blinds, Wind, Kaleido, TVShutdown, Drunk, BlackHole, Ripple
+    }
+    
+    TransitionManager *-- TransitionType
+    
+    class ScriptManager << (S, #FF7700) Singleton, (F, #00AA00) Facade >> {
+        - m_cache : "std::map<std::string, std::vector<DialogueStep>>"
+        + {static} getInstance() : ScriptManager&
+        + getDialogue(key: const std::string&) : const std::vector<DialogueStep>&
+        + loadDialogues(path: const std::string&) : void
+        + {static} parseDirections(str: const std::string&) : std::vector<sf::Vector2i>
+    }
+    note right of ScriptManager
+      Facade for loading and parsing game data from text files,
+      like dialogues and entity definitions. Caches data.
+    end note
 }
 
 ' ==========================================
-' PACKAGE: WORLD
+' PACKAGE: WORLD & ZONE
 ' ==========================================
-package "World Management" {
-
+package "World & Zone Management" <<Frame>> {
     class World {
-        - m_zones : map<int, unique_ptr<Zone>>
-        - m_currentZoneId : int
+        - m_zone : std::unique_ptr<Zone>
         + World()
+        + addZone(zone : std::unique_ptr<Zone>) : void
+        + getCurrentZone() : Zone&
+        + getCurrentZoneId() : int
+        + switchZone(zoneId : int) : void
+        + update(dt : float, player : Player&) : void
+        + draw(window : sf::RenderWindow&, focus : const WorldEntity&) : void
+        + destroyEntity(entity: WorldEntity*) : void
         + init() : void
-        + addZone(zone : unique_ptr<Zone>) : void
-        + getZoneActuelle() : Zone&
-        + changerZone(id : int) : void
-        + update(player : Player&) : void
-        + draw(window, focus) : void
     }
 
     class Zone {
         - m_id : int
-        - m_width : uint
-        - m_height : uint
-        - m_collisionMap : vector<int>
-        - m_transitions : vector<ZoneTransition>
-        - m_entities : vector<unique_ptr<WorldEntity>>
+        - m_width, m_height : unsigned int
+        - m_spawnPos : sf::Vector2i
+        - m_spawnPoints : "std::map<int, sf::Vector2i>"
+        - m_collisionMap : std::vector<int>
+        - m_entities : "std::vector<std::unique_ptr<WorldEntity>>"
         - m_tileset : sf::Texture*
         - m_tileMap : TileMap
         + Zone(...)
-        + isBlocking(x, y) : bool
-        + drawAll(window, player) : void
-        + getEntityAt(x, y) : WorldEntity*
-        + getTransitions() : vector<ZoneTransition>&
+        + getId() : int
+        + isBlocking(x : int, y : int) : bool
+        + getEntityAt(x : int, y : int) : WorldEntity*
+        + getEntities() : const std::vector<std::unique_ptr<WorldEntity>>&
+        + getTileMap() : const TileMap&
+        + removeEntity(entity: WorldEntity*) : bool
     }
-
+    
     class ZoneFactory << (F,#00AA00) Factory >> {
-        + {static} createZone(zoneId : int) : unique_ptr<Zone>
+        + {static} createZone(zoneId : int) : std::unique_ptr<Zone>
     }
-    note bottom of ZoneFactory : Factory Method Pattern\nCharge maps et instancie entités
+    note bottom of ZoneFactory: Factory Method pattern. Constructs fully initialized Zone objects.
 
     class MapLoader <<Utility>> {
-        + {static} loadFromFile(...) : vector<int>
+        + {static} loadFromFile(filepath: const std::string&, width: unsigned int&, height: unsigned int&) : std::vector<int>
     }
-
-    struct ZoneTransition {
-        + targetZoneId : int
-        + targetSpawnPos : sf::Vector2i
+    
+    class TileMap {
+        - m_vertices : std::vector<Vertex3D>
+        - m_tileset : const sf::Texture*
+        + load(texture: const sf::Texture&, tileSize: sf::Vector2u, tiles: const std::vector<int>&, width: unsigned int, height: unsigned int) : bool
+        + getVertices() : const std::vector<Vertex3D>&
+        + getTileset() : const sf::Texture*
+    }
+    
+    class CollisionGrid {
+      - m_grid: std::vector<int>
+      - m_width: unsigned int
+      - m_height: unsigned int
+      + load(data: const std::vector<int>&, width: unsigned int, height: unsigned int) : void
     }
 }
 
 ' ==========================================
 ' PACKAGE: ENTITIES
 ' ==========================================
-package "Entities" {
+package "Entities" <<Frame>> {
 
     abstract class WorldEntity {
-        # m_name : string
+        # m_name : std::string
         # m_logicalPos : sf::Vector2i
-        + WorldEntity(name, pos)
-        + {abstract} draw(window) : void
+        + WorldEntity(name: const std::string&, pos: sf::Vector2i)
+        + {abstract} draw(window: sf::RenderWindow&) const : void
         + getPosition() : sf::Vector2i
-        + getName() : string
+        + getName() : std::string
+        + {abstract} applyState(state: const EntityState&) : void
+        + {abstract} getState() const : EntityState
     }
 
     interface Interactable <<Interface>> {
@@ -141,64 +204,191 @@ package "Entities" {
     }
 
     class Character {
+        # m_name : std::string
+        # m_targetPos : sf::Vector2f
         # m_orientation : int
         # m_sprite : sf::Sprite
-        # m_animations : map<string, Animation>
-        # m_currentAnim : string
+        # m_animations : "std::map<std::string, Animation>"
+        # m_currentAnim : std::string
         # m_isMoving : bool
-        # m_targetPos : sf::Vector2f
-        # m_inventory : Inventory
+        # m_inventory : "std::unique_ptr<Inventory>"
+        # m_path : "std::unique_ptr<CharacterPath>"
         + Character(...)
-        + moveRequest(direction, zone) : void
-        + update(dt) : void
-        + draw(window) : void
-        + receiveItem(item) : void
+        + moveRequest(direction: sf::Vector2i, zone: Zone&) : void
+        + update(dt: float, zone: Zone&) : void
+        + getFacingTile() : sf::Vector2i
+        + getInventory() : Inventory&
+        + setPath(path: std::unique_ptr<CharacterPath>) : void
     }
 
     class Player << (S,#FF7700) Singleton >> {
-        - Player(name)
+        - Player(name: const std::string&)
         + {static} getInstance() : Player&
     }
 
     class Npc {
-        - m_dialogue : string
+        - m_dialogueKey : std::string
         + Npc(...)
         + interact() : void
     }
 
     class Obj {
-        - m_dialogue : string
-        - m_item : optional<Item>
+        - m_dialogueKey : std::string
+        - m_item : "std::optional<Item>"
         - m_sprite : sf::Sprite
         + Obj(...)
         + interact() : void
-        + draw(window) : void
+        + giveItem() : void
     }
+    
+    class "ItemGround" as Iog {
+        - m_sprite : sf::Sprite
+        - m_name : std::string
+        + Iog(name: std::string, pos: sf::Vector2i)
+        + interact() : void
+    }
+}
 
-    class PlayerController {
+
+' ==========================================
+' PACKAGE: ENTITY LOGIC & STATE
+' ==========================================
+package "Entity Logic & State" <<Frame>> {
+    class PlayerController << (S,#FF7700) Singleton >> {
         - m_world : World&
         - m_player : Player&
-        - m_hAxis : float
-        - m_vAxis : float
-        - m_moveTimer : sf::Clock
-        + PlayerController(world, player)
-        + update(zone, dt) : void
+        - m_inputEnabled : bool
+        - {static} s_instance: PlayerController*
+        - PlayerController(world: World&, player: Player&)
+        + {static} create(world: World&, player: Player&) : void
+        + {static} getInstance() : PlayerController*
+        + update(zone : Zone&, dt : float) : void
+        + enableInput() : void
+        + disableInput() : void
+    }
+
+    class CharacterPath <<Strategy>> {
+        - m_type : PathType
+        - m_path : "std::vector<sf::Vector2i>"
+        - m_running : bool
+        + CharacterPath(type: PathType, ...)
+        + addDestination(currentPos: const sf::Vector2i&, dest: const sf::Vector2i&) : void
+        + update(dt: float, character: Character&, zone: Zone&) : void
+        + start() : void
+        + pause() : void
+    }
+    
+    enum PathType {
+        RANDOM
+        SIMPLE
+        LOOP
+        PINGPONG
+    }
+    CharacterPath *-- PathType
+
+    struct EntityState <<State>> {
+      + texturePath: std::string
+      + type: EntityType
+      + position: sf::Vector2i
+      + orientation: int
+      + dialogKey: std::string
+      + inventory: "std::unique_ptr<Inventory>"
+      + toJson() : nlohmann::json
+      + {static} fromJson(j: const nlohmann::json&) : EntityState
+    }
+    
+    struct ZoneState <<State>> {
+      + entities: "std::unordered_map<std::string, EntityState>"
+      + toJson() : nlohmann::json
+      + {static} fromJson(j: const nlohmann::json&) : ZoneState
+    }
+    
+    class GameInstance << (S, #FF7700) Singleton >> {
+        - m_zones: "std::unordered_map<int, ZoneState>"
+        - key: std::string
+        + {static} getInstance() : GameInstance&
+        + getZoneState(zoneId: int) : ZoneState&
+        + saveZoneState(zoneId: int, entities: const std::vector<std::unique_ptr<WorldEntity>>&) : void
+        + saveToFileEncrypted(filename: const std::string&) : void
+        + loadFromFileEncrypted(filename: const std::string&) : void
+    }
+}
+
+
+' ==========================================
+' PACKAGE: UI & DIALOGUE
+' ==========================================
+package "UI & Dialogue System" <<Frame>> {
+    class DialogManager << (S,#FF7700) Singleton >> {
+        - m_msgBox : GameDialog*
+        - m_currentSpeaker : WorldEntity*
+        - m_queue : "std::queue<DialogueStep>"
+        - m_active : bool
+        - m_actionAfter: std::function<void()>
+        + {static} getInstance() : DialogManager&
+        + init(msgBox : GameDialog*) : void
+        + startDialogue(steps : const std::vector<DialogueStep>&, speaker: WorldEntity*, ...) : void
+        + next() : void
+        + isActive() : bool
+        + draw(window: sf::RenderWindow&) : void
+    }
+
+    class GameDialog {
+        # m_boxSprite : sf::Sprite
+        # m_segments : "std::vector<TextSegment>"
+        # m_visible : bool
+        + GameDialog()
+        + setBoxType(type : BoxType) : void
+        + setText(rawText : const std::string&) : void
+        + show() : void
+        + hide() : void
+        + {virtual} draw(window: sf::RenderWindow&) : void
+    }
+    
+    enum BoxType {
+        Classic
+        Object
+    }
+    GameDialog *-- BoxType
+    
+    class GameChoiceBox << (S,#FF7700) Singleton >> {
+        - m_choices : "std::map<std::string, std::string>"
+        - m_currentIndex : int
+        + {static} getInstance() : GameChoiceBox&
+        + init(choices: std::map<std::string, std::string>) : void
+        + draw(window: sf::RenderWindow&) : void
+    }
+    
+    struct DialogueStep {
+        + text : std::string
+        + type : BoxType
+        + action : std::function<void()>
     }
 }
 
 ' ==========================================
 ' PACKAGE: ITEMS & INVENTORY
 ' ==========================================
-package "Items & Inventory" {
+package "Items & Inventory" <<Frame>> {
     class Item {
-        - m_name : string
-        - m_description : string
+        - m_name : std::string
+        - m_description : std::string
         - m_pocket : ItemPocket
         - m_consumable : bool
-        + Item(...)
-        + getName() : string
+        + Item(name: std::string, pocket: ItemPocket, ...)
+        + getName() : const std::string&
+        + getPocket() : ItemPocket
     }
 
+    class Inventory {
+        - m_pockets : "std::map<ItemPocket, Pocket>"
+        + addItem(item: const Item&, quantity: int) : void
+        + removeItem(item: const Item&, quantity: int) : bool
+        + getQuantity(item: const Item&) : int
+        + toJson() : nlohmann::json
+        + {static} fromJson(j: const nlohmann::json&) : Inventory
+    }
+    
     enum ItemPocket {
         Items
         Balls
@@ -206,103 +396,95 @@ package "Items & Inventory" {
         TMsHMs
         Berries
     }
-
-    class Inventory {
-        - m_pockets : map<ItemPocket, map<string, int>>
-        + addItem(item, qty) : void
-        + removeItem(item, qty) : bool
-        + getQuantity(item) : int
-    }
+    Item *-- ItemPocket
+    Inventory o-- ItemPocket
 }
 
 ' ==========================================
-' PACKAGE: UI / DIALOGUE
+' PACKAGE: EVENTS
 ' ==========================================
-package "UI System" {
-    class DialogManager << (S,#FF7700) Singleton >> {
-        - m_msgBox : MessageBox*
-        - m_queue : queue<DialogueStep>
-        - m_active : bool
-        - DialogManager()
-        + {static} getInstance() : DialogManager&
-        + init(msgBox) : void
-        + addLine(text, type) : void
-        + startDialogue(steps) : void
-        + next() : void
-        + draw(window) : void
+package "Event System" <<Frame>> {
+    class "Event<Args...>" as Event << (T,#FFD700) Template, (O,#58D68D) Observer >> {
+        - listeners : "std::vector<Listener>"
+        + subscribe(listener: Listener) : void
+        + notify(args: Args...) : void
     }
-
-    class MessageBox {
-        - m_boxSprite : sf::Sprite
-        - m_segments : vector<TextSegment>
-        - m_visible : bool
-        + setBoxType(type) : void
-        + setText(rawText) : void
-        + draw(window) : void
-        - parseText(text) : void
+    
+    struct GameEvents {
+        + {static} OnPlayerMove : "Event<int, int>"
+        + {static} OnDialogueTrigger : "Event<std::string>"
+        + {static} OnEntityDestroyed : "Event<WorldEntity*>"
     }
-
-    struct DialogueStep {
-        + text : string
-        + type : BoxType
-        + action : function<void()>
-    }
-
-    enum BoxType {
-        Classic
-        Object
-    }
+    note left of GameEvents : Central hub for all game events.
 }
 
 ' ==========================================
-' RELATIONS
+' RELATIONSHIPS
 ' ==========================================
 
 ' --- Inheritance ---
 WorldEntity <|-- Character
 WorldEntity <|-- Obj
+WorldEntity <|-- Iog
 Character <|-- Player
 Character <|-- Npc
 Interactable <|.. Npc
 Interactable <|.. Obj
-sf::Drawable <|-- TileMap
-sf::Transformable <|-- TileMap
+Interactable <|.. Iog
+GameDialog <|-- GameChoiceBox
 
 ' --- Composition / Aggregation ---
+Game *-- World
 Game *-- GameConfig
 Game o-- Player
-Game *-- World
 Game *-- PlayerController
 
-World *-- Zone : owns (unique_ptr)
+World "1" *-- "1" Zone : owns >
+
+Zone "1" *-- "*" WorldEntity : owns >
 Zone *-- TileMap
-Zone *-- WorldEntity : owns (unique_ptr)
-Zone +-- ZoneTransition
+Zone o-- sf::Texture
 
-PlayerController o-- World
-PlayerController o-- Player
-PlayerController ..> Controller : uses (Singleton)
+Character "1" *-- "1" Inventory : owns >
+Character "1" *-- "0..1" CharacterPath : owns >
+Character o-- Animation
 
-Character *-- Inventory
-Inventory o-- Item
-Item *-- ItemPocket
+Inventory "1" o-- "*" Item : contains >
 
-DialogManager o-- MessageBox
+DialogManager o-- GameDialog
 DialogManager *-- DialogueStep
-DialogueStep *-- BoxType
+
+GameInstance "1" *-- "*" ZoneState : manages state >
+ZoneState "1" *-- "*" EntityState : contains state >
 
 ' --- Dependencies / Usage ---
-ZoneFactory ..> Zone : creates
+Game ..> TransitionManager : uses
+Game ..> DialogManager : uses
+Game ..> PlayerController : uses
+
+PlayerController ..> Controller : uses
+PlayerController ..> World : controls >
+PlayerController ..> Player : controls >
+
+World ..> ZoneFactory : uses to create
 ZoneFactory ..> MapLoader : uses
+ZoneFactory ..> ResourceManager : uses
+ZoneFactory ..> ScriptManager : uses
+ZoneFactory ..> GameInstance : uses
 ZoneFactory ..> Npc : creates
 ZoneFactory ..> Obj : creates
-ZoneFactory ..> ResourceManager : uses
+ZoneFactory ..> Iog : creates
 
-Obj ..> Item : contains optional
-Npc ..> DialogManager : uses
-PlayerController ..> Interactable : uses
+Npc ..> DialogManager : triggers
+Obj ..> DialogManager : triggers
+Iog ..> DialogManager : triggers
 
-Game ..> DialogManager : init & draw
-Game ..> ResourceManager : uses (indirectly)
+ScriptManager ..> DialogManager : provides data
+ScriptManager ..> Player : gives item
+ScriptManager ..> GameChoiceBox : creates
+ScriptManager ..> CharacterPath : configures
+
+Controller ..> Event : triggers (indirectly)
+PlayerController ..> Event : triggers (indirectly)
 
 @enduml
