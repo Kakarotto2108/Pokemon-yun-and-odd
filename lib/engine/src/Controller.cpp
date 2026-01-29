@@ -3,6 +3,9 @@
 Controller::Controller() {
     // Action mapping
     actionMapping["Interact"] = sf::Keyboard::E;
+    actionMapping["Save"] = sf::Keyboard::K;
+    actionMapping["Load"] = sf::Keyboard::L;
+
 
     // Axis mapping
     axisMapping["MoveHorizontal"] = {sf::Keyboard::Q, sf::Keyboard::D};

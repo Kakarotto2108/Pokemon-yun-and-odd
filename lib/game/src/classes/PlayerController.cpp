@@ -2,6 +2,7 @@
 #include "Interactable.hpp"
 #include "DialogManager.hpp"
 #include "TransitionManager.hpp"
+#include "GameInstance.hpp"
 #include <iostream>
 
 PlayerController* PlayerController::s_instance = nullptr;
@@ -51,6 +52,24 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
             {
                 interactable->interact();
             }
+        }
+    });
+
+    Controller::getInstance().onActionPressed("Save", [this]() {
+        GameInstance::getInstance().saveZoneState(m_world.getCurrentZoneId(), m_world.getCurrentZone().getEntities());
+        GameInstance::getInstance().saveToFileEncrypted("savegame.dat");
+        std::cout << "Game saved (encrypted)." << std::endl;
+    }); 
+
+    Controller::getInstance().onActionPressed("Load", [this]() {
+        try {
+            GameInstance::getInstance().loadFromFileEncrypted("savegame.dat");
+            std::cout << "Game loaded (encrypted)." << std::endl;
+            // Après le chargement, on doit recharger la zone actuelle
+            int currentZoneId = m_world.getCurrentZoneId();
+            m_world.switchZone(currentZoneId);
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to load game: " << e.what() << std::endl;
         }
     });
 }
