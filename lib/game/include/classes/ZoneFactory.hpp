@@ -91,7 +91,7 @@ public:
                     case EntityType::NPC:
                     {
                         auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f, state.position);
-                        auto npc = std::make_unique<Npc>(name, state.texturePath, state.position, state.orientation, state.dialogKey, std::move(path));
+                        auto npc = std::make_unique<Npc>(name, state.texturePath, state.position, state.orientation, state.dialogKey, std::move(path), state.inventory ? *state.inventory : Inventory());
                         npc->applyState(state);
                         entities.push_back(std::move(npc));
                         break;

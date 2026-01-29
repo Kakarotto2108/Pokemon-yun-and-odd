@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <iostream>
 
 #include "WorldEntity.hpp"
 #include "Animation.hpp"
@@ -56,8 +57,9 @@ public:
     void applyState(const EntityState& state) override {
         WorldEntity::applyState(state);
         setOrientation(state.orientation);
-        if (state.inventory)
-            m_inventory = std::make_unique<Inventory>(*state.inventory);
+        if (state.inventory) {
+            setInventory(*state.inventory);
+        }
     }
 
     EntityState getState() const override {

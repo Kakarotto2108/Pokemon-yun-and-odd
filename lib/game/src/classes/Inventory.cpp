@@ -59,6 +59,7 @@ Inventory Inventory::fromJson(const nlohmann::json& j) {
 }
 
 void Inventory::debugPrint() const {
+    std::cerr << "Inventory:\n";
     for (auto& [pocket, items] : m_pockets) {
         std::string pocketName;
         switch(pocket) {
