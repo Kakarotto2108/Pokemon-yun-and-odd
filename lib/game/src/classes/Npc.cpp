@@ -14,7 +14,7 @@ void Npc::interact() {
     setOrientation(3 - Player::getInstance().getOrientation());   
     m_path->pause();
     const auto& script = ScriptManager::getInstance().getDialogue(m_dialogueKey);
-    DialogManager::getInstance().startDialogue(script, [this]() {
+    DialogManager::getInstance().startDialogue(script, this, [this]() {
         if (hasPath()) {
             m_path->start();
         }

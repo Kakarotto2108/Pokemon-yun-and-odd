@@ -29,7 +29,7 @@ Iog::Iog(std::string name,sf::Vector2i pos)
         };
 
         const std::vector<DialogueStep> script = { step1 };
-        DialogManager::getInstance().startDialogue(script);
+        DialogManager::getInstance().startDialogue(script, this);
 
     }
 
