@@ -9,6 +9,8 @@
 #include "Obj.hpp"
 #include "ItemGround.hpp"
 #include "CharacterPath.hpp"
+#include "GameInstance.hpp"
+#include "ZoneState.hpp"
 #include <iostream>
 
 class ZoneFactory {
@@ -54,49 +56,84 @@ public:
 
         // 2. Créer les entités spécifiques à la zone
         std::vector<std::unique_ptr<WorldEntity>> entities;
-        std::ifstream entFile(path + "entities.txt");
-        std::string line;
+        ZoneState& zoneState = GameInstance::getInstance().getZoneState(zoneId);
 
-        while (std::getline(entFile, line)) {
-            if (line.empty()) continue;
-
-            std::stringstream ss(line);
-            std::string type;
-            std::getline(ss, type, '|');
-
-            try {
-                if (type == "IOG") {
-                    std::string name, xStr, yStr;
-                    std::getline(ss, name, '|');
-                    std::getline(ss, xStr, '|');
-                    std::getline(ss, yStr, '|');
-                    sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
-                    entities.push_back(std::make_unique<Iog>(name, pos));
-                }
-                else if (type == "NPC" || type == "OBJ") {
-                    std::string name, sprite, diagKey, xStr, yStr, orienStr;
-                    std::getline(ss, name, '|');
-                    std::getline(ss, sprite, '|');
-                    std::getline(ss, xStr, '|');
-                    std::getline(ss, yStr, '|');
-                    std::getline(ss, orienStr, '|');
-                    std::getline(ss, diagKey, '|');
-
-                    sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
-                    int orientation = std::stoi(orienStr);
-                    std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
-
-                    if (type == "NPC") {
+        if (!zoneState.entities.empty()) {
+            for (const auto& [name, state] : zoneState.entities) {
+                switch (state.type) {
+                    case EntityType::NPC:
+                    {
                         auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f);
-                        entities.push_back(std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey, std::move(path)));
-                    } else {
-                        entities.push_back(std::make_unique<Obj>(name, fullSpritePath, pos, diagKey));
+                        auto npc = std::make_unique<Npc>(name, state.texturePath, state.position, state.orientation, state.dialogKey, std::move(path));
+                        npc->applyState(state);
+                        entities.push_back(std::move(npc));
+                        break;
                     }
-                } else {
-                    std::cerr << "Warning: Unknown entity type '" << type << "' in entities.txt for zone " << zoneId << std::endl;
+                    case EntityType::OBJ:
+                    {
+                        auto obj = std::make_unique<Obj>(name, state.texturePath, state.position, state.dialogKey);
+                        obj->applyState(state);
+                        entities.push_back(std::move(obj));
+                        break;
+                    }
+                    case EntityType::IOG:
+                    {
+                        auto iog = std::make_unique<Iog>(name, state.position);
+                        iog->applyState(state);
+                        entities.push_back(std::move(iog));
+                        break;
+                    }
                 }
-            } catch (const std::invalid_argument& e) {
-                std::cerr << "Error parsing entity line in zone " << zoneId << ": \"" << line << "\". Reason: " << e.what() << std::endl;
+            }
+        } else {
+            std::ifstream entFile(path + "entities.txt");
+            std::string line;
+
+            while (std::getline(entFile, line)) {
+                if (line.empty()) continue;
+
+                std::stringstream ss(line);
+                std::string type;
+                std::getline(ss, type, '|');
+
+                try {
+                    if (type == "IOG") {
+                        std::string name, xStr, yStr;
+                        std::getline(ss, name, '|');
+                        std::getline(ss, xStr, '|');
+                        std::getline(ss, yStr, '|');
+                        sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
+                        entities.push_back(std::make_unique<Iog>(name, pos));
+                    }
+                    else if (type == "NPC" || type == "OBJ") {
+                        std::string name, sprite, diagKey, xStr, yStr, orienStr;
+                        std::getline(ss, name, '|');
+                        std::getline(ss, sprite, '|');
+                        std::getline(ss, xStr, '|');
+                        std::getline(ss, yStr, '|');
+                        std::getline(ss, orienStr, '|');
+                        std::getline(ss, diagKey, '|');
+
+                        sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
+                        int orientation = std::stoi(orienStr);
+                        std::string fullSpritePath = std::string("assets/sprite/") + (type == "NPC" ? "pnj/" : "obj/") + sprite;
+
+                        if (type == "NPC") {
+                            auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f);
+                            auto npc = std::make_unique<Npc>(name, fullSpritePath, pos, orientation, diagKey, std::move(path));
+                            zoneState.entities[npc->getName()] = npc->getState();
+                            entities.push_back(std::move(npc));
+                        } else {
+                            auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey);
+                            zoneState.entities[obj->getName()] = obj->getState();
+                            entities.push_back(std::move(obj));
+                        }
+                    } else {
+                        std::cerr << "Warning: Unknown entity type '" << type << "' in entities.txt for zone " << zoneId << std::endl;
+                    }
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Error parsing entity line in zone " << zoneId << ": \"" << line << "\". Reason: " << e.what() << std::endl;
+                }
             }
         }
 

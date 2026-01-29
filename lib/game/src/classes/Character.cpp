@@ -7,6 +7,7 @@
 Character::Character(const std::string& name, const std::string& spriteSheetName, const sf::Vector2i& pos, int orientation, std::unique_ptr<CharacterPath> path)
     : WorldEntity(name, pos), 
       m_name(name),
+      m_texturePath(spriteSheetName),
       m_orientation(orientation), 
       m_currentAnim("WalkDown"),
       m_isMoving(false),

@@ -11,6 +11,18 @@ public:
     const sf::Sprite& getSprite() const { return m_sprite; }
     void draw(sf::RenderWindow& window) const override;
 
+    void applyState(const EntityState& state) override {
+        WorldEntity::applyState(state);
+    }
+
+    EntityState getState() const override {
+        EntityState state = WorldEntity::getState();
+        state.type = EntityType::IOG;
+        state.orientation = 0; // Les IOG n'ont pas d'orientation
+        state.dialogKey = "";
+        return state;
+    }
+
 private:
     sf::Sprite m_sprite;
     std::string m_name;

@@ -4,6 +4,22 @@
 #include "TransitionManager.hpp"
 #include <iostream>
 
+PlayerController* PlayerController::s_instance = nullptr;
+
+PlayerController* PlayerController::getInstance() {
+    return s_instance;
+}
+
+void PlayerController::create(World& world, Player& player) {
+    if (!s_instance)
+        s_instance = new PlayerController(world, player);
+}
+
+void PlayerController::destroy() {
+    delete s_instance;
+    s_instance = nullptr;
+}
+
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning()) {
@@ -40,6 +56,7 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
 }
 
 void PlayerController::update(Zone& zone, float dt) {
+    if (!m_inputEnabled) return;
     if (m_moveTimer.getElapsedTime().asSeconds() < m_player.getMoveDelay() && m_player.getIsMoving()) return;
 
     sf::Vector2i direction(0, 0);

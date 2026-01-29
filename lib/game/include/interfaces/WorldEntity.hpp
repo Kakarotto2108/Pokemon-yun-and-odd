@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "EntityState.hpp"
 #include <string>
 
 class WorldEntity {
@@ -13,6 +14,16 @@ public:
     virtual void draw(sf::RenderWindow& window) const = 0;
     sf::Vector2i getPosition() const { return m_logicalPos; }
     std::string getName() const { return m_name; }
+
+    virtual void applyState(const EntityState& state) {
+        m_logicalPos = state.position;
+    };
+
+    virtual EntityState getState() const {
+        EntityState state;
+        state.position = m_logicalPos;
+        return state;
+    };
 
 protected:
     std::string m_name;

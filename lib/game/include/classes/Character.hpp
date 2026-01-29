@@ -11,6 +11,7 @@
 #include "Item.hpp"
 #include "Inventory.hpp"
 #include "CharacterPath.hpp"
+#include "EntityState.hpp"
 
 class Zone;
 class CharacterPath;
@@ -46,9 +47,22 @@ public:
 
     void setCollision(bool collision) { isColliding = collision; }
     bool getCollision() const { return isColliding; }
+
+    void applyState(const EntityState& state) override {
+        WorldEntity::applyState(state);
+        setOrientation(state.orientation);
+    }
+
+    EntityState getState() const override {
+        EntityState state = WorldEntity::getState();
+        state.texturePath = m_texturePath;
+        state.orientation = m_orientation;
+        return state;
+    }
     
 protected:
     std::string m_name;
+    std::string m_texturePath;
     sf::Vector2f m_targetPos;
     int m_orientation;
     

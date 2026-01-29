@@ -16,6 +16,9 @@ Zone& World::getCurrentZone() {
 
 void World::switchZone(int id) {
     if (m_zone->getId() == id) return;
+
+    GameInstance::getInstance().saveZoneState(m_zone->getId(), m_zone->getEntities());
+    
     m_zone = ZoneFactory::createZone(id);
 }
 
