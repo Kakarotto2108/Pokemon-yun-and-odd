@@ -45,6 +45,7 @@ public:
 
     void setPath(std::unique_ptr<CharacterPath> path) { m_path = std::move(path); }
     bool hasPath() const { return m_path != nullptr; }
+    CharacterPath* getPath() const { return m_path.get(); }
 
     void setMoveDelay(float delay) { m_moveDelay = delay; }
     float getMoveDelay() const { return m_moveDelay; }

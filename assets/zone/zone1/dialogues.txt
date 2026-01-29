@@ -6,7 +6,7 @@ S: Fais-en bon usage ! | T: Classic| A: NONE
 
 [sage_conseil]
 S: Tes $[red]Pokemonitos $[black]ont l'air fatigués, mon enfant. | T: Classic| A: NONE
-S: Laisse-moi les soigner un instant... | T: Classic| A: HEAL
+S: Laisse-moi les soigner un instant... | T: Classic| A: MOVE:SIMPLE:{8,5}
 S: Voilà ! Ils sont en pleine forme maintenant. | T: Classic| A: NONE
 
 [tv_maison]

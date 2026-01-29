@@ -68,6 +68,33 @@ public:
         return m_cache[key];
     }
 
+    static std::vector<sf::Vector2i> parseDirections(const std::string& str)
+    {
+        std::size_t pos = 0;
+        std::vector<sf::Vector2i> directions;
+
+        while (true)
+        {
+            std::size_t open = str.find('{', pos);
+            if (open == std::string::npos)
+                break;
+
+            std::size_t comma = str.find(',', open);
+            std::size_t close = str.find('}', comma);
+
+            if (comma == std::string::npos || close == std::string::npos)
+                break;
+
+            int x = std::stoi(str.substr(open + 1, comma - open - 1));
+            int y = std::stoi(str.substr(comma + 1, close - comma - 1));
+
+            directions.push_back(sf::Vector2i(x, y));
+
+            pos = close + 1;
+        }
+        return directions;
+    }
+
     void loadDialogues(const std::string& path) {
         std::ifstream file(path);
         if (!file.is_open()) {
@@ -183,7 +210,39 @@ public:
                                 GameChoiceBox::getInstance().show();
                             }
                             else if (cmd == "MOVE") {
-                                //WorldEntity* speaker = DialogManager::getInstance().getCurrentSpeaker();
+                                if (tokens.size() < 3){
+                                    return;
+                                }
+
+                                WorldEntity* speaker = DialogManager::getInstance().getCurrentSpeaker();
+                                Character* speakerChar = dynamic_cast<Character*>(speaker);
+
+                                if (!speakerChar)
+                                    return;
+
+                                std::string action = trim(tokens[1]);
+                                sf::Vector2i pos = speakerChar->getPosition();
+                                auto path = std::make_unique<CharacterPath>(
+                                    (action == "RANDOM") ? PathType::RANDOM : 
+                                    (action == "SIMPLE") ? PathType::SIMPLE : 
+                                    (action == "LOOP") ? PathType::LOOP : 
+                                    PathType::PINGPONG, 2.f);
+
+                                std::string dirStr = trim(tokens[2]);
+                                auto directions = parseDirections(dirStr);
+                                if (directions.empty())
+                                    return;
+
+                                if (action == "SIMPLE" || action == "PINGPONG") {
+                                    path->addDestination(pos, directions[0]);
+                                }
+
+                                else if (action == "LOOP") {
+                                    path->addDestinationLoop(pos, directions);
+                                }
+                                
+                                speakerChar->setPath(std::move(path));
+                                speakerChar->getPath()->start();
                             }
                             else if (cmd == "HEAL") {
                                 // ...
