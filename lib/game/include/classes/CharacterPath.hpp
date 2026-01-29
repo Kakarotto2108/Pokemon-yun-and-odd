@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <SFML/System.hpp>
+#include "Character.hpp"
 
 // Forward declarations
 class Character;
@@ -12,7 +13,7 @@ enum class PathType { RANDOM, SIMPLE, LOOP, PINGPONG };
 
 class CharacterPath {
 public:
-    CharacterPath(PathType type, float moveInterval = 1.0f);
+    CharacterPath(PathType type, float moveInterval = 1.0f, const sf::Vector2i& startPos = sf::Vector2i(0,0), int moveRadius = 1);
 
     void addDirection(const sf::Vector2i& dir);
     void addDestination(const sf::Vector2i& currentPos, const sf::Vector2i& dest);
@@ -33,8 +34,11 @@ private:
     size_t m_currentIndex;
     bool m_forward;
     float m_moveInterval;
+    sf::Vector2i m_startpos;
+    int m_moveRadius;
     sf::Clock m_timer;
     bool m_running = true;
+    Character* m_character = nullptr;
 };
 
 #endif

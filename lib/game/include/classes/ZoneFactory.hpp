@@ -90,7 +90,7 @@ public:
                 switch (state.type) {
                     case EntityType::NPC:
                     {
-                        auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f);
+                        auto path = std::make_unique<CharacterPath>(PathType::RANDOM, 2.f, state.position);
                         auto npc = std::make_unique<Npc>(name, state.texturePath, state.position, state.orientation, state.dialogKey, std::move(path));
                         npc->applyState(state);
                         entities.push_back(std::move(npc));
@@ -149,7 +149,7 @@ public:
                             std::string action;
                             std::getline(ss, action, '|');
                             PathType pathType = (action == "RANDOM") ? PathType::RANDOM : (action == "SIMPLE") ? PathType::SIMPLE : (action == "LOOP") ? PathType::LOOP : PathType::PINGPONG;
-                            auto path = std::make_unique<CharacterPath>(pathType, 2.f);
+                            auto path = std::make_unique<CharacterPath>(pathType, 0.2f, pos);
                             if (action == "SIMPLE" || action == "PINGPONG") {
                                 std::string dirStr;
                                 std::getline(ss, dirStr, '|');

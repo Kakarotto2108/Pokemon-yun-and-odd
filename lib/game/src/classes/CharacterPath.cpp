@@ -4,11 +4,13 @@
 #include <random>
 #include <iostream>
 
-CharacterPath::CharacterPath(PathType type, float moveInterval) 
+CharacterPath::CharacterPath(PathType type, float moveInterval, const sf::Vector2i& startPos, int moveRadius) 
     : m_type(type), 
       m_currentIndex(0), 
       m_forward(true), 
-      m_moveInterval(moveInterval) 
+      m_moveInterval(moveInterval),
+      m_startpos(startPos),
+      m_moveRadius(moveRadius)
 {}
 
 void CharacterPath::addDirection(const sf::Vector2i& dir) {
@@ -46,6 +48,9 @@ void CharacterPath::addDestinationLoop(const sf::Vector2i& currentPos, const std
 
 void CharacterPath::update(float dt, Character& character, Zone& zone) {
     if (!m_running) return;
+    if (m_character != &character) {
+        m_character = &character;
+    }
     if (m_timer.getElapsedTime().asSeconds() < character.getMoveDelay() && character.getIsMoving()) return;
 
     sf::Vector2i nextMove(0, 0);
@@ -69,14 +74,25 @@ void CharacterPath::update(float dt, Character& character, Zone& zone) {
 }
 
 sf::Vector2i CharacterPath::generateRandomDirection() {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 3);
-    int r = dis(gen);
-    if (r == 0) return {0, 1};
-    if (r == 1) return {0, -1};
-    if (r == 2) return {-1, 0};
-    return {1, 0};
+    sf::Vector2i pos;
+    if (m_character) {
+        pos = m_character->getPosition();
+    } else {
+        pos = m_startpos;
+    }
+    std::vector<sf::Vector2i> directions = { {1,0}, {-1,0}, {0,1}, {0,-1} };
+    std::vector<sf::Vector2i> validDirections;
+    for (const auto& d : directions) {
+        sf::Vector2i newPos = pos + d;
+        if (std::abs(newPos.x - m_startpos.x) <= m_moveRadius && std::abs(newPos.y - m_startpos.y) <= m_moveRadius) {
+            validDirections.push_back(d);
+        }
+    }
+    if (validDirections.empty()) return sf::Vector2i(0, 0);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, validDirections.size() - 1);
+    return validDirections[dis(gen)];
 }
 
 void CharacterPath::updateLoopIndex() {
