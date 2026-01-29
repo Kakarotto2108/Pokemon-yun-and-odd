@@ -707,11 +707,53 @@
     }
 
     function parseEntities(content) {
-        entities = content.split('\n').filter(line => line.trim() && !line.startsWith('#')).map(line => {
-            const [type, name, sprite, x, y, orien, diagKey, actionType] = line.split('|');
-            return { type, name, sprite, x: parseInt(x), y: parseInt(y), orien, diagKey, actionType };
-        });
+        entities = content
+            .split('\n')
+            .filter(line => line.trim() && !line.startsWith('#'))
+            .map(line => {
+                const parts = line.split('|');
+
+                const type = parts[0];
+
+                // Cas IOG
+                if (type === "IOG") {
+                    const name = parts[1];
+                    const x = parseInt(parts[2]);
+                    const y = parseInt(parts[3]);
+
+                    return {
+                        type,
+                        name,
+                        x,
+                        y
+                    };
+                }
+
+                // Cas NPC / OBJ
+                const [
+                    _type,
+                    name,
+                    sprite,
+                    x,
+                    y,
+                    orien,
+                    diagKey,
+                    actionType
+                ] = parts;
+
+                return {
+                    type: _type,
+                    name,
+                    sprite,
+                    x: parseInt(x),
+                    y: parseInt(y),
+                    orien,
+                    diagKey,
+                    actionType
+                };
+            });
     }
+
 
     function parseDialogues(content) {
         dialogues = {};
@@ -764,7 +806,6 @@
         const isRandomMove = (move === 'RANDOM');
         document.getElementById('ent-dest-group').style.display = isRandomMove ? 'none' : 'flex';
     }
-
     // Ajoute une nouvelle ligne de dialogue vide
     function addDialogueRow() {
         const key = document.getElementById('ent-diag').value;
@@ -833,24 +874,45 @@
                 actionParamsHTML += `<button class="btn" style="font-size:0.8em; padding:2px 5px; margin-top:5px;" onclick="addChoice(${index})">+ Choix</button></div>`;
             }
             if (actionCmd === 'MOVE') {
+
                 const moveType = actionArgs[0] || 'SIMPLE';
-                const destCoords = actionArgs[1] ? actionArgs[1].replace(/^\{|\}$/g, '') : '8,5';
+                const destCoords = actionArgs[1]
+                    ? actionArgs[1].replace(/^\{|\}$/g, '')
+                    : '';
+
                 actionParamsHTML = `
                     <div class="input-group">
-                        Move Type: 
-                        <select onchange="updateActionParams(${index}, this.value, 0)">
+                        Move Type:
+                        <select onchange="updateActionParams(${index}, this.value, 0);renderDialogueList()">
                             <option value="RANDOM" ${moveType === 'RANDOM' ? 'selected' : ''}>RANDOM</option>
                             <option value="SIMPLE" ${moveType === 'SIMPLE' ? 'selected' : ''}>SIMPLE</option>
                             <option value="PINGPONG" ${moveType === 'PINGPONG' ? 'selected' : ''}>PINGPONG</option>
                             <option value="LOOP" ${moveType === 'LOOP' ? 'selected' : ''}>LOOP</option>
                         </select>
                     </div>
-                    <div class="input-group">
-                        Destinations (x,y): 
-                        <input type="text" value="${destCoords}" oninput="updateActionParams(${index}, this.value, 1)" placeholder="Ex: 8,5">
-                    </div>
                 `;
+
+                // ➜ Destination uniquement si pas RANDOM
+                if (moveType !== 'RANDOM') {
+                    actionParamsHTML += `
+                        <div class="input-group">
+                            Destinations (x,y):
+                            <input type="text"
+                                value="${destCoords}"
+                                oninput="updateActionParams(${index}, this.value, 1)"
+                                placeholder="Ex: 8,5 ou 1,0;3,2">
+                        </div>
+                    `;
+                }
+                else {
+                    actionParamsHTML += `
+                        <div class="input-group" style="opacity:0.7">
+                            Aucun paramètre requis pour RANDOM.
+                        </div>
+                    `;
+                }
             }
+
 
             row.innerHTML = `
                 <div class="diag-header">
@@ -894,7 +956,6 @@
         renderDialogueList();
     }
 
-    // Met à jour un paramètre spécifique de l'action
     function updateActionParams(index, value, paramIndex) {
         const key = document.getElementById('ent-diag').value;
         if (!dialogues[key] || !dialogues[key][index]) return;
@@ -903,13 +964,23 @@
         const actionCmd = actionParts[0];
         let params = actionParts.slice(1);
 
-        while (params.length <= paramIndex) {
-            params.push('');
+        // Si on modifie le type (param 0)
+        if (paramIndex === 0 && value === 'RANDOM') {
+            // RANDOM n'a pas d'autres paramètres
+            params = ['RANDOM'];
         }
-        params[paramIndex] = value;
+        else {
+            while (params.length <= paramIndex) {
+                params.push('');
+            }
+            params[paramIndex] = value;
+        }
 
         dialogues[key][index].action = [actionCmd, ...params].join(':');
+
+        console.log("Action updated:", dialogues[key][index].action);
     }
+
 
     function updateChoiceParam(diagIndex, choiceIndex, fieldType, value) {
         const key = document.getElementById('ent-diag').value;
