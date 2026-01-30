@@ -2,13 +2,12 @@
 #include "DialogManager.hpp"
 #include "TransitionManager.hpp"
 #include "Event.hpp"
+#include "Menu.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-
-Event<WorldEntity*> GameEvents::OnEntityDestroyed;
 
 Game::Game(const GameConfig& config)
     : m_window(sf::VideoMode(config.width, config.height), config.title)
@@ -30,10 +29,11 @@ Game::Game(const GameConfig& config)
     m_uiView.setSize(static_cast<sf::Vector2f>(m_window.getSize()));
     m_uiView.setCenter(static_cast<sf::Vector2f>(m_window.getSize())/2.f);
 
-    m_world.init();
+    World::getInstance().init();
 
-    PlayerController::create(m_world, m_player);
+    PlayerController::create(World::getInstance(), m_player);
     m_playerController = PlayerController::getInstance();// À ajouter avant l'accolade de fin du constructeur
+    Menu::getInstance();
 }
 
 
@@ -62,8 +62,8 @@ void Game::update(float dt) {
     // On bloque l'update du monde/joueur si on est en plein milieu d'une transition ? 
     // Ou on laisse tourner, selon ton choix de Game Design.
     if(!TransitionManager::getInstance().isRunning()) {
-         m_playerController->update(m_world.getCurrentZone(), dt);
-         m_world.update(dt, m_player); 
+         m_playerController->update(World::getInstance().getCurrentZone(), dt);
+         World::getInstance().update(dt, m_player); 
     }
 
     //m_cameraView.setCenter(m_player.getDrawPosition());
@@ -128,7 +128,7 @@ void Game::render() {
     glLoadMatrixf(glm::value_ptr(viewMatrix));
 
     // Appel au rendu du monde
-    m_world.draw3D(m_sceneBuffer); 
+    World::getInstance().draw3D(m_sceneBuffer); 
 
     glPopAttrib(); // On restaure les états OpenGL tels qu'ils étaient
 

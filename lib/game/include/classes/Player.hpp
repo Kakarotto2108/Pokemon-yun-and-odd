@@ -9,7 +9,7 @@ public:
     Player& operator=(const Player&) = delete;
 
     static Player& getInstance() {
-        static Player instance("Kakrotto");
+        static Player instance("Kakarotto");
         return instance;
     }
 

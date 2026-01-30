@@ -1,5 +1,6 @@
 #include "GameChoiceBox.hpp"
 #include "Controller.hpp"
+#include "EventManager.hpp"
 #include <iostream>
 
 GameChoiceBox::GameChoiceBox() {
@@ -51,12 +52,13 @@ GameChoiceBox::GameChoiceBox() {
         // Cela évite de valider le choix avec la même touche qui a ouvert le menu.
         if (m_inputClock.getElapsedTime().asSeconds() < 0.05f) return;
 
-        // Ici on pourrait ajouter une action à exécuter lors de la sélection
+        std::string eventName = getEventForChoice(getChoiceName());
+        EventManager::getInstance().launchEvent(eventName);
         hide();
     });
 }
 
-void GameChoiceBox::init(std::map<std::string, std::string> choices) {
+void GameChoiceBox::init(std::vector<std::pair<std::string, std::string>> choices) {
     m_choices = choices;
     m_scrollOffset = 0;
     m_inputClock.restart(); // On reset le timer à l'ouverture pour activer la sécurité
@@ -70,6 +72,15 @@ void GameChoiceBox::setChoiceIndex(int index) {
 
 int GameChoiceBox::getChoiceIndex() const {
     return m_currentIndex;
+}
+
+std::string GameChoiceBox::getEventForChoice(const std::string& choiceText) {
+    for (const auto& pair : m_choices) {
+        if (pair.first == choiceText) {   // pair.first = texte du choix
+            return pair.second;           // pair.second = événement associé
+        }
+    }
+    return ""; // ou "NONE", si le choix n'existe pas
 }
 
 std::string GameChoiceBox::getChoiceName() const {

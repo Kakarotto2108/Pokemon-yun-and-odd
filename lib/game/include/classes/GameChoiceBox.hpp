@@ -5,15 +5,13 @@
 
 class GameChoiceBox : public GameDialog {
 private:
-    std::map<std::string, std::string> m_choices;
+    std::vector<std::pair<std::string, std::string>> m_choices;
     int m_currentIndex = 0;
     int m_scrollOffset = 0;
     const int MAX_VISIBLE_CHOICES = 6;
     sf::Sprite m_cursorSprite;
     sf::Sprite m_indicatorSprite;
     sf::Clock m_inputClock; // Horloge pour gérer le cooldown
-
-    GameChoiceBox();
 
 public:
     GameChoiceBox(const GameChoiceBox&) = delete;
@@ -23,12 +21,16 @@ public:
         static GameChoiceBox instance;
         return instance;
     }
-    void init(std::map<std::string, std::string> choices);
+    void init(std::vector<std::pair<std::string, std::string>> choices);
     void setChoiceIndex(int index);
     int getChoiceIndex() const;
+    std::string getEventForChoice(const std::string& choiceText);
     void setVisible(bool visible) { m_visible = visible; }
+    bool isVisible() const { return m_visible; }
     std::string getChoiceName() const;
     void draw(sf::RenderWindow& window) override;
+
+    GameChoiceBox();
 };
 
 #endif

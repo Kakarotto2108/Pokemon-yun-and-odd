@@ -166,8 +166,9 @@ public:
                                             speakerChar->RemoveItem(item, qty);
                                             Player::getInstance().getInventory().addItem(item, qty);
                                         }
-                                        else {
-                                            cmd = "CHANGE_DIAG"
+                                    }
+                                    else {
+                                            cmd = "CHANGE_DIAG";
                                     }
                                     Obj* obj = dynamic_cast<Obj*>(speaker);
                                     if (obj) {
@@ -187,7 +188,7 @@ public:
                                 }
                             }
                             else if (cmd == "CHOICE") {
-                                std::map<std::string, std::string> choices;
+                                std::vector<std::pair<std::string, std::string>> choices;
 
                                 // On commence à i=1 car i=0 est la commande "CHOICE"
                                 for (size_t i = 1; i < tokens.size(); ++i) {
@@ -205,7 +206,7 @@ public:
                                         std::string text = trim(choicePair[0]);
                                         std::string event = trim(choicePair[1]);
             
-                                        choices[text] = event;
+                                        choices.emplace_back(text, event);
                                     }
                                 }
 

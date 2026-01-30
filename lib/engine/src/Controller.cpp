@@ -5,6 +5,7 @@ Controller::Controller() {
     actionMapping["Interact"] = sf::Keyboard::E;
     actionMapping["Save"] = sf::Keyboard::K;
     actionMapping["Load"] = sf::Keyboard::L;
+    actionMapping["OpenMenu"] = sf::Keyboard::O;
 
 
     // Axis mapping
