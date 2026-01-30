@@ -11,8 +11,6 @@
 #include <fstream>
 #include "GameSession.hpp"
 
-World::World() {}
-
 Zone& World::getCurrentZone() {
     return *m_zone;
 }

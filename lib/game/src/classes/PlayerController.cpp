@@ -3,6 +3,7 @@
 #include "DialogManager.hpp"
 #include "TransitionManager.hpp"
 #include "GameInstance.hpp"
+#include "GameChoiceBox.hpp"
 #include <iostream>
 
 PlayerController* PlayerController::s_instance = nullptr;
@@ -23,14 +24,14 @@ void PlayerController::destroy() {
 
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
-        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning()) {
+        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning() || GameChoiceBox::getInstance().isVisible()) {
             m_hAxis = 0.f;
             return;
         }
         m_hAxis = val;
     });
     Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
-        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning()) {
+        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning() || GameChoiceBox::getInstance().isVisible()) {
             m_vAxis = 0.f;
             return;
         }
@@ -58,13 +59,11 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
     Controller::getInstance().onActionPressed("Save", [this]() {
         GameInstance::getInstance().saveZoneState(m_world.getCurrentZoneId(), m_world.getCurrentZone().getEntities());
         GameInstance::getInstance().saveToFileEncrypted("savegame.dat");
-        std::cout << "Game saved (encrypted)." << std::endl;
     }); 
 
     Controller::getInstance().onActionPressed("Load", [this]() {
         try {
             GameInstance::getInstance().loadFromFileEncrypted("savegame.dat");
-            std::cout << "Game loaded (encrypted)." << std::endl;
             // Après le chargement, on doit recharger la zone actuelle
             int currentZoneId = m_world.getCurrentZoneId();
             m_world.switchZone(currentZoneId);

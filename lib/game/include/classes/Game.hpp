@@ -26,5 +26,4 @@ private:
     sf::View m_uiView;
 
     PlayerController* m_playerController = nullptr;
-    World m_world;
 };

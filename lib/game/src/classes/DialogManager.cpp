@@ -71,8 +71,7 @@ void DialogManager::next() {
 
 void DialogManager::draw(sf::RenderWindow& window) {
     if (m_active && m_msgBox) {
-        GameChoiceBox::getInstance().draw(window);
-        m_msgBox->draw(window);
-        
+        m_msgBox->draw(window);        
     }
+    GameChoiceBox::getInstance().draw(window);
 }

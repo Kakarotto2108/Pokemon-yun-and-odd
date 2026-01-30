@@ -12,24 +12,28 @@
 #include "Obj.hpp"
 #include "ItemGround.hpp"
 
-
 class Player;
 
 class World {
 public:
-    World();
+    // ---- Singleton access ----
+    static World& getInstance() {
+        static World instance;
+        return instance;
+    }
+
 
     // Responsabilité : Gestion de la collection de zones
     void addZone(std::unique_ptr<Zone> zone);
-    
+
     // Accesseurs
     Zone& getCurrentZone();
     int getCurrentZoneId() const;
-    
+
     // Responsabilité : Contrôleur d'état du monde
     void switchZone(int zoneId);
-    
-    // Orchestration (Délègue à la Zone actuelle - Information Expert)
+
+    // Orchestration
     void update(float dt, Player& player);
     void draw(sf::RenderWindow& window, const WorldEntity& focus);
     void drawTileMap3D(const TileMap& tileMap);
@@ -39,10 +43,16 @@ public:
     void renderEntities(Zone& zone);
     void draw3D(sf::RenderTarget& target);
     void destroyEntity(WorldEntity* entity);
-    
-    // Initialisation via Factory (L'implémentation utilisera ZoneFactory)
+
+    // Initialisation via Factory
     void init();
 
 private:
-    std::unique_ptr<Zone> m_zone; 
+    World() = default;
+    
+    // Supprime copie / assignation
+    World(const World&) = delete;
+    World& operator=(const World&) = delete;
+
+    std::unique_ptr<Zone> m_zone;
 };

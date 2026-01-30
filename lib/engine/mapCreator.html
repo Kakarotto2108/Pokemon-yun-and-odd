@@ -116,6 +116,7 @@
         </div>
         <div id="dialogues-section">
             <div class="input-group" id="ent-diag-group">Diag Key: <input type="text" id="ent-diag" value="DIAG_1" style="width:120px;"></div>
+            <div class="input-group" style="margin-top:5px; border-top:1px solid #444; padding-top:5px;"><span style="color:#f1c40f; font-size:0.9em;">Édition en cours:</span> <input type="text" id="editing-diag-key" style="width:100px; border:none; background:transparent; color:#f1c40f; font-weight:bold;" onchange="switchEditingKey(this.value)"></div>
             <hr>
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h4 style="margin: 0; color: #3498db;">Dialogues</h4>
@@ -143,6 +144,7 @@
     let collisionData = []; 
     let entities = []; // Liste d'objets {type, name, sprite, x, y, orien, diagKey}
     let dialogues = {}; // Objet { diagKey: [ {text, type, action}, ... ] }
+    let editingDiagKey = "";
 
     let scale = 1.0;
     let viewX = 0;
@@ -169,6 +171,12 @@
                 selectedEntity.diagKey = document.getElementById('ent-diag').value;
                 selectedEntity.actionType = document.getElementById('ent-move').value;
                 selectedEntity.destination = document.getElementById('ent-dest').value;
+                
+                if (input.id === 'ent-diag') {
+                    editingDiagKey = selectedEntity.diagKey;
+                    document.getElementById('editing-diag-key').value = editingDiagKey;
+                }
+
                 drawMap();
                 renderDialogueList(); // Important si on change la Diag Key
             }
@@ -450,6 +458,8 @@
                         document.getElementById('ent-diag').value = found.diagKey;
                         document.getElementById('ent-move').value = found.actionType;
                         document.getElementById('ent-dest').value = found.destinations || "";
+                        editingDiagKey = found.diagKey;
+                        document.getElementById('editing-diag-key').value = editingDiagKey;
 
                     } else {
                         if (document.getElementById('ent-type').value === 'IOG') collisionData[index] = 0;
@@ -467,6 +477,8 @@
                         };
                         entities.push(newEnt);
                         selectedEntity = newEnt;
+                        editingDiagKey = newEnt.diagKey;
+                        document.getElementById('editing-diag-key').value = editingDiagKey;
                     }
                     
                     updateInspectorUI(selectedEntity.type);
@@ -806,9 +818,16 @@
         const isRandomMove = (move === 'RANDOM' || move === 'NONE');
         document.getElementById('ent-dest-group').style.display = isRandomMove ? 'none' : 'flex';
     }
+
+    function switchEditingKey(val) {
+        editingDiagKey = val;
+        document.getElementById('editing-diag-key').value = val;
+        renderDialogueList();
+    }
+
     // Ajoute une nouvelle ligne de dialogue vide
     function addDialogueRow() {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         
         if (!key) {
             alert("Indiquez une Diag Key d'abord");
@@ -832,7 +851,7 @@
     function renderDialogueList() {
         const list = document.getElementById('dialogue-list');
         list.innerHTML = "";
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         const currentDialogues = dialogues[key] || [];
 
         currentDialogues.forEach((diag, index) => {
@@ -848,7 +867,7 @@
             if (actionCmd === 'GIVE_ITEM') {
                 const itemName = actionArgs[0] || 'Pokeball';
                 const itemQty = actionArgs[1] || '1';
-                actionParamsHTML = `
+                actionParamsHTML += `
                     <div class="input-group">
                         Item ID: <input type="text" value="${itemName}" oninput="updateActionParams(${index}, this.value, 0)">
                     </div>
@@ -912,6 +931,16 @@
                     `;
                 }
             }
+            if (actionCmd === 'CHANGE_DIAG') {  
+                const snddiagkey = actionArgs[0] || '';   
+                actionParamsHTML = `
+                    <div class="input-group">
+                        Scd Diag ID: <input type="text" value="${snddiagkey}" oninput="updateActionParams(${index}, this.value, 0)" style="width:80px">
+                        <button class="btn" style="padding:2px 5px; margin-left:5px; font-size:0.8em;" onclick="switchEditingKey('${snddiagkey}')">➡️ Edit</button>
+                    </div>
+                `;
+            }
+
 
 
             row.innerHTML = `
@@ -921,7 +950,7 @@
                 </div>
                 <textarea rows="2" oninput="updateDiag(${index}, 'text', this.value)" placeholder="Texte...">${diag.text}</textarea>
                 <div class="input-group">Type: <select onchange="updateDiag(${index}, 'type', this.value)"><option value="Classic" ${diag.type === 'Classic' ? 'selected' : ''}>Classic</option><option value="Object" ${diag.type === 'Object' ? 'selected' : ''}>Object</option></select></div>
-                <div class="input-group">Action: <select onchange="updateActionCmd(${index}, this.value)"><option value="NONE" ${actionCmd === 'NONE' ? 'selected' : ''}>NONE</option><option value="GIVE_ITEM" ${actionCmd === 'GIVE_ITEM' ? 'selected' : ''}>GIVE_ITEM</option><option value="HEAL" ${actionCmd === 'HEAL' ? 'selected' : ''}>HEAL</option><option value="CHOICE" ${actionCmd === 'CHOICE' ? 'selected' : ''}>CHOICE</option><option value="MOVE" ${actionCmd === 'MOVE' ? 'selected' : ''}>MOVE</option></select></div>
+                <div class="input-group">Action: <select onchange="updateActionCmd(${index}, this.value)"><option value="NONE" ${actionCmd === 'NONE' ? 'selected' : ''}>NONE</option><option value="GIVE_ITEM" ${actionCmd === 'GIVE_ITEM' ? 'selected' : ''}>GIVE_ITEM</option><option value="HEAL" ${actionCmd === 'HEAL' ? 'selected' : ''}>HEAL</option><option value="CHOICE" ${actionCmd === 'CHOICE' ? 'selected' : ''}>CHOICE</option><option value="MOVE" ${actionCmd === 'MOVE' ? 'selected' : ''}>MOVE</option><option value="CHANGE_DIAG" ${actionCmd === 'CHANGE_DIAG' ? 'selected' : ''}>CHANGE_DIAG</option></select></div>
                 <div id="action-params-${index}">${actionParamsHTML}</div>
             `;
             list.appendChild(row);
@@ -930,13 +959,13 @@
 
     // Mise à jour des données en temps réel
     function updateDiag(index, field, value) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         dialogues[key][index][field] = value;
     }
 
     // Met à jour la commande d'action et réinitialise les paramètres
     function updateActionCmd(index, newCmd) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         if (!dialogues[key] || !dialogues[key][index]) return;
 
         let newAction = newCmd;
@@ -949,6 +978,9 @@
         else if (newCmd === 'MOVE') {
             newAction = 'MOVE:SIMPLE:{8,5}';
         }
+        else if (newCmd == 'CHANGE_DIAG') {
+            newAction = 'CHANGE_DIAG:' + editingDiagKey +'_2';
+        }
         
         dialogues[key][index].action = newAction;
         
@@ -957,7 +989,7 @@
     }
 
     function updateActionParams(index, value, paramIndex) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         if (!dialogues[key] || !dialogues[key][index]) return;
 
         const actionParts = dialogues[key][index].action.split(':');
@@ -983,7 +1015,7 @@
 
 
     function updateChoiceParam(diagIndex, choiceIndex, fieldType, value) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         if (!dialogues[key] || !dialogues[key][diagIndex]) return;
 
         const diag = dialogues[key][diagIndex];
@@ -1004,13 +1036,13 @@
     }
 
     function addChoice(diagIndex) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         dialogues[key][diagIndex].action += ":{Choix,NEXT}";
         renderDialogueList();
     }
 
     function removeChoice(diagIndex, choiceIndex) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         let parts = dialogues[key][diagIndex].action.split(':');
         parts.splice(choiceIndex + 1, 1);
         dialogues[key][diagIndex].action = parts.join(':');
@@ -1018,13 +1050,13 @@
     }
 
     function removeDiag(index) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         dialogues[key].splice(index, 1);
         renderDialogueList();
     }
 
     function moveDiag(index, direction) {
-        const key = document.getElementById('ent-diag').value;
+        const key = editingDiagKey;
         const target = index + direction;
         if (target < 0 || target >= dialogues[key].length) return;
         

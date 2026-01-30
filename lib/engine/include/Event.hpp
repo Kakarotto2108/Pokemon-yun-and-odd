@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include "WorldEntity.hpp"
 
 template<typename... Args>
 class Event {
@@ -35,9 +36,10 @@ private:
 
 class WorldEntity; // Forward declaration
 
-// Events List
 struct GameEvents {
     static Event<int, int> OnPlayerMove; 
     static Event<std::string> OnDialogueTrigger;
     static Event<WorldEntity*> OnEntityDestroyed;
+    static Event SaveGame;
 };
+
