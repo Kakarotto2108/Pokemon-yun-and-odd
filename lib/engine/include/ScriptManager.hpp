@@ -166,8 +166,9 @@ public:
                                             speakerChar->RemoveItem(item, qty);
                                             Player::getInstance().getInventory().addItem(item, qty);
                                         }
+                                    }
                                         else {
-                                            cmd = "CHANGE_DIAG"
+                                            cmd = "CHANGE_DIAG";
                                     }
                                     Obj* obj = dynamic_cast<Obj*>(speaker);
                                     if (obj) {
@@ -275,4 +276,5 @@ public:
 
 private:
     std::map<std::string, std::vector<DialogueStep>> m_cache;
+
 };
