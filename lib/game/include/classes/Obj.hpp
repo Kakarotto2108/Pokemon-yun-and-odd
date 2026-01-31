@@ -36,6 +36,11 @@ public:
         return state;
     }
 
+    void setSize(float sizeX, float sizeY) {
+        m_sprite.setScale(sizeX, sizeY);
+        m_sprite.setOrigin(sizeX * 8.f, sizeY * 16.f);
+    }
+
 private:
     std::string m_dialogueKey;
     std::optional<Item> m_item;

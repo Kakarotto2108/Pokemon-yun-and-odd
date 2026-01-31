@@ -18,6 +18,10 @@ Obj::Obj(const std::string& name, const std::string& texturePath,
     m_sprite.setOrigin(8.f, 16.f);
     m_sprite.setPosition(pos.x * 32.f, pos.y * 32.f); 
     m_sprite.setScale(3.f, 3.f);
+
+    if (m_texturePath.find("pokeball") != std::string::npos) {
+        m_sprite.setScale(1.5f, 1.5f);
+    }
 }
 
 void Obj::interact() {    

@@ -115,7 +115,7 @@ void World::drawObjSprite3D(const Obj& obj) {
         }
     }
     glLoadMatrixf(m);
-    glScalef(3.0f, 3.0f, 1.0f);
+    glScalef(sprite.getScale().x, sprite.getScale().y, 1.0f);
     // 3. Préparer les dimensions et UV
     float w = (float)texRect.width;
     float h = (float)texRect.height;
@@ -206,13 +206,13 @@ void World::renderEntities(Zone& zone) {
         if (npc) {
             drawCharacter3D(*npc);
         } else {
-            Obj* obj = dynamic_cast<Obj*>(entity);
-            if (obj) {
-                drawObjSprite3D(*obj);
+            Iog* iog = dynamic_cast<Iog*>(entity);
+            if (iog) {
+                drawIogSprite3D(*iog);
             } else {
-                Iog* iog = dynamic_cast<Iog*>(entity);
-                if (iog) {
-                    drawIogSprite3D(*iog);
+                Obj* obj = dynamic_cast<Obj*>(entity);
+                if (obj) {
+                    drawObjSprite3D(*obj);
                 }
             }
         }
@@ -304,7 +304,5 @@ void World::destroyEntity(WorldEntity* entity) {
     sf::Vector2i pos = entity->getPosition();
     std::string uniqueId = "IOG_" + std::to_string(m_zone->getId()) + "_" + std::to_string(pos.x) + "_" + std::to_string(pos.y);
     GameSession::getInstance().addCollectedItem(uniqueId);
-
-    m_zone->destroyCollision(pos.x, pos.y);
     m_zone->removeEntity(entity);
 }
