@@ -5,6 +5,7 @@
 #include "GameChoiceBox.hpp"
 #include "Npc.hpp"
 #include "Interactable.hpp"
+#include "Bag.hpp"
 
 EventManager::EventManager() {
     GameEvents::SaveGame.subscribe([]() {
@@ -47,6 +48,10 @@ EventManager::EventManager() {
     });
     GameEvents::Ev3.subscribe([this]() {
         makeChoice("DIAG_1_3");
+    });
+
+    GameEvents::OpenBag.subscribe([]() {
+        Bag::getInstance().open();
     });
 }
 

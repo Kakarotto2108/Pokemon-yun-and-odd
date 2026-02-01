@@ -1,10 +1,10 @@
 [DIAG_1]
 S: Bonjour | T: Classic| A: NONE
 S: Comment ça va ? | T: Classic| A: NONE
-S: Quel objet veux tu ? | T: Classic| A: CHOICE:{Choix1,Ev1}:{Choix2,Ev2}:{Choix3,Ev3}
+S: Quel objet veux tu ? | T: Classic| A: CHOICE:{Soupe,Ev1}:{Choix2,Ev2}:{Choix3,Ev3}
 
 [DIAG_1_1]
-S: Ah oui ? Moi je n'aurai pas pris celui là... | T: Classic| A: CHANGE_DIAG:DIAG_1_4
+S: Ah oui ? Moi je n'aurais pas pris celui là... | T: Classic| A: CHANGE_DIAG:DIAG_1_4
 
 [DIAG_1_2]
 S: Oh, d'accord, ce n'était pas mon choix \npréféré personnellement... | T: Classic | A: CHANGE_DIAG:DIAG_1_4
