@@ -41,9 +41,13 @@ public:
         m_sprite.setOrigin(sizeX * 8.f, sizeY * 16.f);
     }
 
+    bool getCollision() const { return isColliding; }
+    void setCollision(bool collision) { isColliding = collision; }
+
 private:
     std::string m_dialogueKey;
     std::optional<Item> m_item;
     sf::Sprite m_sprite;
     std::string m_texturePath;
+    bool isColliding = true;
 };

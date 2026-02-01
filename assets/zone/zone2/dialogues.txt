@@ -1,8 +1,20 @@
 [DIAG_1]
 S: Bonjour | T: Classic| A: NONE
 S: Comment ça va ? | T: Classic| A: NONE
-S: Quel objet veux tu ? | T: Classic| A: CHOICE:{Choix1,NEXT}:{Choix2,NEXT}:{Choix3,NEXT}
-S: Mais juste, de rien en fait | T: Classic| A: A : NONE
+S: Quel objet veux tu ? | T: Classic| A: CHOICE:{Choix1,Ev1}:{Choix2,Ev2}:{Choix3,Ev3}
+
+[DIAG_1_1]
+S: Ah oui ? Moi je n'aurai pas pris celui là... | T: Classic| A: CHANGE_DIAG:DIAG_1_4
+
+[DIAG_1_2]
+S: Oh, d'accord, ce n'était pas mon choix \npréféré personnellement... | T: Classic | A: CHANGE_DIAG:DIAG_1_4
+
+[DIAG_1_3]
+S: Ah, je suis bien d'accord avec toi !\nC'était mon préféré à moi aussi | T: Classic | A: CHANGE_DIAG:DIAG_1_4
+
+[DIAG_1_4]
+S: Alors ? J'espère que tu ne regrettes pas ton choix.
+
 
 
 

@@ -53,8 +53,15 @@ GameChoiceBox::GameChoiceBox() {
         if (m_inputClock.getElapsedTime().asSeconds() < 0.05f) return;
 
         std::string eventName = getEventForChoice(getChoiceName());
+        
+        // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
+        auto previousChoices = m_choices;
         EventManager::getInstance().launchEvent(eventName);
-        hide();
+        
+        // On ne ferme la boîte que si les choix sont restés les mêmes (action simple)
+        if (m_choices == previousChoices) {
+            hide();
+        }
     });
 }
 

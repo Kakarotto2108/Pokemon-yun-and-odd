@@ -1,6 +1,7 @@
 #include "Zone.hpp"
 #include "Character.hpp"
 #include "Player.hpp"
+#include "Obj.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -27,6 +28,13 @@ bool Zone::isBlocking(int x, int y) const {
         Character* character = dynamic_cast<Character*>(ent.get());
         if (character && character->getCollision()) {
             sf::Vector2i pos = character->getPosition();
+            if (pos.x == x && pos.y == y) {
+                return true;
+            }
+        }
+        Obj* obj = dynamic_cast<Obj*>(ent.get());
+        if (obj && obj->getCollision()) {
+            sf::Vector2i pos = obj->getPosition();
             if (pos.x == x && pos.y == y) {
                 return true;
             }
