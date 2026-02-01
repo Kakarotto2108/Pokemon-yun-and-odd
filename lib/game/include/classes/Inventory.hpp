@@ -18,6 +18,8 @@ public:
 
     nlohmann::json toJson() const;
     static Inventory fromJson(const nlohmann::json& j);
+    std::map<ItemPocket, Pocket>& getPockets() { return m_pockets; }
+
 private:
     std::map<ItemPocket, Pocket> m_pockets;  
 };

@@ -27,7 +27,12 @@ public:
         {"NoChoice", &GameEvents::NoChoice},
         {"Ev1", &GameEvents::Ev1},
         {"Ev2", &GameEvents::Ev2},
-        {"Ev3", &GameEvents::Ev3}
+        {"Ev3", &GameEvents::Ev3},
+        {"OpenBag", &GameEvents::OpenBag},
+        {"OpenPokedex", &GameEvents::OpenPokedex},
+        {"OpenPokemon", &GameEvents::OpenPokemon},
+        {"OpenPlayer", &GameEvents::OpenPlayer},
+        {"OpenOptions", &GameEvents::OpenOptions},
     };
 
 

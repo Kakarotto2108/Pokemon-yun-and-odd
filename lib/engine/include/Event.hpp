@@ -46,5 +46,10 @@ struct GameEvents {
     static Event<> Ev1;
     static Event<> Ev2;
     static Event<> Ev3;
+    static Event<> OpenBag;
+    static Event<> OpenPokedex;
+    static Event<> OpenPokemon;
+    static Event<> OpenPlayer;
+    static Event<> OpenOptions;
 };
 
