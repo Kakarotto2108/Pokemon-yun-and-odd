@@ -9,7 +9,6 @@
 #include <cmath>
 #include "Event.hpp"
 #include <fstream>
-#include "GameSession.hpp"
 
 Zone& World::getCurrentZone() {
     return *m_zone;
@@ -244,7 +243,7 @@ void World::draw3D(sf::RenderTarget& target) {
 void World::init() {
     m_zone = ZoneFactory::createZone(1);
     GameEvents::OnEntityDestroyed.subscribe([this](WorldEntity* e) {
-        destroyEntity(e);
+        m_zone->removeEntity(e);
     });
 }
 
@@ -295,14 +294,4 @@ void World::update(float dt, Player& player) {
             }
         }
     }
-}
-
-void World::destroyEntity(WorldEntity* entity) {
-    if (!m_zone) return;
-    
-    // On sauvegarde le fait que cet objet a été ramassé pour cette session
-    sf::Vector2i pos = entity->getPosition();
-    std::string uniqueId = "IOG_" + std::to_string(m_zone->getId()) + "_" + std::to_string(pos.x) + "_" + std::to_string(pos.y);
-    GameSession::getInstance().addCollectedItem(uniqueId);
-    m_zone->removeEntity(entity);
 }

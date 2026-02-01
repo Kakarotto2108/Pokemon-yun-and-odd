@@ -27,6 +27,7 @@ public:
         for (const auto& entity : entities) {
             state.entities[entity->getName()] = entity->getState();
         }
+        m_playerdata = Player::getInstance().getState();
     }
 
     // ------------------ SAVE ENCRYPTED ------------------
@@ -35,6 +36,7 @@ public:
         for (const auto& [zoneId,state] : m_zones) {
             j[std::to_string(zoneId)] = state.toJson();
         }
+        j["player"] = m_playerdata.toJson();
 
         std::string plaintext = j.dump();
         std::string ciphertext = xorEncryptDecrypt(plaintext, key);
@@ -55,13 +57,17 @@ public:
         nlohmann::json j = nlohmann::json::parse(plaintext);
 
         for (auto it = j.begin(); it != j.end(); ++it) {
+            if (it.key() == "player") continue;
             int zoneId = std::stoi(it.key());
             m_zones[zoneId] = ZoneState::fromJson(it.value());
         }
+        m_playerdata = EntityState::fromJson(j["player"]);
+        Player::getInstance().applyState(m_playerdata);
     }
 
 private:
     std::string key = "LaLuneEstBelle2108";
     GameInstance() = default;
     std::unordered_map<int, ZoneState> m_zones;
+    EntityState m_playerdata;
 };

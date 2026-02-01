@@ -2,9 +2,11 @@
 #include <SFML/System.hpp>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <iostream>
 #include "Inventory.hpp"
 
 enum class EntityType {
+    PLAYER,
     NPC,
     OBJ,
     IOG
@@ -46,12 +48,27 @@ struct EntityState {
         if (!j["inventory"].is_null())
             state.inventory = std::make_unique<Inventory>(Inventory::fromJson(j["inventory"]));
         else
-            state.inventory = nullptr;
+            state.inventory = std::make_unique<Inventory>();
 
         if(state.position.x < 0) state.position.x = 0;
         if(state.position.y < 0) state.position.y = 0;
         if(state.orientation < 0 || state.orientation > 3) state.orientation = 0;
 
         return state;
+    }
+
+    void printDebug() {
+        std::cout << "EntityState Debug:" << std::endl;
+        std::cout << "  Texture Path: " << texturePath << std::endl;
+        std::cout << "  Type: " << static_cast<int>(type) << std::endl;
+        std::cout << "  Position: (" << position.x << ", " << position.y << ")" << std::endl;
+        std::cout << "  Orientation: " << orientation << std::endl;
+        std::cout << "  Dialog Key: " << dialogKey << std::endl;
+        if (inventory) {
+            std::cout << "  Inventory: " << std::endl;
+            inventory->debugPrint();
+        } else {
+            std::cout << "  Inventory: None" << std::endl;
+        }
     }
 };

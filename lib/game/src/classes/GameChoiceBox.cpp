@@ -18,7 +18,7 @@ GameChoiceBox::GameChoiceBox() {
 
         // --- GESTION DU COOLDOWN ---
         // Si moins de 0.2 secondes se sont écoulées, on ignore l'input
-        if (m_inputClock.getElapsedTime().asSeconds() < 0.05f) {
+        if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) {
             return;
         }
 

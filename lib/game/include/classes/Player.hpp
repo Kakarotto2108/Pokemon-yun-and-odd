@@ -13,6 +13,16 @@ public:
         return instance;
     }
 
+    void applyState(const EntityState& state) override {
+        Character::applyState(state);
+    }
+
+    EntityState getState() const override {
+        EntityState state = Character::getState();
+        state.type = EntityType::PLAYER;
+        return state;
+    }
+
 private:
     Player(const std::string& name);
 };
