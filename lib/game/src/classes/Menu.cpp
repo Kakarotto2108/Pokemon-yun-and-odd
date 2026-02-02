@@ -4,7 +4,7 @@
 #include <iostream>
 
 Menu::Menu() {
-    Controller::getInstance().onActionPressed("OpenMenu", [this]() {
+    Controller::getInstance().onActionPressed("OpenMenu", []() {
         if (!GameChoiceBox::getInstance().isVisible()) {
         std::vector<std::pair<std::string, std::string>> choices = {
             {"Pokedex", "OpenPokedex"},

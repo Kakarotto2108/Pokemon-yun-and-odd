@@ -44,7 +44,8 @@ ifeq ($(OS_NAME),Darwin)
     CXXFLAGS += -arch arm64
     SFML_PATH = /opt/homebrew/Cellar/sfml@2/2.6.2_1
     CPPFLAGS += -I$(SFML_PATH)/include
-    LDFLAGS  += -L$(SFML_PATH)/lib
+    CPPFLAGS += -I/opt/homebrew/include
+    LDFLAGS  += -L$(SFML_PATH)/lib -framework OpenGL
     LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 endif
 

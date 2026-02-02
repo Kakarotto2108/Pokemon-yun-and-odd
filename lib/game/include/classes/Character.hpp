@@ -24,7 +24,7 @@ public:
 
     virtual void moveRequest(sf::Vector2i direction, Zone& zone);
     virtual void update(float dt, Zone& zone);
-    void draw(sf::RenderWindow& window) const;
+    void draw(sf::RenderWindow& window) const override;
     void stopAnimation();
 
     sf::Vector2i getPosition() const;

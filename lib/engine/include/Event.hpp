@@ -40,9 +40,9 @@ struct GameEvents {
     static Event<int, int> OnPlayerMove; 
     static Event<std::string> OnDialogueTrigger;
     static Event<WorldEntity*> OnEntityDestroyed;
-    static Event SaveGame;
-    static Event YesChoice;
-    static Event NoChoice;
+    static Event<> SaveGame;
+    static Event<> YesChoice;
+    static Event<> NoChoice;
     static Event<> Ev1;
     static Event<> Ev2;
     static Event<> Ev3;
