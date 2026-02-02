@@ -25,12 +25,15 @@ int World::getCurrentZoneId() const {
 }
 
 void World::drawCharacter3D(const Character& character) {
-    const sf::Sprite& sprite = character.getSprite();
+    sf::Sprite sprite = character.getSprite(); // copie modifiable
+
     const sf::Texture* texture = sprite.getTexture();
     if (!texture) return;
 
     sf::Vector2f pos = character.getDrawPosition();
     sf::IntRect texRect = sprite.getTextureRect();
+
+    // sprite.setScale(5.f, 5.f); // On retire le forçage pour respecter l'échelle du Character
 
     // --- RECALCUL DES DIMENSIONS ET UV ---
     float w = (float)texRect.width;
@@ -46,7 +49,7 @@ void World::drawCharacter3D(const Character& character) {
     glPushMatrix();
     
     // On positionne le sprite. Le Z est légèrement ajusté par le Y pour éviter le Z-fighting
-    glTranslatef(pos.x, pos.y + 48.f, pos.y * 0.0001f);
+    glTranslatef(pos.x, pos.y, pos.y * 0.0001f);
 
     // Billboard : on annule la rotation de la caméra
     float m[16];
@@ -58,6 +61,9 @@ void World::drawCharacter3D(const Character& character) {
         }
     }
     glLoadMatrixf(m);
+
+    // C'est ici qu'il manquait l'application de l'échelle !
+    glScalef(sprite.getScale().x, sprite.getScale().y, 1.0f);
 
     // Dessin
     sf::Texture::bind(texture);

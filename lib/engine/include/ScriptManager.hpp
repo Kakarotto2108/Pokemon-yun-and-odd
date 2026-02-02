@@ -65,7 +65,7 @@ public:
         if (m_cache.find(key) == m_cache.end()) {
             static std::vector<DialogueStep> empty;
             return empty;
-        }  
+        }
         return m_cache[key];
     }
 
@@ -110,16 +110,18 @@ public:
         while (std::getline(file, line)) {
             // Nettoyage des espaces/retours chariot invisibles
             if (!line.empty() && line.back() == '\r') line.pop_back();
-            if (line.empty() || line[0] == '#') continue; // Sauter lignes vides et commentaires
+            
+            std::string trimmedLine = trim(line);
+            if (trimmedLine.empty() || trimmedLine[0] == '#') continue; // Sauter lignes vides et commentaires
 
             // Détection d'un nouveau bloc : [nom_du_dialogue]
-            if (line[0] == '[' && line.back() == ']') {
+            if (trimmedLine[0] == '[' && trimmedLine.back() == ']') {
                 // Si on change de bloc, on sauvegarde le précédent s'il n'est pas vide
                 if (!currentKey.empty()) {
                     m_cache[currentKey] = currentSteps;
                     currentSteps.clear();
                 }
-                currentKey = line.substr(1, line.size() - 2);
+                currentKey = trim(trimmedLine.substr(1, trimmedLine.size() - 2));
                 continue;
             }
 

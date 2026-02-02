@@ -15,20 +15,37 @@ Animation::Animation(int line, int frameCount, float switchTime, int spriteSize)
     m_uvRect.left = 0;
 }
 
-void Animation::update(float dt) {
+void Animation::update(float dt)
+{
     m_totalTime += dt;
 
-    if (m_totalTime >= m_switchTime) {
-        m_totalTime -= m_switchTime;
-        m_currentFrame++;
+    if (m_totalTime < m_switchTime)
+        return;
 
-        if (m_currentFrame >= m_frameCount) {
-            m_currentFrame = 0;
-        }
+    m_totalTime -= m_switchTime;
+
+    if (m_backToZero)
+    {
+        // Retour au centre
+        m_currentFrame = 0;
+        m_backToZero = false;
+
+        // Préparer la prochaine cible
+        m_targetFrame++;
+
+        if (m_targetFrame >= m_frameCount)
+            m_targetFrame = 1;
+    }
+    else
+    {
+        // Aller vers la frame suivante (>0)
+        m_currentFrame = m_targetFrame;
+        m_backToZero = true;
     }
 
     m_uvRect.left = m_currentFrame * m_spriteSize;
 }
+
 
 void Animation::reset() {
     m_currentFrame = 0;

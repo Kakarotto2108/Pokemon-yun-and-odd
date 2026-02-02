@@ -17,7 +17,9 @@ private:
     int m_frameCount;   
     float m_switchTime; 
     int m_spriteSize;   
-    int m_currentFrame; 
+    int m_currentFrame;
+    int m_targetFrame = 1;
+    bool m_backToZero = false;
     float m_totalTime;  
     sf::IntRect m_uvRect;
 };

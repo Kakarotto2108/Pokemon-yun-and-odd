@@ -18,12 +18,13 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
     sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get(spriteSheetName);
     m_sprite.setTexture(tex);
 
-    m_animations["WalkDown"]  = Animation(0, 4, 0.15f, 64);
-    m_animations["WalkLeft"]  = Animation(1, 4, 0.15f, 64);
-    m_animations["WalkRight"] = Animation(2, 4, 0.15f, 64);
-    m_animations["WalkUp"]    = Animation(3, 4, 0.15f, 64);
+    // Les animations doivent correspondre à la taille du sprite (32x32)
+    m_animations["WalkUp"]  = Animation(0, 3, 0.15f, 33);
+    m_animations["WalkDown"] = Animation(1, 3, 0.15f, 33);
+    m_animations["WalkLeft"] = Animation(2, 3, 0.15f, 33);
+    m_animations["WalkRight"] = Animation(3, 3, 0.15f, 33);
 
-    m_sprite.setOrigin(32.f, 32.f); 
+    m_sprite.setScale(2.f, 2.f);
     setLogicalPos(m_logicalPos);
 }
 
@@ -61,8 +62,8 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     sf::Vector2i nextPos = m_logicalPos + direction;
     if (!zone.isBlocking(nextPos.x, nextPos.y)) {
         m_logicalPos = nextPos;
-        m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE/2.f, 
-                                   m_logicalPos.y * TILE_SIZE);
+        m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, 
+                                   (m_logicalPos.y + 1) * TILE_SIZE);
         
         // Notifier le système que CE personnage a bougé
         //GameEvents::OnCharacterMove.notify(m_logicalPos.x, m_logicalPos.y);
@@ -109,8 +110,8 @@ sf::Vector2i Character::getFacingTile() const {
 
 void Character::setLogicalPos(const sf::Vector2i& pos) {
     m_logicalPos = pos;
-    m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE/2.f, 
-                               m_logicalPos.y * TILE_SIZE);
+    m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, 
+                               (m_logicalPos.y + 1) * TILE_SIZE);
     m_sprite.setPosition(m_targetPos);
 }
 

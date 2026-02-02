@@ -136,12 +136,12 @@ public:
                     }
                     else if (type == "NPC" || type == "OBJ") {
                         std::string name, sprite, diagKey, xStr, yStr, orienStr;
-                        std::getline(ss, name, '|');
-                        std::getline(ss, sprite, '|');
+                        std::getline(ss, name, '|'); name = trim(name);
+                        std::getline(ss, sprite, '|'); sprite = trim(sprite);
                         std::getline(ss, xStr, '|');
                         std::getline(ss, yStr, '|');
                         std::getline(ss, orienStr, '|');
-                        std::getline(ss, diagKey, '|');
+                        std::getline(ss, diagKey, '|'); diagKey = trim(diagKey);
 
                         sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
                         int orientation = std::stoi(orienStr);
@@ -149,18 +149,18 @@ public:
 
                         if (type == "NPC") {
                             std::string action;
-                            std::getline(ss, action, '|');
+                            std::getline(ss, action, '|'); action = trim(action);
                             PathType pathType = (action == "RANDOM") ? PathType::RANDOM : (action == "SIMPLE") ? PathType::SIMPLE : (action == "LOOP") ? PathType::LOOP : PathType::PINGPONG;
                             auto path = std::make_unique<CharacterPath>(pathType, 2.f, pos);
                             if (action == "SIMPLE" || action == "PINGPONG") {
                                 std::string dirStr;
-                                std::getline(ss, dirStr, '|');
+                                std::getline(ss, dirStr, '|'); dirStr = trim(dirStr);
                                 auto direction = parseDirections(dirStr);
                                 path->addDestination(pos, direction[0]);
                             }
                             if (action == "LOOP") {
                                 std::string dirStr;
-                                std::getline(ss, dirStr, '|');
+                                std::getline(ss, dirStr, '|'); dirStr = trim(dirStr);
                                 auto directions = parseDirections(dirStr);
                                 path->addDestinationLoop(pos, directions);
                             }
