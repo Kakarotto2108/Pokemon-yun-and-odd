@@ -162,10 +162,7 @@ public:
                                     if (speakerChar) {
                                         // On crée un objet Item pour l'ajouter à l'inventaire.
                                         Item item(itemID, ItemPocket::Items, "Objet reçu d'un PNJ.");
-                                        if (speakerChar->getInventory().getQuantity(item) >= qty) {
-                                            speakerChar->RemoveItem(item, qty);
-                                            Player::getInstance().getInventory().addItem(item, qty);
-                                        }
+                                        Player::getInstance().getInventory().addItem(item, qty);
                                     }
                                     else {
                                         cmd = "CHANGE_DIAG";
