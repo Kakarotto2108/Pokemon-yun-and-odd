@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
+#define GL_SILENCE_DEPRECATION
 #if defined(__APPLE__)
     #include <OpenGL/gl.h>
 #else

@@ -41,6 +41,8 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
     Controller::getInstance().onActionPressed("Interact", [this]() {
         // On bloque toute interaction pendant une transition
         if (TransitionManager::getInstance().isRunning()) return;
+
+        if (GameChoiceBox::getInstance().isVisible()) return;
         
         if (DialogManager::getInstance().isActive()) {
             DialogManager::getInstance().next();

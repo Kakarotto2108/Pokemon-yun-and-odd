@@ -110,6 +110,8 @@ public:
                         entities.push_back(std::move(iog));
                         break;
                     }
+                    default:
+                        break;
                 }
             }
         } else {

@@ -27,7 +27,6 @@ void Iog::interact()
     Item item(itemName, ItemPocket::Items, "Objet trouvé au sol.");
     Player::getInstance().getInventory().addItem(item, 1);
     GameEvents::OnEntityDestroyed.notify(this);
-    Player::getInstance().getInventory().debugPrint();
     const std::vector<DialogueStep> script = { step1 };
     DialogManager::getInstance().startDialogue(script, this);
 }

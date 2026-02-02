@@ -1,6 +1,7 @@
 #include "GameChoiceBox.hpp"
 #include "Controller.hpp"
 #include "EventManager.hpp"
+#include "PlayerController.hpp"
 #include <iostream>
 
 GameChoiceBox::GameChoiceBox() {
