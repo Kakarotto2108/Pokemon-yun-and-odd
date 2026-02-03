@@ -22,13 +22,18 @@ void Iog::interact()
     std::string itemName = getName(); // si WorldEntity expose un getter
 
     DialogueStep step1;
-    step1.text = "Vous avez trouvé : " + itemName + " !";
+    step1.text = Player::getInstance().getName() + " trouve : $[blue]" + itemName + " $[white]!";
     step1.type = BoxType::Object;
     Item item(itemName, ItemPocket::Items, "Objet trouvé au sol.");
     Player::getInstance().getInventory().addItem(item, 1);
     GameEvents::OnEntityDestroyed.notify(this);
-    const std::vector<DialogueStep> script = { step1 };
+    DialogueStep step2;
+    step2.text = Player::getInstance().getName() + " a mis l'objet " + itemName + " \ndans la Poche $[blue]" + toString(item.getPocket()) + " $[white].";
+    step2.type = BoxType::Object;
+    const std::vector<DialogueStep> script = { step1, step2 };
     DialogManager::getInstance().startDialogue(script, this);
+    std::vector<std::string> lstAnim = {"ReceiveItem1", "ReceiveItem2"};
+    Player::getInstance().startAnimation(lstAnim);
 }
 
 EntityState Iog::getState() const {

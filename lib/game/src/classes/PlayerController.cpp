@@ -43,6 +43,11 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
         if (TransitionManager::getInstance().isRunning()) return;
 
         if (GameChoiceBox::getInstance().isVisible()) return;
+
+        if(Player::getInstance().getFrame() == "ReceiveItem2"){
+            std::vector<std::string> lstAnim = {"ReceiveItem3", "WalkDown"};
+            Player::getInstance().startAnimation(lstAnim);
+        }
         
         if (DialogManager::getInstance().isActive()) {
             DialogManager::getInstance().next();

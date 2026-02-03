@@ -19,10 +19,13 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
     m_sprite.setTexture(tex);
 
     // Les animations doivent correspondre à la taille du sprite (32x32)
-    m_animations["WalkUp"]  = Animation(0, 3, 0.15f, 33);
-    m_animations["WalkDown"] = Animation(1, 3, 0.15f, 33);
-    m_animations["WalkLeft"] = Animation(2, 3, 0.15f, 33);
-    m_animations["WalkRight"] = Animation(3, 3, 0.15f, 33);
+    m_animations["WalkUp"]  = Animation(0, 3, 0.15f, 32);
+    m_animations["WalkDown"] = Animation(1, 3, 0.15f, 32);
+    m_animations["WalkLeft"] = Animation(2, 3, 0.15f, 32);
+    m_animations["WalkRight"] = Animation(3, 3, 0.15f, 32);
+    m_animations["ReceiveItem1"] = Animation(6,1, 0.2f, 32);
+    m_animations["ReceiveItem2"] = Animation(7,1, 0.2f, 32);
+    m_animations["ReceiveItem3"] = Animation(8,1, 0.2f, 32);
 
     m_sprite.setScale(2.f, 2.f);
     setLogicalPos(m_logicalPos);
@@ -43,6 +46,25 @@ void Character::setOrientation(int orientation) {
         default: m_currentAnim = "WalkDown"; break;
     }
 }
+
+void Character::startAnimation(const std::vector<std::string>& lstAnim)
+{
+    while (!m_animQueue.empty())
+        m_animQueue.pop();
+
+    for (const auto& anim : lstAnim)
+        m_animQueue.push(anim);
+
+    m_playSequence = true;
+    m_animTimer = 0.f;
+
+    if (!m_animQueue.empty()) {
+        m_currentAnim = m_animQueue.front();
+        m_animQueue.pop();
+        m_animations[m_currentAnim].reset();
+    }
+}
+
 
 void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     if (direction.x == 0 && direction.y == 0) {
@@ -89,6 +111,26 @@ void Character::update(float dt, Zone& zone) {
         m_sprite.move(diff * MOVE_SPEED);
     } else {
         m_sprite.setPosition(m_targetPos);
+    }
+    if (m_playSequence)
+    {
+        m_animTimer += dt;
+
+        if (m_animTimer >= m_animDelay)
+        {
+            m_animTimer = 0.f;
+
+            if (!m_animQueue.empty())
+            {
+                m_currentAnim = m_animQueue.front();
+                m_animQueue.pop();
+                m_animations[m_currentAnim].reset();
+            }
+            else
+            {
+                m_playSequence = false;
+            }
+        }
     }
 }
 
