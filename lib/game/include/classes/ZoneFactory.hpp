@@ -98,7 +98,7 @@ public:
                     }
                     case EntityType::OBJ:
                     {
-                        auto obj = std::make_unique<Obj>(name, state.texturePath, state.position, state.dialogKey);
+                        auto obj = std::make_unique<Obj>(name, state.texturePath, state.position, state.dialogKey, state.size.value_or(sf::Vector2f(1.f, 1.f)));
                         obj->applyState(state);
                         entities.push_back(std::move(obj));
                         break;
@@ -135,11 +135,15 @@ public:
                         entities.push_back(std::make_unique<Iog>(name, pos));
                     }
                     else if (type == "NPC" || type == "OBJ") {
-                        std::string name, sprite, diagKey, xStr, yStr, orienStr;
+                        std::string name, sprite, diagKey, xStr, yStr, xSz, ysZ, orienStr;
                         std::getline(ss, name, '|'); name = trim(name);
                         std::getline(ss, sprite, '|'); sprite = trim(sprite);
                         std::getline(ss, xStr, '|');
                         std::getline(ss, yStr, '|');
+                        if (type == "OBJ") {
+                            std::getline(ss, xSz, '|');
+                            std::getline(ss, ysZ, '|');
+                        }
                         std::getline(ss, orienStr, '|');
                         std::getline(ss, diagKey, '|'); diagKey = trim(diagKey);
 
@@ -168,9 +172,17 @@ public:
                             zoneState.entities[npc->getName()] = npc->getState();
                             entities.push_back(std::move(npc));
                         } else {
-                            auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey);
-                            zoneState.entities[obj->getName()] = obj->getState();
-                            entities.push_back(std::move(obj));
+                            if (type == "IOG") {
+
+                                auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey, sf::Vector2f(1.f, 1.f));
+                                zoneState.entities[obj->getName()] = obj->getState();
+                                entities.push_back(std::move(obj));
+                            }
+                            else {
+                                auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey, sf::Vector2f(std::stof(xSz), std::stof(ysZ)));
+                                zoneState.entities[obj->getName()] = obj->getState();
+                                entities.push_back(std::move(obj));
+                            }
                         }
                     } else {
                         std::cerr << "Warning: Unknown entity type '" << type << "' in entities.txt for zone " << zoneId << std::endl;

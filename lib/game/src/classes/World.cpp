@@ -108,7 +108,8 @@ void World::drawObjSprite3D(const Obj& obj) {
     sf::IntRect texRect = sprite.getTextureRect();
     // 1. Sauvegarder la matrice actuelle et extraire la position du monde
     glPushMatrix();
-    glTranslatef(pos.x + 16.f, pos.y + 40.f, 0.0f); 
+    sf::Vector2f scale = obj.getSize();
+    glTranslatef(pos.x + scale.x * 16.f, pos.y + 40.f + (scale.y - 1) * 10.f, 0.0f); 
        
     // 2. Annuler la rotation de la ModelView
     float m[16];

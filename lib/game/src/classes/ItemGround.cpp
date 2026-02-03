@@ -8,9 +8,9 @@ Iog::Iog(const std::string& name, sf::Vector2i pos)
         name,
         "assets/sprite/overworld/overworld_pokeball.png", // texture
         pos,
-        "iog_dialogue",                                   // clé dialogue
-        std::nullopt
-                                       // pas d'item stocké dans Obj
+        "iog_dialogue",
+        sf::Vector2f(1.f, 1.f),
+        std::nullopt                                      // pas d'item stocké dans Obj
       )
 {
     setSize(1.5f, 1.5f);

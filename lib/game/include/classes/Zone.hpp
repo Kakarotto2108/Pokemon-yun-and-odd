@@ -5,6 +5,7 @@
 #include <memory>
 #include "WorldEntity.hpp"
 #include "TileMap.hpp"
+#include "Obj.hpp"
 #include <SFML/Graphics.hpp>
 
 struct ZoneTransition {
@@ -29,9 +30,19 @@ public:
     bool removeEntity(WorldEntity* entity);
     WorldEntity* getEntityAt(int x, int y) const {
         for (const auto& ent : m_entities) {
-            sf::Vector2i pos = ent->getPosition();
-            if (pos.x == x && pos.y == y) {
-                return ent.get();
+            Obj* obj = dynamic_cast<Obj*>(ent.get());
+            if (obj) {
+                for (const auto& pos : obj->getAllPositions()){
+                    if (pos.first == x && pos.second == y) {
+                        return ent.get();
+                    }
+                }
+            }
+            else {
+                sf::Vector2i pos = ent->getPosition();
+                if (pos.x == x && pos.y == y) {
+                    return ent.get();
+                }
             }
         }
         return nullptr;

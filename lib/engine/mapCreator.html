@@ -109,6 +109,7 @@
     <div id="entity-settings">
         <div class="input-group">Type: <select id="ent-type" onchange="updateInspectorUI(this.value)"><option value="NPC">NPC</option><option value="OBJ">OBJET</option><option value="IOG">IOG</option></select></div>
         <div class="input-group" id="ent-name-group"><span id="ent-name-label">Nom:</span> <input type="text" id="ent-name" value="Pierre" style="width:120px;"></div>
+        <div class="input-group" id="ent-size-group" style="display:none;">Taille (LxH): <input type="number" id="ent-w" value="1" style="width:40px;" min="1"> x <input type="number" id="ent-h" value="1" style="width:40px;" min="1"></div>
         <div class="input-group" id="ent-sprite-group">Sprite name: <input type="text" id="ent-sprite" value="gabou.png"></div>
         <div class="input-group" id="ent-orien-group">Orientation: <select id="ent-orien"><option value="DOWN">Bas</option><option value="UP">Haut</option><option value="LEFT">Gauche</option><option value="RIGHT">Droite</option></select></div>
         <div class="input-group" id="ent-move-group">Type Deplacement Initial: <select id="ent-move" onchange="updateInspectorMove(this.value)"><option value="NONE">Aucun</option><option value = "RANDOM">Random</option><option value="SIMPLE">Simple</option><option value="PINGPONG">Ping Pong</option><option value="LOOP">Boucle</option></select></div>
@@ -153,6 +154,9 @@
     let lastMouseX = 0;
     let lastMouseY = 0;
     let selectedEntity = null;
+    let isDraggingEntity = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
     
     const mapCanvas = document.getElementById('map-canvas');
     const viewport = document.getElementById('viewport');
@@ -166,6 +170,8 @@
             if (selectedEntity) {
                 selectedEntity.type = document.getElementById('ent-type').value;
                 selectedEntity.name = document.getElementById('ent-name').value;
+                selectedEntity.sizeX = parseInt(document.getElementById('ent-w').value) || 1;
+                selectedEntity.sizeY = parseInt(document.getElementById('ent-h').value) || 1;
                 selectedEntity.sprite = document.getElementById('ent-sprite').value;
                 selectedEntity.orien = document.getElementById('ent-orien').value;
                 selectedEntity.diagKey = document.getElementById('ent-diag').value;
@@ -388,7 +394,11 @@
             const index = y * mapW + x;
             // === SUPPRESSION ENTITÉ AU CLIC DROIT ===
             if (e.buttons === 2 && mode === 'entities') {
-                const entIndex = entities.findIndex(ent => ent.x === x && ent.y === y);
+                const entIndex = entities.findIndex(ent => {
+                    const w = ent.sizeX || 1;
+                    const h = ent.sizeY || 1;
+                    return x >= ent.x && x < ent.x + w && y >= ent.y && y < ent.y + h;
+                });
 
                 if (entIndex !== -1) {
                     // Supprimer
@@ -444,46 +454,71 @@
                     collisionData[index] = -100 - spawnpointID;
                 }
                 else if (mode === 'entities') {
-                    // Chercher si une entité existe déjà à cet endroit
-                    const found = entities.find(e => e.x === x && e.y === y);
-
-                    if (found) {
-                        // Sélectionner l'entité existante
-                        selectedEntity = found;
-                        // Remplir les champs de l'inspecteur
-                        document.getElementById('ent-type').value = found.type;
-                        document.getElementById('ent-name').value = found.name;
-                        document.getElementById('ent-sprite').value = found.sprite;
-                        document.getElementById('ent-orien').value = found.orien;
-                        document.getElementById('ent-diag').value = found.diagKey;
-                        document.getElementById('ent-move').value = found.actionType;
-                        document.getElementById('ent-dest').value = found.destinations || "";
-                        editingDiagKey = found.diagKey;
-                        document.getElementById('editing-diag-key').value = editingDiagKey;
-
+                    if (isDraggingEntity && selectedEntity) {
+                        selectedEntity.x = x - dragOffsetX;
+                        selectedEntity.y = y - dragOffsetY;
                     } else {
-                        if (document.getElementById('ent-type').value === 'IOG') collisionData[index] = 0;
-                        // Créer une nouvelle entité
-                        const newEnt = {
-                            type: document.getElementById('ent-type').value,
-                            name: document.getElementById('ent-name').value,
-                            sprite: document.getElementById('ent-sprite').value,
-                            x: x,
-                            y: y,
-                            orien: document.getElementById('ent-orien').value,
-                            diagKey: document.getElementById('ent-diag').value,
-                            actionType: document.getElementById('ent-move').value,
-                            destination : ""
-                        };
-                        entities.push(newEnt);
-                        selectedEntity = newEnt;
-                        editingDiagKey = newEnt.diagKey;
-                        document.getElementById('editing-diag-key').value = editingDiagKey;
+                        // Chercher si une entité existe déjà à cet endroit
+                        const found = entities.find(e => {
+                            const w = e.sizeX || 1;
+                            const h = e.sizeY || 1;
+                            return x >= e.x && x < e.x + w && y >= e.y && y < e.y + h;
+                        });
+
+                        if (found) {
+                            // Sélectionner l'entité existante
+                            selectedEntity = found;
+                            
+                            if (e.type === 'mousedown') {
+                                isDraggingEntity = true;
+                                dragOffsetX = x - found.x;
+                                dragOffsetY = y - found.y;
+                            }
+
+                            // Remplir les champs de l'inspecteur
+                            document.getElementById('ent-type').value = found.type;
+                            document.getElementById('ent-name').value = found.name;
+                            document.getElementById('ent-w').value = found.sizeX || 1;
+                            document.getElementById('ent-h').value = found.sizeY || 1;
+                            document.getElementById('ent-sprite').value = found.sprite;
+                            document.getElementById('ent-orien').value = found.orien;
+                            document.getElementById('ent-diag').value = found.diagKey;
+                            document.getElementById('ent-move').value = found.actionType;
+                            document.getElementById('ent-dest').value = found.destinations || "";
+                            editingDiagKey = found.diagKey;
+                            document.getElementById('editing-diag-key').value = editingDiagKey;
+
+                        } else {
+                            if (document.getElementById('ent-type').value === 'IOG') collisionData[index] = 0;
+                            // Créer une nouvelle entité
+                            const newEnt = {
+                                type: document.getElementById('ent-type').value,
+                                name: document.getElementById('ent-name').value,
+                                sprite: document.getElementById('ent-sprite').value,
+                                sizeX: parseInt(document.getElementById('ent-w').value) || 1,
+                                sizeY: parseInt(document.getElementById('ent-h').value) || 1,
+                                x: x,
+                                y: y,
+                                orien: document.getElementById('ent-orien').value,
+                                diagKey: document.getElementById('ent-diag').value,
+                                actionType: document.getElementById('ent-move').value,
+                                destination : ""
+                            };
+                            entities.push(newEnt);
+                            selectedEntity = newEnt;
+                            if (e.type === 'mousedown') {
+                                isDraggingEntity = true;
+                                dragOffsetX = 0;
+                                dragOffsetY = 0;
+                            }
+                            editingDiagKey = newEnt.diagKey;
+                            document.getElementById('editing-diag-key').value = editingDiagKey;
+                        }
+                        
+                        updateInspectorUI(selectedEntity.type);
+                        updateInspectorMove(selectedEntity.actionType);
+                        renderDialogueList(); // Rafraîchir la liste des dialogues
                     }
-                    
-                    updateInspectorUI(selectedEntity.type);
-                    updateInspectorMove(selectedEntity.actionType);
-                    renderDialogueList(); // Rafraîchir la liste des dialogues
                 }
             }
             drawMap();
@@ -545,6 +580,7 @@
             isPanning = false;
             viewport.style.cursor = "crosshair";
         }
+        isDraggingEntity = false;
     });
 
     // --- End Pan and Zoom ---
@@ -692,17 +728,35 @@
         entities.forEach(ent => {
             const ex = ent.x * tileSize;
             const ey = ent.y * tileSize;
+            
             ctx.fillStyle = ent.type === "NPC" ? "rgba(241, 196, 15, 0.8)" :
                             ent.type === "OBJ" ?  "rgba(52, 152, 219, 0.8)" :
                             "rgba(155, 89, 182, 0.8)"; // IOG
             ctx.globalAlpha = 0.8;
-            ctx.beginPath();
-            ctx.arc(ex + tileSize/2, ey + tileSize/2, tileSize/3, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-            ctx.fillStyle = "white";
-            ctx.font = "10px Arial";
-            ctx.fillText(ent.name, ex + tileSize/2, ey + 10);
+
+            if (ent.type === 'OBJ') {
+                const w = (ent.sizeX || 1) * tileSize;
+                const h = (ent.sizeY || 1) * tileSize;
+                ctx.fillRect(ex, ey, w, h);
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(ex, ey, w, h);
+
+                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = "white";
+                ctx.font = "10px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(ent.name, ex + w/2, ey + h/2);
+            } else {
+                ctx.beginPath();
+                ctx.arc(ex + tileSize/2, ey + tileSize/2, tileSize/3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = "white";
+                ctx.font = "10px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(ent.name, ex + tileSize/2, ey + 10);
+            }
         });
 
         ctx.restore();
@@ -741,28 +795,45 @@
                     };
                 }
 
-                // Cas NPC / OBJ
-                const [
-                    _type,
-                    name,
-                    sprite,
-                    x,
-                    y,
-                    orien,
-                    diagKey,
-                    actionType
-                ] = parts;
+                if (type === "OBJ") {
+                    // OBJ|name|sprite|x|y|w|h|orien|diagKey
+                    const name = parts[1];
+                    const sprite = parts[2];
+                    const x = parseInt(parts[3]);
+                    const y = parseInt(parts[4]);
+                    const w = parseInt(parts[5]);
+                    const h = parseInt(parts[6]);
+                    const orien = parts[7];
+                    const diagKey = parts[8];
+                    
+                    return {
+                        type, name, sprite, x, y, sizeX: w, sizeY: h, orien, diagKey
+                    };
+                }
+                else {
+                    // NPC
+                    // NPC|name|sprite|x|y|orien|diagKey|actionType|destination
+                    const name = parts[1];
+                    const sprite = parts[2];
+                    const x = parseInt(parts[3]);
+                    const y = parseInt(parts[4]);
+                    const orien = parts[5];
+                    const diagKey = parts[6];
+                    const actionType = parts[7];
+                    const destination = parts[8]; // Peut être undefined
 
-                return {
-                    type: _type,
-                    name,
-                    sprite,
-                    x: parseInt(x),
-                    y: parseInt(y),
-                    orien,
-                    diagKey,
-                    actionType
-                };
+                    return {
+                        type,
+                        name,
+                        sprite,
+                        x,
+                        y,
+                        orien,
+                        diagKey,
+                        actionType,
+                        destination
+                    };
+                }
             });
     }
 
@@ -801,12 +872,14 @@
 
     function updateInspectorUI(type, move) {
         const isIog = (type === 'IOG'); 
+        const isObj = (type === 'OBJ');
 
         document.getElementById('ent-sprite-group').style.display = isIog ? 'none' : 'flex';
         document.getElementById('ent-orien-group').style.display = isIog ? 'none' : 'flex';
         document.getElementById('dialogues-section').style.display = isIog ? 'none' : 'block';
-        document.getElementById('ent-move-group').style.display = isIog ? 'none' : 'flex';
-        document.getElementById('ent-dest-group').style.display = isIog ? 'none' : 'flex';
+        document.getElementById('ent-move-group').style.display = (isIog || isObj) ? 'none' : 'flex';
+        document.getElementById('ent-dest-group').style.display = (isIog || isObj) ? 'none' : 'flex';
+        document.getElementById('ent-size-group').style.display = isObj ? 'flex' : 'none';
 
         const nameLabel = document.getElementById('ent-name-label');
         if (nameLabel) {
@@ -1084,6 +1157,11 @@
                 // Les IOG n'ont pas de sprite, orientation ou diagKey dans le fichier
                 return `${e.type}|${e.name}|${e.x}|${e.y}`;
             }
+            if (e.type === 'OBJ') {
+                const w = e.sizeX || 1;
+                const h = e.sizeY || 1;
+                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${w}|${h}|${o}|${e.diagKey ?? ''}`;
+            }
             if (e.actionType === 'RANDOM') {
                 return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}|${e.actionType}`;
             }
@@ -1106,10 +1184,10 @@
             formattedDiag += `\n`;
         }
 
-        download("map.txt", formattedMap);
-        download("collisionMap.txt", formattedColl);
-        download("entities.txt", formattedEnt);
-        download("dialogues.txt", formattedDiag);
+        setTimeout(() => download("map.txt", formattedMap), 200);
+        setTimeout(() => download("collisionMap.txt", formattedColl), 400);
+        setTimeout(() => download("entities.txt", formattedEnt), 600);
+        setTimeout(() => download("dialogues.txt", formattedDiag), 800);
     }
 
     function download(filename, text) {
