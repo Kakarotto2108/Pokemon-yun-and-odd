@@ -2,72 +2,127 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <iostream>
+#include <unordered_map>
 
-static std::string xorEncryptDecrypt(const std::string& input, const std::string& key) {
+static std::string xorEncryptDecrypt(const std::string& input, const std::string& key)
+{
     std::string output = input;
     size_t keyLen = key.size();
-    for (size_t i = 0; i < input.size(); ++i) {
+
+    for (size_t i = 0; i < input.size(); ++i)
         output[i] = input[i] ^ key[i % keyLen];
-    }
+
     return output;
 }
 
-class GameInstance {
+class GameInstance
+{
 public:
-    static GameInstance& getInstance() {
+    static GameInstance& getInstance()
+    {
         static GameInstance instance;
         return instance;
     }
 
-    ZoneState& getZoneState(int zoneId) { return m_zones[zoneId]; }
+    ZoneState& getZoneState(int zoneId)
+    {
+        return m_zones[zoneId];
+    }
 
-    void saveZoneState(int zoneId, const std::vector<std::unique_ptr<WorldEntity>>& entities) {
+    void saveZoneState(int zoneId,
+                       const std::vector<std::unique_ptr<WorldEntity>>& entities)
+    {
         ZoneState& state = m_zones[zoneId];
         state.entities.clear();
-        for (const auto& entity : entities) {
+
+        for (const auto& entity : entities)
             state.entities[entity->getName()] = entity->getState();
-        }
+
         m_playerdata = Player::getInstance().getState();
     }
 
     // ------------------ SAVE ENCRYPTED ------------------
-    void saveToFileEncrypted(const std::string& filename) const {
-        nlohmann::json j;
-        for (const auto& [zoneId,state] : m_zones) {
+
+    void saveToFileEncrypted(const std::string& filename) const
+    {
+        nlohmann::json j = nlohmann::json::object();
+
+        for (const auto& [zoneId, state] : m_zones)
             j[std::to_string(zoneId)] = state.toJson();
-        }
+
         j["player"] = m_playerdata.toJson();
 
         std::string plaintext = j.dump();
         std::string ciphertext = xorEncryptDecrypt(plaintext, key);
 
         std::ofstream file(filename, std::ios::binary | std::ios::trunc);
-        if(!file) throw std::runtime_error("Impossible d'ouvrir le fichier pour sauvegarde");
+        if (!file)
+            throw std::runtime_error("Impossible d'ouvrir le fichier pour sauvegarde");
+
         file.write(ciphertext.data(), ciphertext.size());
     }
 
     // ------------------ LOAD ENCRYPTED ------------------
-    void loadFromFileEncrypted(const std::string& filename) {
-        std::ifstream file(filename, std::ios::binary);
-        if(!file) throw std::runtime_error("Impossible d'ouvrir le fichier de sauvegarde");
 
-        std::string ciphertext((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    void loadFromFileEncrypted(const std::string& filename)
+    {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file)
+            throw std::runtime_error("Impossible d'ouvrir le fichier de sauvegarde");
+
+        std::string ciphertext(
+            (std::istreambuf_iterator<char>(file)),
+            std::istreambuf_iterator<char>());
+
         std::string plaintext = xorEncryptDecrypt(ciphertext, key);
 
-        nlohmann::json j = nlohmann::json::parse(plaintext);
+        nlohmann::json j;
 
-        for (auto it = j.begin(); it != j.end(); ++it) {
-            if (it.key() == "player") continue;
-            int zoneId = std::stoi(it.key());
-            m_zones[zoneId] = ZoneState::fromJson(it.value());
+        try
+        {
+            j = nlohmann::json::parse(plaintext);
         }
+        catch (const std::exception& e)
+        {
+            throw std::runtime_error(
+                std::string("JSON invalide apres decryptage: ") + e.what());
+        }
+
+        if (!j.is_object())
+            throw std::runtime_error("Format de sauvegarde invalide: racine non-objet");
+
+        if (!j.contains("player"))
+            throw std::runtime_error("Sauvegarde invalide: pas de donnees joueur");
+
+        // Nettoie l'ancien état
+        m_zones.clear();
+
+        for (auto it = j.begin(); it != j.end(); ++it)
+        {
+            if (it.key() == "player")
+                continue;
+
+            try
+            {
+                int zoneId = std::stoi(it.key());
+                m_zones[zoneId] = ZoneState::fromJson(it.value());
+            }
+            catch (...)
+            {
+                std::cerr << "Cle de zone invalide ignoree: " << it.key() << "\n";
+            }
+        }
+
         m_playerdata = EntityState::fromJson(j["player"]);
         Player::getInstance().applyState(m_playerdata);
     }
 
 private:
     std::string key = "LaLuneEstBelle2108";
+
     GameInstance() = default;
+
     std::unordered_map<int, ZoneState> m_zones;
     EntityState m_playerdata;
 };

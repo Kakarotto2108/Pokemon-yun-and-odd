@@ -58,7 +58,7 @@ public:
     bool getCollision() const { return isColliding; }
 
     void applyState(const EntityState& state) override {
-        WorldEntity::applyState(state);
+        setLogicalPos(state.position);
         setOrientation(state.orientation);
         if (state.inventory) {
             setInventory(*state.inventory);
