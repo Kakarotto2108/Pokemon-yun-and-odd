@@ -31,13 +31,11 @@ public:
         unsigned int columns = m_tileset->getSize().x / tileSize.x;
 
         int nbrNeg = 0;
-        for (unsigned int i = 0; i < height; i++) {
-            for (unsigned int j = 0; j < width; j++) {
-                int t = tiles[j + i * width];
-                if (t < 0) nbrNeg++;
-            }
-        }
-        
+        int i_start = 0;
+        for (unsigned int j = 0; j < width; j++) {
+            int t = tiles[j + i_start * width];
+            if (t >= 0) break;nbrNeg++;
+        }        
 
         // Helper pour trouver une tuile à une position visuelle X donnée dans une ligne
         auto getTileAtVisualX = [&](unsigned int row, int targetVisualX) -> int {
@@ -66,9 +64,11 @@ public:
 
                 bool isSideWall = rawTile >= 200;
                 bool isBackWall = rawTile >= 100 && rawTile < 200;
+                bool isSideRightWall = rawTile >= 300;
 
                 int actualTile = rawTile;
-                if (isSideWall) actualTile -= 200;
+                if (isSideRightWall) actualTile -= 300;
+                if (isSideWall && !isSideRightWall) actualTile -= 200;
                 else if (isBackWall) actualTile -= 100;
 
 
@@ -98,7 +98,8 @@ public:
                     // Si la tuile VISUELLEMENT à gauche est aussi un mur latéral -> déjà traité
                     if (visualX > 0) {
                         int left = getTileAtVisualX(j, visualX);
-                        if (left >= 200) continue;
+                        if (left >= 300 && isSideRightWall) continue;
+                        else if (left >= 200 && !isSideRightWall) continue;
                     }
 
                     // --- MUR LATÉRAL (Orthogonal au fond) ---
@@ -108,7 +109,8 @@ public:
                     unsigned int i_start = i;
                     while (i_start > 0) {
                         int t = tiles[(i_start - 1) + j * width]; // Tuile à gauche
-                        if (t >= 200) i_start--; // Si c'est un mur latéral, on continue
+                        if (t >= 300 && isSideRightWall) i_start--; // Si c'est un mur latéral, on continue
+                        else if (t >= 200) i_start--; // Si c'est un mur latéral, on continue
                         else break;
                     }
 
@@ -116,7 +118,8 @@ public:
                     unsigned int i_end = i;
                     while (i_end + 1 < width) {
                         int t = tiles[(i_end + 1) + j * width]; // Tuile à droite
-                        if (t >= 200) i_end++; // Si c'est un mur latéral, on continue
+                        if (t >= 300 && isSideRightWall) i_end++; // Si c'est un mur latéral, on continue
+                        else if (t >= 200) i_end++; // Si c'est un mur latéral, on continue
                         else break;
                     }
 
@@ -125,7 +128,13 @@ public:
                     float z_top    = z_bottom - tsY;
 
                     // On aligne la base X sur la tuile la plus à gauche (i_start)
-                    float xBase = (float)(i_start) * tsX;
+                    float xBase = 0.f;
+                    if (isSideRightWall){
+                        xBase = (float)(i_start - nbrNeg) * tsX;
+                    }
+                    else {
+                        xBase = (float)(i_start) * tsX;
+                    }
 
                     // Inclinaison pour épouser le mur du fond
                     const float slantFactor = 1.0f;
@@ -141,43 +150,36 @@ public:
                     m_vertices.push_back({xBase, y + yOffsetTop,          z_top,    u1, v1, c}); // Haut-Gauche
 
                 } else if (isBackWall) {
-                    // --- MUR DU FOND (Classique) ---
-                    // On cherche le HAUT de la colonne (le plus en arrière)
 
-                    // Si la tuile VISUELLEMENT au-dessus est aussi un mur du fond -> déjà traité
                     if (j > 0) {
-                        int above = getTileAtVisualX(j - 1, visualX);
-                        if (above >= 100 && above < 200) continue;
+                        int above = tiles[i + (j - 1) * width];
+                        if (above >= 100 && above < 200)
+                            continue;
                     }
 
-                    unsigned int j_start = j;
-                    while (j_start > 0 && tiles[i + (j_start - 1) * width] >= 0 && tiles[i + (j_start - 1) * width] >= 100) {
-                        j_start--;
-                    }
-
-                    // On cherche le BAS de la colonne (le plus en avant)
                     unsigned int j_end = j;
                     while (j_end + 1 < height) {
-                        int nextTile = tiles[i + (j_end + 1) * width];
-                        if (nextTile < 100 || (nextTile >= 200)) break; // Ce n'est plus un mur du fond
-                        j_end++;
+                        int t = tiles[i + (j_end + 1) * width];
+                        if (t >= 100 && t < 200)
+                            j_end++;
+                        else
+                            break;
                     }
 
-                    const float slantFactor = 1.0f; 
-                    float wallPixelHeight = (float)(j_end - j_start + 1) * tsY;
-                    float yOffset = wallPixelHeight * slantFactor;
+                    float wallHeight = (float)(j_end - j + 1) * tsY;
 
-                    float z_bottom = -(float)(j_end - j) * tsY;
-                    float z_top    = z_bottom - tsY;
+                    float z_bottom = 0.f;
+                    float z_top    = -wallHeight;
 
-                    float y_bottom = (float)j_start * tsY + (z_bottom / wallPixelHeight) * yOffset;
-                    float y_top    = (float)j_start * tsY + (z_top / wallPixelHeight) * yOffset;
+                    const float slantFactor = 1.0f;
 
-                    m_vertices.push_back({x,       y_bottom, z_bottom, u1, v2, c}); 
-                    m_vertices.push_back({x + tsX, y_bottom, z_bottom, u2, v2, c}); 
-                    m_vertices.push_back({x + tsX, y_top,    z_top,    u2, v1, c}); 
-                    m_vertices.push_back({x,       y_top,    z_top,    u1, v1, c}); 
-                    
+                    float y_bottom = y + z_bottom * slantFactor;
+                    float y_top    = y + z_top    * slantFactor;
+
+                    m_vertices.push_back({x,       y_bottom, z_bottom, u1, v2, c});
+                    m_vertices.push_back({x + tsX, y_bottom, z_bottom, u2, v2, c});
+                    m_vertices.push_back({x + tsX, y_top,    z_top,    u2, v1, c});
+                    m_vertices.push_back({x,       y_top,    z_top,    u1, v1, c});
                 } else {
                     // Sol plat classique
                     m_vertices.push_back({x,       y,       z, u1, v1, c});

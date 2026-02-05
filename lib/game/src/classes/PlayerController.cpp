@@ -63,11 +63,6 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
         }
     });
 
-    Controller::getInstance().onActionPressed("Save", [this]() {
-        GameInstance::getInstance().saveZoneState(m_world.getCurrentZoneId(), m_world.getCurrentZone().getEntities());
-        GameInstance::getInstance().saveToFileEncrypted("savegame.dat");
-    }); 
-
     Controller::getInstance().onActionPressed("Load", [this]() {
         try {
             GameInstance::getInstance().loadFromFileEncrypted("savegame.dat");
