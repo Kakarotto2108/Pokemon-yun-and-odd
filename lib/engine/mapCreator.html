@@ -72,6 +72,8 @@
     <hr>
     <h3>Outils</h3>
     <button class="btn" id="btn-draw" onclick="setMode('draw')">🎨 Dessin</button>
+    <button class="btn" id="btn-wall" onclick="setMode('wall')">🧱 Mur (100+)</button>
+    <button class="btn" id="btn-sidewall" onclick="setMode('sidewall')">📐 Mur Côté (200+)</button>
     <button class="btn" id="btn-coll" onclick="setMode('collision')">🚫 Collision (-1)</button>
     <button class="btn" id="btn-spaw" onclick="setMode('spawn')">🚩 Spawn Point (-2)</button>
     <button class="btn" id="btn-trans" onclick="setMode('transition')">🚪 Transition (ID)</button>
@@ -142,6 +144,7 @@
     let selectedTile = 0;
     
     let mapData = [];
+    let wallData = [];
     let collisionData = []; 
     let entities = []; // Liste d'objets {type, name, sprite, x, y, orien, diagKey}
     let dialogues = {}; // Objet { diagKey: [ {text, type, action}, ... ] }
@@ -244,10 +247,27 @@
             const newMapW = mapRows[0].split(',').filter(cell => cell.trim() !== "").length;
             const newMapH = mapRows.length;
 
-            // Transformation en tableau de nombres pur (on nettoie chaque cellule)
-            const newMapData = mapRows.join(',').split(',')
+            // Transformation en tableau de nombres pur
+            const rawMapData = mapRows.join(',').split(',')
                                 .filter(cell => cell.trim() !== "")
                                 .map(num => parseInt(num.trim()));
+            
+            // Séparation Sol / Murs
+            const newMapData = [];
+            const newWallData = [];
+            for (let val of rawMapData) {
+                if (val >= 200) {
+                    // Mur Côté (stocké comme 1000 + ID dans l'éditeur pour différencier)
+                    newWallData.push(1000 + (val - 200));
+                    newMapData.push(0);
+                } else if (val >= 100) {
+                    newWallData.push(val - 100);
+                    newMapData.push(0); // Sol par défaut
+                } else {
+                    newWallData.push(-1);
+                    newMapData.push(val);
+                }
+            }
 
             const newCollisionData = collisionRows.join(',').split(',')
                                         .filter(cell => cell.trim() !== "")
@@ -267,6 +287,7 @@
             mapW = newMapW;
             mapH = newMapH;
             mapData = newMapData;
+            wallData = newWallData;
             collisionData = newCollisionData;
 
             document.getElementById('map-w').value = mapW;
@@ -293,6 +314,7 @@
 
     function initData() {
         mapData = Array(mapW * mapH).fill(0);
+        wallData = Array(mapW * mapH).fill(-1);
         collisionData = Array(mapW * mapH).fill(0);
         
         scale = 1.0;
@@ -418,11 +440,18 @@
 
             if (e.buttons === 2) { // Right click
                 if (mode === 'draw') mapData[index] = 0;
+                else if (mode === 'wall' || mode === 'sidewall') wallData[index] = -1;
                 else collisionData[index] = 0;
             } else { // Left click
                 if (mode === 'draw') {
                     mapData[index] = selectedTile;
                 } 
+                else if (mode === 'wall') {
+                    wallData[index] = selectedTile;
+                }
+                else if (mode === 'sidewall') {
+                    wallData[index] = 1000 + selectedTile; // 1000+ pour différencier visuellement
+                }
                 else if (mode === 'collision') {
                     collisionData[index] = -1;
                 } 
@@ -605,6 +634,25 @@
                 const sx = (tileIdx % tsCols) * tileSize;
                 const sy = Math.floor(tileIdx / tsCols) * tileSize;
                 ctx.drawImage(tilesetImg, sx, sy, tileSize, tileSize, tx*tileSize, ty*tileSize, tileSize, tileSize);
+            }
+            
+            // RENDU DES MURS
+            const wallIdx = wallData[i];
+            if (wallIdx >= 0 && tilesetImg.complete && tilesetImg.src) {
+                const sx = (wallIdx % tsCols) * tileSize;
+                const sy = Math.floor(wallIdx / tsCols) * tileSize;
+                ctx.drawImage(tilesetImg, sx, sy, tileSize, tileSize, tx*tileSize, ty*tileSize, tileSize, tileSize);
+                
+                if (mode === 'wall') {
+                    ctx.strokeStyle = "rgba(52, 152, 219, 0.8)";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                }
+                if (mode === 'sidewall' || wallIdx >= 1000) {
+                    ctx.strokeStyle = "rgba(230, 126, 34, 0.8)"; // Orange pour les murs de côté
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                }
             }
 
             let val = collisionData[i];
@@ -1140,7 +1188,19 @@
     }
 
     function exportFiles() {
-        const formattedMap = formatDataWithNewlines(mapData, mapW);
+        // Fusion Map + Wall pour l'export
+        const mergedMapData = [];
+        for (let i = 0; i < mapData.length; i++) {
+            if (wallData[i] >= 1000) {
+                mergedMapData.push(200 + (wallData[i] - 1000));
+            } else if (wallData[i] >= 0) {
+                mergedMapData.push(100 + wallData[i]);
+            } else {
+                mergedMapData.push(mapData[i]);
+            }
+        }
+
+        const formattedMap = formatDataWithNewlines(mergedMapData, mapW);
         const formattedColl = formatDataWithNewlines(collisionData, mapW);
         
         // Formatage Entities

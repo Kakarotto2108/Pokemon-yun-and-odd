@@ -5,13 +5,15 @@
 #include <iostream>
 
 Zone::Zone(int id, unsigned int width, unsigned int height,
+           unsigned int widthColl, unsigned int heightColl,
            sf::Vector2i spawnPos,
            std::map<int, sf::Vector2i> spawnPoints,
            std::vector<int> collisionMap,
            std::vector<std::unique_ptr<WorldEntity>> entities,
            sf::Texture& tileset,
            const std::vector<int>& visualMap)
-    : m_id(id), m_width(width), m_height(height)
+    : m_id(id), m_width(width), m_height(height), 
+    m_widthColl(widthColl), m_heightColl(heightColl)
     , m_spawnPos(spawnPos)
     , m_spawnPoints(std::move(spawnPoints))
     , m_collisionMap(std::move(collisionMap))
@@ -22,7 +24,7 @@ Zone::Zone(int id, unsigned int width, unsigned int height,
 }
 
 bool Zone::isBlocking(int x, int y) const {
-    if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return true;
+    if (x < 0 || x >= (int)m_widthColl || y < 0 || y >= (int)m_heightColl) return true;
     for (const auto& ent : m_entities) {
         Character* character = dynamic_cast<Character*>(ent.get());
         if (character && character->getCollision()) {
@@ -46,12 +48,12 @@ bool Zone::isBlocking(int x, int y) const {
             return true;
         }
     }
-    return m_collisionMap[x + y * m_width] == -1;
+    return m_collisionMap[x + y * m_widthColl] == -1;
 }
 
 void Zone::destroyCollision(int x, int y) {
-    if (x < 0 || x >= (int)m_width || y < 0 || y >= (int)m_height) return;
-    m_collisionMap[x + y * m_width] = 0;
+    if (x < 0 || x >= (int)m_widthColl || y < 0 || y >= (int)m_heightColl) return;
+    m_collisionMap[x + y * m_widthColl] = 0;
 }
 
 bool Zone::removeEntity(WorldEntity* entity) {

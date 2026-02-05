@@ -74,10 +74,12 @@ public:
     static std::unique_ptr<Zone> createZone(int zoneId) {
         std::string path = "assets/zone/zone" + std::to_string(zoneId) + "/";
         unsigned int width, height;
+        unsigned int widthColl, heightColl;
+
 
         // 1. Charger les maps
         auto visual = MapLoader::loadFromFile(path + "map.txt", width, height);
-        auto collision = MapLoader::loadFromFile(path + "collisionMap.txt", width, height);
+        auto collision = MapLoader::loadFromFile(path + "collisionMap.txt", widthColl, heightColl);
         sf::Texture& tileset = TextureManager::getInstance().get(path + "tileset.png");
         ScriptManager::getInstance().loadDialogues(path + "dialogues.txt");
 
@@ -193,11 +195,11 @@ public:
             }
         }
 
-        sf::Vector2i spawnPos = getSpawnPositionForZone(collision, width, height);
-        std::map<int, sf::Vector2i> spawnPoints = getSpawnPointsForZone(collision, width, height);
+        sf::Vector2i spawnPos = getSpawnPositionForZone(collision, widthColl, heightColl);
+        std::map<int, sf::Vector2i> spawnPoints = getSpawnPointsForZone(collision, widthColl, heightColl);
 
         // 3. Fabriquer la zone
-        auto zone = std::make_unique<Zone>(zoneId, width, height, spawnPos, spawnPoints, std::move(collision), std::move(entities), tileset, visual);
+        auto zone = std::make_unique<Zone>(zoneId, width, height, widthColl, heightColl, spawnPos, spawnPoints, std::move(collision), std::move(entities), tileset, visual);
 
         return zone;
     }

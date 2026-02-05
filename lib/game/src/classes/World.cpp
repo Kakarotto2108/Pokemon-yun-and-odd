@@ -270,7 +270,7 @@ void World::update(float dt, Player& player) {
 
     // 2. Calcul de l'index pour la collision/transition
     // On transforme les coordonnées (x, y) en index 1D pour le tableau
-    int mapWidth = zone.getWidth();
+    int mapWidth = zone.getCollisionWidth();
     int accessIndex = pos.y * mapWidth + pos.x;
 
     // Sécurité : on vérifie que l'index est bien dans les limites du tableau
