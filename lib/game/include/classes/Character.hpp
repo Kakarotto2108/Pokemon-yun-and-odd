@@ -29,10 +29,13 @@ public:
 
     sf::Vector2i getPosition() const;
     const sf::Sprite& getSprite() const { return m_sprite; }
+    void setFrame(std::string frame) { m_currentAnim = frame; }
+    std::string getFrame() const { return m_currentAnim; }
     sf::Vector2f getDrawPosition() const;
     sf::Vector2i getFacingTile() const;
     int getOrientation() const { return m_orientation; }
     void setOrientation(int orientation);
+    void startAnimation(const std::vector<std::string>& lstAnim);
     void setLogicalPos(const sf::Vector2i& pos);
     std::string getName() const { return m_name; }
     bool getIsMoving() const { return m_isMoving; }
@@ -55,7 +58,7 @@ public:
     bool getCollision() const { return isColliding; }
 
     void applyState(const EntityState& state) override {
-        WorldEntity::applyState(state);
+        setLogicalPos(state.position);
         setOrientation(state.orientation);
         if (state.inventory) {
             setInventory(*state.inventory);
@@ -89,4 +92,9 @@ protected:
     std::unique_ptr<CharacterPath> m_path;
     float m_moveDelay = 0.2f; 
     bool isColliding = true;
+    std::queue<std::string> m_animQueue;
+    float m_animDelay = 0.15f;
+    float m_animTimer = 0.f;
+    bool m_playSequence = false;
+
 };

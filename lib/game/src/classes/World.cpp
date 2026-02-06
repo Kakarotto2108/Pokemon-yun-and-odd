@@ -25,12 +25,15 @@ int World::getCurrentZoneId() const {
 }
 
 void World::drawCharacter3D(const Character& character) {
-    const sf::Sprite& sprite = character.getSprite();
+    sf::Sprite sprite = character.getSprite(); // copie modifiable
+
     const sf::Texture* texture = sprite.getTexture();
     if (!texture) return;
 
     sf::Vector2f pos = character.getDrawPosition();
     sf::IntRect texRect = sprite.getTextureRect();
+
+    // sprite.setScale(5.f, 5.f); // On retire le forçage pour respecter l'échelle du Character
 
     // --- RECALCUL DES DIMENSIONS ET UV ---
     float w = (float)texRect.width;
@@ -46,7 +49,7 @@ void World::drawCharacter3D(const Character& character) {
     glPushMatrix();
     
     // On positionne le sprite. Le Z est légèrement ajusté par le Y pour éviter le Z-fighting
-    glTranslatef(pos.x, pos.y + 48.f, pos.y * 0.0001f);
+    glTranslatef(pos.x, pos.y, pos.y * 0.0001f);
 
     // Billboard : on annule la rotation de la caméra
     float m[16];
@@ -58,6 +61,9 @@ void World::drawCharacter3D(const Character& character) {
         }
     }
     glLoadMatrixf(m);
+
+    // C'est ici qu'il manquait l'application de l'échelle !
+    glScalef(sprite.getScale().x, sprite.getScale().y, 1.0f);
 
     // Dessin
     sf::Texture::bind(texture);
@@ -102,7 +108,8 @@ void World::drawObjSprite3D(const Obj& obj) {
     sf::IntRect texRect = sprite.getTextureRect();
     // 1. Sauvegarder la matrice actuelle et extraire la position du monde
     glPushMatrix();
-    glTranslatef(pos.x + 16.f, pos.y + 40.f, 0.0f); 
+    sf::Vector2f scale = obj.getSize();
+    glTranslatef(pos.x + scale.x * 16.f, pos.y + 40.f + (scale.y - 1) * 10.f, 0.0f); 
        
     // 2. Annuler la rotation de la ModelView
     float m[16];
@@ -263,7 +270,7 @@ void World::update(float dt, Player& player) {
 
     // 2. Calcul de l'index pour la collision/transition
     // On transforme les coordonnées (x, y) en index 1D pour le tableau
-    int mapWidth = zone.getWidth();
+    int mapWidth = zone.getCollisionWidth();
     int accessIndex = pos.y * mapWidth + pos.x;
 
     // Sécurité : on vérifie que l'index est bien dans les limites du tableau

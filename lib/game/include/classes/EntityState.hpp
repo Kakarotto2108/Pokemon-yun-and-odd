@@ -16,6 +16,7 @@ struct EntityState {
     std::string texturePath;
     EntityType type;
     sf::Vector2i position;
+    std::optional<sf::Vector2f> size;
     int orientation = 0;
     std::string dialogKey;
     std::unique_ptr<Inventory> inventory = nullptr;
@@ -33,6 +34,11 @@ struct EntityState {
             j["inventory"] = inventory->toJson();
         else
             j["inventory"] = nlohmann::json::array();
+        if (size) {
+            std::cout << "sizeX et sizeY : " << size->x << " " << size->y << std::endl;
+            j["sizeX"] = size->x;
+            j["sizeY"] = size->y;
+}
         return j;
     }
 
@@ -49,6 +55,13 @@ struct EntityState {
             state.inventory = std::make_unique<Inventory>(Inventory::fromJson(j["inventory"]));
         else
             state.inventory = std::make_unique<Inventory>();
+        if (j.contains("sizeX") && j.contains("sizeY")) {
+            state.size = sf::Vector2f(
+                j["sizeX"].get<float>(),
+                j["sizeY"].get<float>()
+            );
+        }
+
 
         if(state.position.x < 0) state.position.x = 0;
         if(state.position.y < 0) state.position.y = 0;

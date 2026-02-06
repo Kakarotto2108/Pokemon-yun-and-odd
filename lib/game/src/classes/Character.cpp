@@ -18,12 +18,16 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
     sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get(spriteSheetName);
     m_sprite.setTexture(tex);
 
-    m_animations["WalkDown"]  = Animation(0, 4, 0.15f, 64);
-    m_animations["WalkLeft"]  = Animation(1, 4, 0.15f, 64);
-    m_animations["WalkRight"] = Animation(2, 4, 0.15f, 64);
-    m_animations["WalkUp"]    = Animation(3, 4, 0.15f, 64);
+    // Les animations doivent correspondre à la taille du sprite (32x32)
+    m_animations["WalkUp"]  = Animation(0, 3, 0.15f, 32);
+    m_animations["WalkDown"] = Animation(1, 3, 0.15f, 32);
+    m_animations["WalkLeft"] = Animation(2, 3, 0.15f, 32);
+    m_animations["WalkRight"] = Animation(3, 3, 0.15f, 32);
+    m_animations["ReceiveItem1"] = Animation(6,1, 0.2f, 32);
+    m_animations["ReceiveItem2"] = Animation(7,1, 0.2f, 32);
+    m_animations["ReceiveItem3"] = Animation(8,1, 0.2f, 32);
 
-    m_sprite.setOrigin(32.f, 32.f); 
+    m_sprite.setScale(2.f, 2.f);
     setLogicalPos(m_logicalPos);
 }
 
@@ -43,6 +47,25 @@ void Character::setOrientation(int orientation) {
     }
 }
 
+void Character::startAnimation(const std::vector<std::string>& lstAnim)
+{
+    while (!m_animQueue.empty())
+        m_animQueue.pop();
+
+    for (const auto& anim : lstAnim)
+        m_animQueue.push(anim);
+
+    m_playSequence = true;
+    m_animTimer = 0.f;
+
+    if (!m_animQueue.empty()) {
+        m_currentAnim = m_animQueue.front();
+        m_animQueue.pop();
+        m_animations[m_currentAnim].reset();
+    }
+}
+
+
 void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     if (direction.x == 0 && direction.y == 0) {
         m_isMoving = false;
@@ -61,8 +84,8 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     sf::Vector2i nextPos = m_logicalPos + direction;
     if (!zone.isBlocking(nextPos.x, nextPos.y)) {
         m_logicalPos = nextPos;
-        m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE/2.f, 
-                                   m_logicalPos.y * TILE_SIZE);
+        m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, 
+                                   (m_logicalPos.y + 1) * TILE_SIZE);
         
         // Notifier le système que CE personnage a bougé
         //GameEvents::OnCharacterMove.notify(m_logicalPos.x, m_logicalPos.y);
@@ -89,6 +112,26 @@ void Character::update(float dt, Zone& zone) {
     } else {
         m_sprite.setPosition(m_targetPos);
     }
+    if (m_playSequence)
+    {
+        m_animTimer += dt;
+
+        if (m_animTimer >= m_animDelay)
+        {
+            m_animTimer = 0.f;
+
+            if (!m_animQueue.empty())
+            {
+                m_currentAnim = m_animQueue.front();
+                m_animQueue.pop();
+                m_animations[m_currentAnim].reset();
+            }
+            else
+            {
+                m_playSequence = false;
+            }
+        }
+    }
 }
 
 void Character::draw(sf::RenderWindow& window) const {
@@ -109,8 +152,8 @@ sf::Vector2i Character::getFacingTile() const {
 
 void Character::setLogicalPos(const sf::Vector2i& pos) {
     m_logicalPos = pos;
-    m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE/2.f, 
-                               m_logicalPos.y * TILE_SIZE);
+    m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, 
+                               (m_logicalPos.y + 1) * TILE_SIZE);
     m_sprite.setPosition(m_targetPos);
 }
 

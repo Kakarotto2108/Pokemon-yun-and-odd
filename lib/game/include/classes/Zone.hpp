@@ -5,6 +5,7 @@
 #include <memory>
 #include "WorldEntity.hpp"
 #include "TileMap.hpp"
+#include "Obj.hpp"
 #include <SFML/Graphics.hpp>
 
 struct ZoneTransition {
@@ -14,11 +15,12 @@ struct ZoneTransition {
 
 class Zone {
 public:
-    Zone(int id, unsigned int width, unsigned int height, sf::Vector2i spawnPos, std::map<int,sf::Vector2i> spawnPoints, std::vector<int> collisionMap, std::vector<std::unique_ptr<WorldEntity>> entities, sf::Texture& tileset, const std::vector<int>& visualMap);
+    Zone(int id, unsigned int width, unsigned int height, unsigned int widthColl, unsigned int heightColl, sf::Vector2i spawnPos, std::map<int,sf::Vector2i> spawnPoints, std::vector<int> collisionMap, std::vector<std::unique_ptr<WorldEntity>> entities, sf::Texture& tileset, const std::vector<int>& visualMap);
 
     int getId() const { return m_id; }
     unsigned int getWidth() const { return m_width; }
     unsigned int getHeight() const { return m_height; }
+    unsigned int getCollisionWidth() const { return m_widthColl; }
     const std::vector<int>& getCollisionMap() const { return m_collisionMap; }
     const TileMap& getTileMap() const { return m_tileMap; }
     const sf::Texture& getTileset() const { return *m_tileset; }
@@ -29,9 +31,19 @@ public:
     bool removeEntity(WorldEntity* entity);
     WorldEntity* getEntityAt(int x, int y) const {
         for (const auto& ent : m_entities) {
-            sf::Vector2i pos = ent->getPosition();
-            if (pos.x == x && pos.y == y) {
-                return ent.get();
+            Obj* obj = dynamic_cast<Obj*>(ent.get());
+            if (obj) {
+                for (const auto& pos : obj->getAllPositions()){
+                    if (pos.first == x && pos.second == y) {
+                        return ent.get();
+                    }
+                }
+            }
+            else {
+                sf::Vector2i pos = ent->getPosition();
+                if (pos.x == x && pos.y == y) {
+                    return ent.get();
+                }
             }
         }
         return nullptr;
@@ -48,6 +60,7 @@ public:
 private:
     int m_id;
     unsigned int m_width, m_height;
+    unsigned int m_widthColl, m_heightColl;
     sf::Vector2i m_spawnPos;
     std::map<int, sf::Vector2i> m_spawnPoints;
     std::vector<int> m_collisionMap;

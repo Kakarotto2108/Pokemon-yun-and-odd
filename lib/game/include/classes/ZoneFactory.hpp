@@ -74,10 +74,12 @@ public:
     static std::unique_ptr<Zone> createZone(int zoneId) {
         std::string path = "assets/zone/zone" + std::to_string(zoneId) + "/";
         unsigned int width, height;
+        unsigned int widthColl, heightColl;
+
 
         // 1. Charger les maps
         auto visual = MapLoader::loadFromFile(path + "map.txt", width, height);
-        auto collision = MapLoader::loadFromFile(path + "collisionMap.txt", width, height);
+        auto collision = MapLoader::loadFromFile(path + "collisionMap.txt", widthColl, heightColl);
         sf::Texture& tileset = TextureManager::getInstance().get(path + "tileset.png");
         ScriptManager::getInstance().loadDialogues(path + "dialogues.txt");
 
@@ -98,7 +100,7 @@ public:
                     }
                     case EntityType::OBJ:
                     {
-                        auto obj = std::make_unique<Obj>(name, state.texturePath, state.position, state.dialogKey);
+                        auto obj = std::make_unique<Obj>(name, state.texturePath, state.position, state.dialogKey, state.size.value_or(sf::Vector2f(1.f, 1.f)));
                         obj->applyState(state);
                         entities.push_back(std::move(obj));
                         break;
@@ -110,6 +112,8 @@ public:
                         entities.push_back(std::move(iog));
                         break;
                     }
+                    default:
+                        break;
                 }
             }
         } else {
@@ -133,13 +137,17 @@ public:
                         entities.push_back(std::make_unique<Iog>(name, pos));
                     }
                     else if (type == "NPC" || type == "OBJ") {
-                        std::string name, sprite, diagKey, xStr, yStr, orienStr;
-                        std::getline(ss, name, '|');
-                        std::getline(ss, sprite, '|');
+                        std::string name, sprite, diagKey, xStr, yStr, xSz, ysZ, orienStr;
+                        std::getline(ss, name, '|'); name = trim(name);
+                        std::getline(ss, sprite, '|'); sprite = trim(sprite);
                         std::getline(ss, xStr, '|');
                         std::getline(ss, yStr, '|');
+                        if (type == "OBJ") {
+                            std::getline(ss, xSz, '|');
+                            std::getline(ss, ysZ, '|');
+                        }
                         std::getline(ss, orienStr, '|');
-                        std::getline(ss, diagKey, '|');
+                        std::getline(ss, diagKey, '|'); diagKey = trim(diagKey);
 
                         sf::Vector2i pos(std::stoi(xStr), std::stoi(yStr));
                         int orientation = std::stoi(orienStr);
@@ -147,18 +155,18 @@ public:
 
                         if (type == "NPC") {
                             std::string action;
-                            std::getline(ss, action, '|');
+                            std::getline(ss, action, '|'); action = trim(action);
                             PathType pathType = (action == "RANDOM") ? PathType::RANDOM : (action == "SIMPLE") ? PathType::SIMPLE : (action == "LOOP") ? PathType::LOOP : PathType::PINGPONG;
                             auto path = std::make_unique<CharacterPath>(pathType, 2.f, pos);
                             if (action == "SIMPLE" || action == "PINGPONG") {
                                 std::string dirStr;
-                                std::getline(ss, dirStr, '|');
+                                std::getline(ss, dirStr, '|'); dirStr = trim(dirStr);
                                 auto direction = parseDirections(dirStr);
                                 path->addDestination(pos, direction[0]);
                             }
                             if (action == "LOOP") {
                                 std::string dirStr;
-                                std::getline(ss, dirStr, '|');
+                                std::getline(ss, dirStr, '|'); dirStr = trim(dirStr);
                                 auto directions = parseDirections(dirStr);
                                 path->addDestinationLoop(pos, directions);
                             }
@@ -166,9 +174,17 @@ public:
                             zoneState.entities[npc->getName()] = npc->getState();
                             entities.push_back(std::move(npc));
                         } else {
-                            auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey);
-                            zoneState.entities[obj->getName()] = obj->getState();
-                            entities.push_back(std::move(obj));
+                            if (type == "IOG") {
+
+                                auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey, sf::Vector2f(1.f, 1.f));
+                                zoneState.entities[obj->getName()] = obj->getState();
+                                entities.push_back(std::move(obj));
+                            }
+                            else {
+                                auto obj = std::make_unique<Obj>(name, fullSpritePath, pos, diagKey, sf::Vector2f(std::stof(xSz), std::stof(ysZ)));
+                                zoneState.entities[obj->getName()] = obj->getState();
+                                entities.push_back(std::move(obj));
+                            }
                         }
                     } else {
                         std::cerr << "Warning: Unknown entity type '" << type << "' in entities.txt for zone " << zoneId << std::endl;
@@ -179,11 +195,11 @@ public:
             }
         }
 
-        sf::Vector2i spawnPos = getSpawnPositionForZone(collision, width, height);
-        std::map<int, sf::Vector2i> spawnPoints = getSpawnPointsForZone(collision, width, height);
+        sf::Vector2i spawnPos = getSpawnPositionForZone(collision, widthColl, heightColl);
+        std::map<int, sf::Vector2i> spawnPoints = getSpawnPointsForZone(collision, widthColl, heightColl);
 
         // 3. Fabriquer la zone
-        auto zone = std::make_unique<Zone>(zoneId, width, height, spawnPos, spawnPoints, std::move(collision), std::move(entities), tileset, visual);
+        auto zone = std::make_unique<Zone>(zoneId, width, height, widthColl, heightColl, spawnPos, spawnPoints, std::move(collision), std::move(entities), tileset, visual);
 
         return zone;
     }
