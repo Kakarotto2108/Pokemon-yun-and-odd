@@ -74,6 +74,7 @@
     <button class="btn" id="btn-draw" onclick="setMode('draw')">🎨 Dessin</button>
     <button class="btn" id="btn-wall" onclick="setMode('wall')">🧱 Mur (100+)</button>
     <button class="btn" id="btn-sidewall" onclick="setMode('sidewall')">📐 Mur Côté (200+)</button>
+    <button class="btn" id="btn-sideRightwall" onclick="setMode('siderightwall')">╺ Mur Côté Droit (300+)</button>
     <button class="btn" id="btn-coll" onclick="setMode('collision')">🚫 Collision (-1)</button>
     <button class="btn" id="btn-spaw" onclick="setMode('spawn')">🚩 Spawn Point (-2)</button>
     <button class="btn" id="btn-trans" onclick="setMode('transition')">🚪 Transition (ID)</button>
@@ -140,11 +141,15 @@
     let tileSize = 32;
     let mapW = 20;
     let mapH = 20;
+    
+    let offsetX = 0;
+    let offsetY = 0;
     let mode = 'draw';
     let selectedTile = 0;
     
     let mapData = [];
     let wallData = [];
+    let playableIndexes = [];
     let collisionData = []; 
     let entities = []; // Liste d'objets {type, name, sprite, x, y, orien, diagKey}
     let dialogues = {}; // Objet { diagKey: [ {text, type, action}, ... ] }
@@ -156,6 +161,7 @@
     let isPanning = false;
     let lastMouseX = 0;
     let lastMouseY = 0;
+    let interiorWidth = 0;
     let selectedEntity = null;
     let isDraggingEntity = false;
     let dragOffsetX = 0;
@@ -218,7 +224,7 @@
             // Chargement Entités (optionnel)
             if (entFile) {
                 const entText = await entFile.text();
-                parseEntities(entText);
+                parseEntities(entText, mapText);
             }
 
             // Chargement Dialogues (optionnel)
@@ -255,13 +261,40 @@
             // Séparation Sol / Murs
             const newMapData = [];
             const newWallData = [];
+            const rawMapDataLength = rawMapData.length;
+            playableIndexes = [];
+
+            interiorWidth = mapRows[0]
+                .split(',')
+                .map(v => parseInt(v))
+                .filter(v => v >= 0 && v < 100).length;
+
+
+
+            for (let i = 0; i < rawMapDataLength; i++) {
+                const v = rawMapData[i];
+                if (v >= 0 && v < 100) {
+                    playableIndexes.push(i);
+                }
+            }
+
+
             for (let val of rawMapData) {
-                if (val >= 200) {
+                let baseWall = 0;
+                if (val >= 200 && val < 300) {
                     // Mur Côté (stocké comme 1000 + ID dans l'éditeur pour différencier)
-                    newWallData.push(1000 + (val - 200));
+                    baseWall = val - 200;
+                    newWallData.push(1000 + baseWall);
                     newMapData.push(0);
-                } else if (val >= 100) {
+                } else if (val >= 100 && val < 200) {
+                      
+                    baseWall = val - 100;
                     newWallData.push(val - 100);
+                    newMapData.push(0); // Sol par défaut
+                }else if (val >= 300) {
+                    // Mur Côté Droit (stocké comme 2000 + ID dans l'éditeur pour différencier)
+                    baseWall = val - 300;
+                    newWallData.push(2000 + baseWall);
                     newMapData.push(0); // Sol par défaut
                 } else {
                     newWallData.push(-1);
@@ -269,9 +302,18 @@
                 }
             }
 
-            const newCollisionData = collisionRows.join(',').split(',')
-                                        .filter(cell => cell.trim() !== "")
-                                        .map(num => parseFloat(num.trim())); // Float pour gérer tes anciens IDs si besoin
+            let loadedCollisions = collisionRows.join(',')
+            .split(',')
+            .filter(c => c.trim() !== "")
+            .map(n => parseFloat(n.trim()));
+
+            const newCollisionData = Array(newMapData.length).fill(0);
+
+            // Projection uniquement sur les cases jouables
+            for (let i = 0; i < loadedCollisions.length && i < playableIndexes.length; i++) {
+                newCollisionData[playableIndexes[i]] = loadedCollisions[i];
+            }
+
 
             // Vérification de sécurité
             if (newMapData.length !== (newMapW * newMapH)) {
@@ -331,6 +373,13 @@
         tileSize = parseInt(document.getElementById('tile-size').value);
         initData();
     }
+    function mapIndexToPlayable(index) {
+        return playableIndexes.indexOf(index);
+    }
+
+    function playableToMapIndex(pIndex) {
+        return playableIndexes[pIndex];
+    }
 
     function drawTileset() {
         if (!tilesetImg.complete || !tilesetImg.src) return;
@@ -366,8 +415,20 @@
         mode = m;
         // Update boutons
         document.querySelectorAll('.btn').forEach(b => b.classList.remove('active-mode'));
-        const currentBtn = document.getElementById('btn-' + m.substring(0,4));
-        if(currentBtn) currentBtn.classList.add('active-mode');
+        const modeToBtn = {
+            draw: "btn-draw",
+            wall: "btn-wall",
+            sidewall: "btn-sidewall",
+            siderightwall: "btn-sideRightwall",
+            collision: "btn-coll",
+            spawn: "btn-spaw",
+            transition: "btn-trans",
+            antitransition: "btn-antitrans",
+            entities: "btn-enti"
+        };
+
+        const currentBtn = document.getElementById(modeToBtn[m]);
+        if (currentBtn) currentBtn.classList.add("active-mode");
 
         // Affichage des réglages à gauche
         document.getElementById('transition-settings1').style.display = (m === 'transition') ? 'block' : 'none';
@@ -440,17 +501,20 @@
 
             if (e.buttons === 2) { // Right click
                 if (mode === 'draw') mapData[index] = 0;
-                else if (mode === 'wall' || mode === 'sidewall') wallData[index] = -1;
+                else if (mode === 'wall' || mode === 'sidewall' || mode === 'siderightwall') wallData[index] = -1;
                 else collisionData[index] = 0;
             } else { // Left click
                 if (mode === 'draw') {
-                    mapData[index] = selectedTile;
+                    mapData[index] = selectedTile; 
                 } 
                 else if (mode === 'wall') {
                     wallData[index] = selectedTile;
                 }
                 else if (mode === 'sidewall') {
                     wallData[index] = 1000 + selectedTile; // 1000+ pour différencier visuellement
+                }
+                 else if (mode === 'siderightwall') {
+                    wallData[index] = 2000 + selectedTile; // 2000+ pour différencier visuellement
                 }
                 else if (mode === 'collision') {
                     collisionData[index] = -1;
@@ -520,14 +584,24 @@
                         } else {
                             if (document.getElementById('ent-type').value === 'IOG') collisionData[index] = 0;
                             // Créer une nouvelle entité
+                            const mapIndex = y * mapW + x;
+                            const playableIndex = mapIndexToPlayable(mapIndex);
+
+                            if (playableIndex === -1) {
+                                alert("Impossible de placer une entité sur un mur");
+                                return;
+                            }
+
+                            const pX = playableIndex % interiorWidth;
+                            const pY = Math.floor(playableIndex / interiorWidth);
                             const newEnt = {
                                 type: document.getElementById('ent-type').value,
                                 name: document.getElementById('ent-name').value,
                                 sprite: document.getElementById('ent-sprite').value,
                                 sizeX: parseInt(document.getElementById('ent-w').value) || 1,
                                 sizeY: parseInt(document.getElementById('ent-h').value) || 1,
-                                x: x,
-                                y: y,
+                                x: pX,
+                                y: pY,
                                 orien: document.getElementById('ent-orien').value,
                                 diagKey: document.getElementById('ent-diag').value,
                                 actionType: document.getElementById('ent-move').value,
@@ -633,26 +707,35 @@
                 const tileIdx = mapData[i];
                 const sx = (tileIdx % tsCols) * tileSize;
                 const sy = Math.floor(tileIdx / tsCols) * tileSize;
+
+                
                 ctx.drawImage(tilesetImg, sx, sy, tileSize, tileSize, tx*tileSize, ty*tileSize, tileSize, tileSize);
             }
-            
+
             // RENDU DES MURS
             const wallIdx = wallData[i];
             if (wallIdx >= 0 && tilesetImg.complete && tilesetImg.src) {
-                const sx = (wallIdx % tsCols) * tileSize;
-                const sy = Math.floor(wallIdx / tsCols) * tileSize;
-                ctx.drawImage(tilesetImg, sx, sy, tileSize, tileSize, tx*tileSize, ty*tileSize, tileSize, tileSize);
-                
-                if (mode === 'wall') {
-                    ctx.strokeStyle = "rgba(52, 152, 219, 0.8)";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
+                let realTile = wallIdx;
+                let strokeColor = "rgba(52, 152, 219, 0.8)"; // Bleu par défaut (100+)
+
+                if (wallIdx >= 2000) {
+                    realTile = wallIdx - 2000;
+                    strokeColor = "rgba(100, 126, 34, 0.8)"; // Vert (300+)
+                } else if (wallIdx >= 1000) {
+                    realTile = wallIdx - 1000;
+                    strokeColor = "rgba(230, 126, 34, 0.8)"; // Orange (200+)
                 }
-                if (mode === 'sidewall' || wallIdx >= 1000) {
-                    ctx.strokeStyle = "rgba(230, 126, 34, 0.8)"; // Orange pour les murs de côté
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(tx*tileSize, ty*tileSize, tileSize, tileSize);
-                }
+
+                const sx = (realTile % tsCols) * tileSize;
+                const sy = Math.floor(realTile / tsCols) * tileSize;
+    
+                // Dessiner la texture réelle du tileset
+                ctx.drawImage(tilesetImg, sx, sy, tileSize, tileSize, tx * tileSize, ty * tileSize, tileSize, tileSize);
+
+                // Dessiner le contour de couleur pour l'éditeur
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(tx * tileSize, ty * tileSize, tileSize, tileSize);
             }
 
             let val = collisionData[i];
@@ -820,69 +903,72 @@
         return result.trim();
     }
 
-    function parseEntities(content) {
+    function parseEntities(content, maptxt) {
+
+        // 1. Trouver l'offset Y : on descend ligne par ligne jusqu'à trouver une case qui n'est PAS un mur
+        for (let r = 0; r < mapH; r++) {
+            let isFullWallRow = true;
+            if (wallData[r * mapW] === -1) { // -1 signifie que c'est du sol (mapData)
+                    offsetY++;
+            } else {
+                break;
+            }
+        }
+
+        for (let c = 0; c < mapW; c++) {
+            if (wallData[c] === -1) {
+                offsetX++;
+            } else {
+                break;
+            }
+        }
+
         entities = content
             .split('\n')
             .filter(line => line.trim() && !line.startsWith('#'))
             .map(line => {
                 const parts = line.split('|');
-
                 const type = parts[0];
 
-                // Cas IOG
                 if (type === "IOG") {
-                    const name = parts[1];
-                    const x = parseInt(parts[2]);
-                    const y = parseInt(parts[3]);
-
                     return {
                         type,
-                        name,
-                        x,
-                        y
+                        name: parts[1],
+                        x: parseInt(parts[2]) + offsetX,
+                        y: parseInt(parts[3]) + offsetY
                     };
                 }
 
                 if (type === "OBJ") {
-                    // OBJ|name|sprite|x|y|w|h|orien|diagKey
-                    const name = parts[1];
-                    const sprite = parts[2];
-                    const x = parseInt(parts[3]);
-                    const y = parseInt(parts[4]);
-                    const w = parseInt(parts[5]);
-                    const h = parseInt(parts[6]);
-                    const orien = parts[7];
-                    const diagKey = parts[8];
-                    
-                    return {
-                        type, name, sprite, x, y, sizeX: w, sizeY: h, orien, diagKey
-                    };
-                }
-                else {
-                    // NPC
-                    // NPC|name|sprite|x|y|orien|diagKey|actionType|destination
-                    const name = parts[1];
-                    const sprite = parts[2];
-                    const x = parseInt(parts[3]);
-                    const y = parseInt(parts[4]);
-                    const orien = parts[5];
-                    const diagKey = parts[6];
-                    const actionType = parts[7];
-                    const destination = parts[8]; // Peut être undefined
-
                     return {
                         type,
-                        name,
-                        sprite,
-                        x,
-                        y,
-                        orien,
-                        diagKey,
-                        actionType,
-                        destination
+                        name: parts[1],
+                        sprite: parts[2],
+                        x: parseInt(parts[3]) + offsetX,
+                        y: parseInt(parts[4]) + offsetY,
+                        sizeX: parseInt(parts[5]),
+                        sizeY: parseInt(parts[6]),
+                        orien: parts[7],
+                        diagKey: parts[8]
+                    };
+                } else {
+                    // NPC
+                    const orienKeys = ["DOWN", "UP", "LEFT", "RIGHT"];
+                    return {
+                        type,
+                        name: parts[1],
+                        sprite: parts[2],
+                        x: parseInt(parts[3]) + offsetX,
+                        y: parseInt(parts[4]) + offsetY,
+                        orien: orienKeys[parseInt(parts[5])] || "DOWN",
+                        diagKey: parts[6],
+                        actionType: parts[7],
+                        destination: parts[8]
                     };
                 }
             });
+            
+        drawMap(); // On force le rafraîchissement visuel
     }
 
 
@@ -1192,7 +1278,12 @@
         const mergedMapData = [];
         for (let i = 0; i < mapData.length; i++) {
             if (wallData[i] >= 1000) {
-                mergedMapData.push(200 + (wallData[i] - 1000));
+                 if (wallData[i] >= 2000) {
+                      mergedMapData.push(300 + (wallData[i] - 2000));
+                 }
+                  else {
+                    mergedMapData.push(200 + (wallData[i] - 1000));
+                  }
             } else if (wallData[i] >= 0) {
                 mergedMapData.push(100 + wallData[i]);
             } else {
@@ -1201,7 +1292,17 @@
         }
 
         const formattedMap = formatDataWithNewlines(mergedMapData, mapW);
-        const formattedColl = formatDataWithNewlines(collisionData, mapW);
+        let exportedColl = [];
+
+        playableIndexes.forEach(idx => {
+            exportedColl.push(collisionData[idx] ?? 0);
+        });
+
+        // même largeur que la zone jouable (intérieur)
+        const interiorWidth = playableIndexes.filter(i => i < mapW).length;
+
+        const formattedColl = formatDataWithNewlines(exportedColl, interiorWidth);
+
         
         // Formatage Entities
         const orienMap = {
@@ -1212,24 +1313,26 @@
         };
 
         const formattedEnt = entities.map(e => {
+
             const o = orienMap[e.orien] ?? 0;
-            if (e.type === 'IOG') {
-                // Les IOG n'ont pas de sprite, orientation ou diagKey dans le fichier
-                return `${e.type}|${e.name}|${e.x}|${e.y}`;
-            }
+            const exportX = e.x - offsetX; // On retire l'offset pour le moteur de jeu
+            const exportY = e.y - offsetY;
+    
+            // ... reste de ta logique en utilisant exportX et exportY au lieu de e.x et e.y
+            if (e.type === 'IOG') return `${e.type}|${e.name}|${exportX}|${exportY}`;
             if (e.type === 'OBJ') {
                 const w = e.sizeX || 1;
                 const h = e.sizeY || 1;
-                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${w}|${h}|${o}|${e.diagKey ?? ''}`;
+                return `${e.type}|${e.name}|${e.sprite}|${exportX}|${exportY}|${w}|${h}|${o}|${e.diagKey ?? ''}`;
             }
             if (e.actionType === 'RANDOM') {
-                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}|${e.actionType}`;
+                return `${e.type}|${e.name}|${e.sprite}|${exportX}|${exportY}|${o}|${e.diagKey ?? ''}|${e.actionType}`;
             }
             else if (e.actionType === 'SIMPLE' || e.actionType === 'PINGPONG' || e.actionType === 'LOOP') {
-                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}|${e.actionType}|${e.destination ?? ''}`;
+                return `${e.type}|${e.name}|${e.sprite}|${exportX}|${exportY}|${o}|${e.diagKey ?? ''}|${e.actionType}|${e.destination ?? ''}`;
             }
             else {
-                return `${e.type}|${e.name}|${e.sprite}|${e.x}|${e.y}|${o}|${e.diagKey ?? ''}`;
+                return `${e.type}|${e.name}|${e.sprite}|${exportX}|${exportY}|${o}|${e.diagKey ?? ''}`;
             }
         }).join('\n');
 
