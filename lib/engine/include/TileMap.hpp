@@ -34,7 +34,8 @@ public:
         int i_start = 0;
         for (unsigned int j = 0; j < width; j++) {
             int t = tiles[j + i_start * width];
-            if (t >= 0) break;nbrNeg++;
+            if (t >= 0) break;
+            nbrNeg++;
         }        
 
         // Helper pour trouver une tuile à une position visuelle X donnée dans une ligne
