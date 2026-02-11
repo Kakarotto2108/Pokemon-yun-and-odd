@@ -143,6 +143,7 @@
     let mapH = 20;
     
     let offsetX = 0;
+    let offsetX2 = 0;
     let offsetY = 0;
     let mode = 'draw';
     let selectedTile = 0;
@@ -923,6 +924,16 @@
             }
         }
 
+        for (let c = mapW - 1; c >= 0; c--) {
+            if (wallData[c] === -1) {
+                offsetX2++;
+            } else {
+                break;
+            }
+        }
+
+
+
         entities = content
             .split('\n')
             .filter(line => line.trim() && !line.startsWith('#'))
@@ -1299,7 +1310,7 @@
         });
 
         // même largeur que la zone jouable (intérieur)
-        const interiorWidth = playableIndexes.filter(i => i < mapW).length;
+        const interiorWidth = mapW - offsetX - offsetX2;   
 
         const formattedColl = formatDataWithNewlines(exportedColl, interiorWidth);
 
