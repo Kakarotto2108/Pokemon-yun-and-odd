@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <algorithm>
 
 Game::Game(const GameConfig& config)
     : m_window(sf::VideoMode(config.width, config.height), config.title)
@@ -109,6 +110,19 @@ void Game::render() {
     glColor4f(1.f, 1.f, 1.f, 1.f);
 
     sf::Vector2f pPos = m_player.getDrawPosition();
+
+    // --- CAMERA CLAMPING ---
+    Zone& currentZone = World::getInstance().getCurrentZone();
+    int mapW = currentZone.getCollisionWidth();
+    float tileSize = 32.f;
+
+    // On bloque à 3 cases (index 3) des bords
+    float minX = 3 * tileSize + tileSize / 2.f; // 112.f (Centre de la case 3)
+    float maxX = (mapW * tileSize) - (3 * tileSize + tileSize / 2.f);
+    float minY = (3 + 1) * tileSize; // 128.f (car Y est le bas du sprite, donc on prend le bas de la case 3)
+
+    float camX = (minX > maxX) ? (mapW * tileSize / 2.f) : std::max(minX, std::min(pPos.x, maxX));
+    float camY = std::max(minY, pPos.y); // Pas de blocage en bas (pas de min avec maxY)
     
     // Matrices
     glm::mat4 projectionMatrix = glm::perspective(
@@ -118,8 +132,8 @@ void Game::render() {
         3000.f
     );
     
-    glm::vec3 cameraPos = glm::vec3(pPos.x, pPos.y + 200.f, -400.f); 
-    glm::vec3 cameraTarget = glm::vec3(pPos.x, pPos.y, 0.f);
+    glm::vec3 cameraPos = glm::vec3(camX, camY + 200.f, -400.f); 
+    glm::vec3 cameraTarget = glm::vec3(camX, camY, 0.f);
     glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraTarget, glm::vec3(0.f, -1.f, 0.f));
 
     glMatrixMode(GL_PROJECTION);
