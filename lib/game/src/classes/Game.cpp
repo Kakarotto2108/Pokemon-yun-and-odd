@@ -113,16 +113,22 @@ void Game::render() {
 
     // --- CAMERA CLAMPING ---
     Zone& currentZone = World::getInstance().getCurrentZone();
-    int mapW = currentZone.getCollisionWidth();
-    float tileSize = 32.f;
+    
+    float camX = pPos.x;
+    float camY = pPos.y;
 
-    // On bloque à 3 cases (index 3) des bords
-    float minX = 2 * tileSize + tileSize / 2.f; // 112.f (Centre de la case 3)
-    float maxX = (mapW * tileSize) - (2 * tileSize + tileSize / 2.f);
-    float minY = (2 + 1) * tileSize; // 128.f (car Y est le bas du sprite, donc on prend le bas de la case 3)
+    if (currentZone.hasWalls()) {
+        int mapW = currentZone.getCollisionWidth();
+        float tileSize = 32.f;
 
-    float camX = (minX > maxX) ? (mapW * tileSize / 2.f) : std::max(minX, std::min(pPos.x, maxX));
-    float camY = std::max(minY, pPos.y); // Pas de blocage en bas (pas de min avec maxY)
+        // On bloque à 3 cases (index 3) des bords
+        float minX = 2 * tileSize + tileSize / 2.f; // 112.f (Centre de la case 3)
+        float maxX = (mapW * tileSize) - (2 * tileSize + tileSize / 2.f);
+        float minY = (2 + 1) * tileSize; // 128.f (car Y est le bas du sprite, donc on prend le bas de la case 3)
+
+        camX = (minX > maxX) ? (mapW * tileSize / 2.f) : std::max(minX, std::min(pPos.x, maxX));
+        camY = std::max(minY, pPos.y); // Pas de blocage en bas (pas de min avec maxY)
+    }
     
     // Matrices
     glm::mat4 projectionMatrix = glm::perspective(

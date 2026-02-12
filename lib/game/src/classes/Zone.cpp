@@ -21,6 +21,13 @@ Zone::Zone(int id, unsigned int width, unsigned int height,
     , m_tileset(&tileset)
 {
     m_tileMap.load(*m_tileset, sf::Vector2u(32, 32), visualMap, m_width, m_height);
+
+    for (int tile : visualMap) {
+        if (tile > 100) {
+            m_hasWalls = true;
+            break;
+        }
+    }
 }
 
 bool Zone::isBlocking(int x, int y) const {

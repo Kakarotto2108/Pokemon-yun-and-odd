@@ -56,6 +56,7 @@ public:
         }
         return m_spawnPos;
     }
+    bool hasWalls() const { return m_hasWalls; }
 
 private:
     int m_id;
@@ -66,6 +67,7 @@ private:
     std::vector<int> m_collisionMap;
     std::vector<std::unique_ptr<WorldEntity>> m_entities;
     sf::Texture* m_tileset;
+    bool m_hasWalls = false;
     
     TileMap m_tileMap;
 };
