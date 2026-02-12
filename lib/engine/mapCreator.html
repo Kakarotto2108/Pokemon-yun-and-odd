@@ -926,9 +926,9 @@
         ctx.restore();
     }
 
-    function formatDataWithNewlines(data, width) {
+    function formatDataWithNewlines(data, width, height) {
         let result = "";
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < height * width; i++) {
             result += data[i];
             if ((i + 1) % width === 0) result += "\n";
             else result += ",";
@@ -1008,8 +1008,6 @@
                     const text = parts[0] ? parts[0].replace(/S:\s*/i, "").trim() : "";
                     const type = parts[1] ? parts[1].replace(/T:\s*/i, "").trim() : "Classic";
                     const action = parts[2] ? parts[2].replace(/A:\s*/i, "").trim() : "NONE";
-
-                    console.log(`Parsed: Text="${text}", Type="${type}", Action="${action}"`);
 
                     dialogues[currentKey].push({
                         text: text,
@@ -1233,8 +1231,6 @@
         }
 
         dialogues[key][index].action = [actionCmd, ...params].join(':');
-
-        console.log("Action updated:", dialogues[key][index].action);
     }
 
 
@@ -1308,7 +1304,7 @@
             }
         }
 
-        const formattedMap = formatDataWithNewlines(mergedMapData, mapW);
+        const formattedMap = formatDataWithNewlines(mergedMapData, mapW, mapH);
         let exportedColl = [];
 
         playableIndexes.forEach(idx => {
@@ -1317,12 +1313,9 @@
 
         // même largeur que la zone jouable (intérieur)
         const interiorWidth = mapW - offsetX - offsetX2;
-        console.log("interiorWidth:", interiorWidth)
-        console.log("offsetX2:", offsetX2)
-        console.log("offsetX:", offsetX)
-        console.log("mapW:", mapW)
+        const interiorHeight = mapH - offsetY;
 
-        const formattedColl = formatDataWithNewlines(exportedColl, interiorWidth);
+        const formattedColl = formatDataWithNewlines(exportedColl, interiorWidth, interiorHeight);
 
         
         // Formatage Entities
