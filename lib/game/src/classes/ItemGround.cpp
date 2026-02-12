@@ -33,7 +33,7 @@ void Iog::interact()
     const std::vector<DialogueStep> script = { step1, step2 };
     DialogManager::getInstance().startDialogue(script, this);
     std::vector<std::string> lstAnim = {"ReceiveItem1", "ReceiveItem2"};
-    Player::getInstance().startAnimation(lstAnim);
+    Player::getInstance().startAnimation(lstAnim, true);
 }
 
 EntityState Iog::getState() const {

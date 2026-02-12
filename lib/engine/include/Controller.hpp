@@ -22,6 +22,7 @@ public:
     void onActionPressed(std::string action, ActionCallback callback);
     void onActionReleased(std::string action, ActionCallback callback);
     void onAxisChanged(std::string axis, AxisCallback callback);
+    bool isActionActive(const std::string& action) const;
 
     void handleInput(sf::RenderWindow& window);
 

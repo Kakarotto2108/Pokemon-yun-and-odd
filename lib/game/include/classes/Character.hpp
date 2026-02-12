@@ -36,10 +36,11 @@ public:
     sf::Vector2i getFacingTile() const;
     int getOrientation() const { return m_orientation; }
     void setOrientation(int orientation);
-    void startAnimation(const std::vector<std::string>& lstAnim);
+    void startAnimation(const std::vector<std::string>& lstAnim, bool holdLast = false);
     void setLogicalPos(const sf::Vector2i& pos);
     std::string getName() const { return m_name; }
     bool getIsMoving() const { return m_isMoving; }
+    void setRunning(bool running) { m_isRunning = running; }
 
     Inventory& getInventory() { return *m_inventory; }
     void setInventory(const Inventory& inventory) {
@@ -99,5 +100,7 @@ protected:
     bool m_playSequence = false;
     bool m_flipX = false;
     bool isAcc;
+    bool m_isRunning = false;
+    bool m_holdLastAnim = false;
 
 };

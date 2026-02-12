@@ -33,6 +33,10 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
         m_animations["WalkRight"] = Animation(1, 3, 0.15f, 32);
     }
     
+    m_animations["RunUp"] = Animation(0, 3, 0.2f, 32, 4);
+    m_animations["RunDown"] = Animation(1, 3, 0.2f, 32, 4);
+    m_animations["RunLeft"] = Animation(2, 3, 0.2f, 32, 4);
+    m_animations["RunRight"] = Animation(3, 3, 0.2f, 32, 4);
     m_animations["ReceiveItem1"] = Animation(6,1, 0.2f, 32);
     m_animations["ReceiveItem2"] = Animation(7,1, 0.2f, 32);
     m_animations["ReceiveItem3"] = Animation(8,1, 0.2f, 32);
@@ -48,17 +52,18 @@ void Character::stopAnimation() {
 
 void Character::setOrientation(int orientation) {
     m_orientation = orientation;
+    std::string prefix = (m_isRunning && m_isMoving) ? "Run" : "Walk";
     switch (m_orientation) {
-        case 0: m_currentAnim = "WalkDown"; m_flipX = false; break;
-        case 1: m_currentAnim = "WalkLeft"; m_flipX = false; break;
-        case 2: if (isAcc) { m_currentAnim = "WalkRight"; m_flipX = false; }
-                else { m_currentAnim = "WalkRight"; m_flipX = true; } break;
-        case 3: m_currentAnim = "WalkUp"; m_flipX = false; break;
-        default: m_currentAnim = "WalkDown"; m_flipX = false; break;
+        case 0: m_currentAnim = prefix + "Down"; m_flipX = false; break;
+        case 1: m_currentAnim = prefix + "Left"; m_flipX = false; break;
+        case 2: if (isAcc) { m_currentAnim = prefix + "Right"; m_flipX = false; }
+                else { m_currentAnim = prefix + "Right"; m_flipX = true; } break;
+        case 3: m_currentAnim = prefix + "Up"; m_flipX = false; break;
+        default: m_currentAnim = prefix + "Down"; m_flipX = false; break;
     }
 }
 
-void Character::startAnimation(const std::vector<std::string>& lstAnim)
+void Character::startAnimation(const std::vector<std::string>& lstAnim, bool holdLast)
 {
     while (!m_animQueue.empty())
         m_animQueue.pop();
@@ -67,6 +72,7 @@ void Character::startAnimation(const std::vector<std::string>& lstAnim)
         m_animQueue.push(anim);
 
     m_playSequence = true;
+    m_holdLastAnim = holdLast;
     m_animTimer = 0.f;
 
     if (!m_animQueue.empty()) {
@@ -80,36 +86,43 @@ void Character::startAnimation(const std::vector<std::string>& lstAnim)
 void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     if (direction.x == 0 && direction.y == 0) {
         m_isMoving = false;
-        m_animations[m_currentAnim].reset();
+        if (!m_playSequence) {
+            setOrientation(m_orientation);
+            m_animations[m_currentAnim].reset();
+        }
         return;
     }
+
+    m_playSequence = false;
+
+    std::string prefix = m_isRunning ? "Run" : "Walk";
 
     // Mise à jour orientation et nom d'animation
     if (direction.y > 0)      { 
         m_orientation = 0; 
-        m_currentAnim = "WalkDown"; 
+        m_currentAnim = prefix + "Down"; 
         m_flipX = false;
     }
     else if (direction.x < 0) {
         m_orientation = 1;
-        m_currentAnim = "WalkLeft";
+        m_currentAnim = prefix + "Left";
         m_flipX = false;
     }
     else if (direction.x > 0)
     {
         m_orientation = 2;
         if (!isAcc){
-            m_currentAnim = "WalkRight";
+            m_currentAnim = prefix + "Right";
             m_flipX = true;
         }
         else {
-            m_currentAnim = "WalkRight";
+            m_currentAnim = prefix + "Right";
             m_flipX = false;
         }
     }
     else if (direction.y < 0) { 
         m_orientation = 3; 
-        m_currentAnim = "WalkUp"; 
+        m_currentAnim = prefix + "Up"; 
         m_flipX = false;
     }
 
@@ -125,6 +138,7 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
         //GameEvents::OnCharacterMove.notify(m_logicalPos.x, m_logicalPos.y);
     } else {
         m_isMoving = false;
+        setOrientation(m_orientation);
         m_animations[m_currentAnim].reset();
     }
 }
@@ -173,7 +187,9 @@ void Character::update(float dt, Zone& zone) {
             }
             else
             {
-                m_playSequence = false;
+                if (!m_holdLastAnim) {
+                    m_playSequence = false;
+                }
             }
         }
     }

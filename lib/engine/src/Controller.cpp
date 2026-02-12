@@ -5,6 +5,8 @@ Controller::Controller() {
     actionMapping["Interact"] = sf::Keyboard::E;
     actionMapping["Load"] = sf::Keyboard::L;
     actionMapping["OpenMenu"] = sf::Keyboard::O;
+    actionMapping["Cancel"] = sf::Keyboard::B;
+    actionMapping["Run"] = sf::Keyboard::B;
 
 
     // Axis mapping
@@ -22,6 +24,10 @@ void Controller::onActionReleased(std::string action, ActionCallback callback) {
 
 void Controller::onAxisChanged(std::string axis, AxisCallback callback) {
     axisCallbacks[axis].push_back(callback);
+}
+
+bool Controller::isActionActive(const std::string& action) const {
+    return pressedActions.count(action) > 0;
 }
 
 void Controller::handleInput(sf::RenderWindow& window) {

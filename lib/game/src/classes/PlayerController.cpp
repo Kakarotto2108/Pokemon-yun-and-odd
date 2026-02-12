@@ -82,6 +82,15 @@ void PlayerController::update(Zone& zone, float dt) {
     if (!m_inputEnabled) return;
     if (m_moveTimer.getElapsedTime().asSeconds() < m_player.getMoveDelay() && m_player.getIsMoving()) return;
 
+    // Gestion de la course (Touche B / Run)
+    if (Controller::getInstance().isActionActive("Run")) {
+        m_player.setRunning(true);
+        m_player.setMoveDelay(0.1f); // Plus rapide (0.1s par case au lieu de 0.2s)
+    } else {
+        m_player.setRunning(false);
+        m_player.setMoveDelay(0.2f); // Vitesse normale
+    }
+
     sf::Vector2i direction(0, 0);
 
     // Priorité à l'axe horizontal (ou vertical selon ton choix))
