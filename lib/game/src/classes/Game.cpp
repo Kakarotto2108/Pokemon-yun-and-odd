@@ -117,9 +117,9 @@ void Game::render() {
     float tileSize = 32.f;
 
     // On bloque à 3 cases (index 3) des bords
-    float minX = 3 * tileSize + tileSize / 2.f; // 112.f (Centre de la case 3)
-    float maxX = (mapW * tileSize) - (3 * tileSize + tileSize / 2.f);
-    float minY = (3 + 1) * tileSize; // 128.f (car Y est le bas du sprite, donc on prend le bas de la case 3)
+    float minX = 2 * tileSize + tileSize / 2.f; // 112.f (Centre de la case 3)
+    float maxX = (mapW * tileSize) - (2 * tileSize + tileSize / 2.f);
+    float minY = (2 + 1) * tileSize; // 128.f (car Y est le bas du sprite, donc on prend le bas de la case 3)
 
     float camX = (minX > maxX) ? (mapW * tileSize / 2.f) : std::max(minX, std::min(pPos.x, maxX));
     float camY = std::max(minY, pPos.y); // Pas de blocage en bas (pas de min avec maxY)

@@ -31,10 +31,12 @@ bool Controller::isActionActive(const std::string& action) const {
 }
 
 void Controller::handleInput(sf::RenderWindow& window) {
+    bool hasFocus = window.hasFocus();
+
     for (const auto& axis : axisMapping) {
         float value = 0.0f;
-        if (sf::Keyboard::isKeyPressed(axis.second.first)) value -= 1.0f;
-        if (sf::Keyboard::isKeyPressed(axis.second.second)) value += 1.0f;
+        if (hasFocus && sf::Keyboard::isKeyPressed(axis.second.first)) value -= 1.0f;
+        if (hasFocus && sf::Keyboard::isKeyPressed(axis.second.second)) value += 1.0f;
         
         if (axisCallbacks.count(axis.first)) {
             for (auto& cb : axisCallbacks[axis.first]) {
@@ -44,7 +46,7 @@ void Controller::handleInput(sf::RenderWindow& window) {
     }
 
     for (const auto& action : actionMapping) {
-        bool isDown = sf::Keyboard::isKeyPressed(action.second);
+        bool isDown = hasFocus && sf::Keyboard::isKeyPressed(action.second);
         bool wasDown = (pressedActions.find(action.first) != pressedActions.end());
 
         if (isDown && !wasDown) {
