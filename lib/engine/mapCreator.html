@@ -72,6 +72,7 @@
     <hr>
     <h3>Outils</h3>
     <button class="btn" id="btn-draw" onclick="setMode('draw')">🎨 Dessin</button>
+    <button class="btn" id="btn-empty" onclick="setMode('empty')">🧹 Vide </button>
     <button class="btn" id="btn-wall" onclick="setMode('wall')">🧱 Mur (100+)</button>
     <button class="btn" id="btn-sidewall" onclick="setMode('sidewall')">📐 Mur Côté (200+)</button>
     <button class="btn" id="btn-sideRightwall" onclick="setMode('siderightwall')">╺ Mur Côté Droit (300+)</button>
@@ -132,7 +133,7 @@
             
             <p style="font-size: 0.7em; color: #bdc3c7; margin-top: 15px;">
                 Note: La clé de dialogue doit correspondre au fichier dialogues.txt lors de l'export.
-            </p>
+            </>
         </div>
     </div>
 </div>
@@ -244,6 +245,7 @@
 
     function parseAndLoadMap(mapContent, collisionContent) {
         try {
+
             tileSize = parseInt(document.getElementById('tile-size').value) || 32;
 
             // On nettoie les espaces et on sépare par ligne, en ignorant les lignes vides
@@ -333,6 +335,31 @@
             wallData = newWallData;
             collisionData = newCollisionData;
 
+            for (let r = 0; r < mapH; r++) {
+                let isFullWallRow = true;
+                if (wallData[r * mapW] === -1) { // -1 signifie que c'est du sol (mapData)
+                        offsetY++;
+                } else {
+                    break;
+                }
+            }
+
+            for (let c = 0; c < mapW; c++) {
+                if (wallData[c] === -1) {
+                    offsetX++;
+                } else {
+                    break;
+                }
+            }
+
+            for (let c = mapW - 1; c >= 0; c--) {
+                if (wallData[c] === -1) {
+                    offsetX2++;
+                } else {
+                    break;
+                }
+            }
+
             document.getElementById('map-w').value = mapW;
             document.getElementById('map-h').value = mapH;
             
@@ -418,6 +445,7 @@
         document.querySelectorAll('.btn').forEach(b => b.classList.remove('active-mode'));
         const modeToBtn = {
             draw: "btn-draw",
+            empty: "btn-empty",
             wall: "btn-wall",
             sidewall: "btn-sidewall",
             siderightwall: "btn-sideRightwall",
@@ -508,6 +536,10 @@
                 if (mode === 'draw') {
                     mapData[index] = selectedTile; 
                 } 
+                else if (mode === 'empty') {
+                    mapData[index] = -1;
+                    wallData[index] = -1;
+                }
                 else if (mode === 'wall') {
                     wallData[index] = selectedTile;
                 }
@@ -907,32 +939,6 @@
     function parseEntities(content, maptxt) {
 
         // 1. Trouver l'offset Y : on descend ligne par ligne jusqu'à trouver une case qui n'est PAS un mur
-        for (let r = 0; r < mapH; r++) {
-            let isFullWallRow = true;
-            if (wallData[r * mapW] === -1) { // -1 signifie que c'est du sol (mapData)
-                    offsetY++;
-            } else {
-                break;
-            }
-        }
-
-        for (let c = 0; c < mapW; c++) {
-            if (wallData[c] === -1) {
-                offsetX++;
-            } else {
-                break;
-            }
-        }
-
-        for (let c = mapW - 1; c >= 0; c--) {
-            if (wallData[c] === -1) {
-                offsetX2++;
-            } else {
-                break;
-            }
-        }
-
-
 
         entities = content
             .split('\n')
@@ -1310,7 +1316,11 @@
         });
 
         // même largeur que la zone jouable (intérieur)
-        const interiorWidth = mapW - offsetX - offsetX2;   
+        const interiorWidth = mapW - offsetX - offsetX2;
+        console.log("interiorWidth:", interiorWidth)
+        console.log("offsetX2:", offsetX2)
+        console.log("offsetX:", offsetX)
+        console.log("mapW:", mapW)
 
         const formattedColl = formatDataWithNewlines(exportedColl, interiorWidth);
 

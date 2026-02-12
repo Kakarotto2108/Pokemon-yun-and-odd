@@ -1,4 +1,4 @@
-NPC|Camille|gabou.png|4|2|0|camille_intro|RANDOM
+NPC|Camille|gabou.png|3|2|0|camille_intro
 NPC|Vieux Sage|gabou.png|5|5|0|sage_conseil
 OBJ|Television|IMG_1338.png|5|0|2|1|0|tv_maison
 IOG|Pokeball|8|2
