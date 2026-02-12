@@ -97,5 +97,7 @@ protected:
     float m_animDelay = 0.15f;
     float m_animTimer = 0.f;
     bool m_playSequence = false;
+    bool m_flipX = false;
+    bool isAcc;
 
 };

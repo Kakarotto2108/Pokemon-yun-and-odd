@@ -17,12 +17,22 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
     // Attention au chemin : assure-toi que le dossier existe
     sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get(spriteSheetName);
     m_sprite.setTexture(tex);
-
-    // Les animations doivent correspondre à la taille du sprite (32x32)
-    m_animations["WalkUp"]  = Animation(0, 3, 0.15f, 32);
-    m_animations["WalkDown"] = Animation(1, 3, 0.15f, 32);
-    m_animations["WalkLeft"] = Animation(2, 3, 0.15f, 32);
-    m_animations["WalkRight"] = Animation(3, 3, 0.15f, 32);
+    sf::Vector2u texSize = tex.getSize();
+    isAcc = texSize.y / 32 > 2;
+    
+    if (isAcc) {
+        // Les animations doivent correspondre à la taille du sprite (32x32)
+        m_animations["WalkUp"]  = Animation(0, 3, 0.15f, 32);
+        m_animations["WalkDown"] = Animation(1, 3, 0.15f, 32);
+        m_animations["WalkLeft"] = Animation(2, 3, 0.15f, 32);
+        m_animations["WalkRight"] = Animation(3, 3, 0.15f, 32);
+    } else {
+        m_animations["WalkUp"]  = Animation(0, 2, 0.15f, 32);
+        m_animations["WalkDown"] = Animation(0, 4, 0.15f, 32, 2);
+        m_animations["WalkLeft"] = Animation(1, 3, 0.15f, 32);
+        m_animations["WalkRight"] = Animation(1, 3, 0.15f, 32);
+    }
+    
     m_animations["ReceiveItem1"] = Animation(6,1, 0.2f, 32);
     m_animations["ReceiveItem2"] = Animation(7,1, 0.2f, 32);
     m_animations["ReceiveItem3"] = Animation(8,1, 0.2f, 32);
@@ -39,11 +49,12 @@ void Character::stopAnimation() {
 void Character::setOrientation(int orientation) {
     m_orientation = orientation;
     switch (m_orientation) {
-        case 0: m_currentAnim = "WalkDown"; break;
-        case 1: m_currentAnim = "WalkLeft"; break;
-        case 2: m_currentAnim = "WalkRight"; break;
-        case 3: m_currentAnim = "WalkUp"; break;
-        default: m_currentAnim = "WalkDown"; break;
+        case 0: m_currentAnim = "WalkDown"; m_flipX = false; break;
+        case 1: m_currentAnim = "WalkLeft"; m_flipX = false; break;
+        case 2: if (isAcc) { m_currentAnim = "WalkRight"; m_flipX = false; }
+                else { m_currentAnim = "WalkRight"; m_flipX = true; } break;
+        case 3: m_currentAnim = "WalkUp"; m_flipX = false; break;
+        default: m_currentAnim = "WalkDown"; m_flipX = false; break;
     }
 }
 
@@ -74,10 +85,33 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     }
 
     // Mise à jour orientation et nom d'animation
-    if (direction.y > 0)      { m_orientation = 0; m_currentAnim = "WalkDown"; }
-    else if (direction.x < 0) { m_orientation = 1; m_currentAnim = "WalkLeft"; }
-    else if (direction.x > 0) { m_orientation = 2; m_currentAnim = "WalkRight"; }
-    else if (direction.y < 0) { m_orientation = 3; m_currentAnim = "WalkUp"; }
+    if (direction.y > 0)      { 
+        m_orientation = 0; 
+        m_currentAnim = "WalkDown"; 
+        m_flipX = false;
+    }
+    else if (direction.x < 0) {
+        m_orientation = 1;
+        m_currentAnim = "WalkLeft";
+        m_flipX = false;
+    }
+    else if (direction.x > 0)
+    {
+        m_orientation = 2;
+        if (!isAcc){
+            m_currentAnim = "WalkRight";
+            m_flipX = true;
+        }
+        else {
+            m_currentAnim = "WalkRight";
+            m_flipX = false;
+        }
+    }
+    else if (direction.y < 0) { 
+        m_orientation = 3; 
+        m_currentAnim = "WalkUp"; 
+        m_flipX = false;
+    }
 
     m_isMoving = true;
 
@@ -97,6 +131,17 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
 
 void Character::update(float dt, Zone& zone) {
     m_sprite.setTextureRect(m_animations[m_currentAnim].getUVRect());
+
+    if (m_flipX) {
+        m_sprite.setScale(-2.f, 2.f);
+        m_sprite.setOrigin(32.f, 0.f);
+    }
+    else
+    {
+        m_sprite.setScale(2.f, 2.f);
+        m_sprite.setOrigin(0.f, 0.f);
+    }
+
 
     if (m_path) {
         m_path->update(dt, *this, zone);
