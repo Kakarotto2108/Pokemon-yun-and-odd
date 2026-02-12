@@ -62,18 +62,21 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
             }
         }
     });
-
-    Controller::getInstance().onActionPressed("Load", [this]() {
-        try {
-            GameInstance::getInstance().loadFromFileEncrypted("savegame.dat");
-            // Après le chargement, on doit recharger la zone actuelle
-            int currentZoneId = m_world.getCurrentZoneId();
-            m_world.switchZone(currentZoneId);
-        } catch (const std::exception& e) {
-            std::cerr << "Failed to load game: " << e.what() << std::endl;
-        }
-    });
-}
+        Controller::getInstance().onActionPressed("Load", [this]() {
+            
+            if (GameChoiceBox::getInstance().isVisible() || DialogManager::getInstance().isActive()) {
+                return;
+            }
+            try {
+                GameInstance::getInstance().loadFromFileEncrypted("savegame.dat");
+                // Après le chargement, on doit recharger la zone actuelle
+                int currentZoneId = m_world.getCurrentZoneId();
+                m_world.switchZone(currentZoneId);
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to load game: " << e.what() << std::endl;
+            }
+        });
+    }
 
 void PlayerController::update(Zone& zone, float dt) {
     if (!m_inputEnabled) return;

@@ -23,6 +23,7 @@ public:
     }
     void init(std::vector<std::pair<std::string, std::string>> choices);
     void setChoiceIndex(int index);
+    void reset() { m_currentIndex = 0; m_scrollOffset = 0; }
     int getChoiceIndex() const;
     std::string getEventForChoice(const std::string& choiceText);
     void setVisible(bool visible) { m_visible = visible; }

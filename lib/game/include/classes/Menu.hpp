@@ -5,9 +5,9 @@
 
 class Menu : public GameChoiceBox {
 private:
-
 public:
     Menu();
+    bool m_open = true;
     Menu(const Menu&) = delete;
     Menu& operator=(const Menu&) = delete;
     static Menu& getInstance() {

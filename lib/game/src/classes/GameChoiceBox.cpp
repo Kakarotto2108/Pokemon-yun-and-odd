@@ -62,6 +62,8 @@ GameChoiceBox::GameChoiceBox() {
         // On ne ferme la boîte que si les choix sont restés les mêmes (action simple)
         if (m_choices == previousChoices) {
             hide();
+            m_currentIndex = 0;
+            m_scrollOffset = 0;
         }
     });
 }
