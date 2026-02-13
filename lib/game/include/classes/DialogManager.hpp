@@ -36,6 +36,7 @@ public:
     void next();
 
     bool isActive() const { return m_active; }
+    void setActive(bool active) { m_active = active; }
     void draw(sf::RenderWindow& window);
     WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
 

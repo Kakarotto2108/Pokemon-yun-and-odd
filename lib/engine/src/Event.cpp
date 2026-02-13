@@ -10,6 +10,7 @@ Event<> GameEvents::SaveGame;
 Event<> GameEvents::YesChoice;
 Event<> GameEvents::NoChoice;
 Event<> GameEvents::OpenBag;
+Event<> GameEvents::CloseBag;
 Event<> GameEvents::OpenPokedex;
 Event<> GameEvents::OpenPokemon;
 Event<> GameEvents::OpenPlayer;

@@ -134,8 +134,6 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
         m_targetPos = sf::Vector2f(m_logicalPos.x * TILE_SIZE + TILE_SIZE / 2.f, 
                                    (m_logicalPos.y + 1) * TILE_SIZE);
         
-        // Notifier le système que CE personnage a bougé
-        //GameEvents::OnCharacterMove.notify(m_logicalPos.x, m_logicalPos.y);
     } else {
         m_isMoving = false;
         setOrientation(m_orientation);

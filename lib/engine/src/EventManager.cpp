@@ -6,6 +6,8 @@
 #include "Npc.hpp"
 #include "Interactable.hpp"
 #include "Bag.hpp"
+#include "Menu.hpp"
+
 
 EventManager::EventManager() {
     GameEvents::SaveGame.subscribe([]() {
@@ -36,6 +38,11 @@ EventManager::EventManager() {
 
             DialogManager::getInstance().startDialogue(script);
         });
+        GameEvents::NoChoice.subscribe([]() {
+            DialogManager::getInstance().setActive(false);
+            Menu::getInstance().open();
+        });
+
         
 
 

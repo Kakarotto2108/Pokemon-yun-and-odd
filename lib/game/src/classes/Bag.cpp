@@ -3,6 +3,9 @@
 #include "Player.hpp"
 #include "Controller.hpp"
 #include "GameChoiceBox.hpp"
+#include "DialogManager.hpp"
+#include "EventManager.hpp"
+#include "Menu.hpp"
 
 Bag::Bag() {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
@@ -23,6 +26,15 @@ Bag::Bag() {
         updateDisplay();
         m_inputClock.restart();
     });
+
+    GameEvents::OpenBag.subscribe([this]() {
+        open();
+    });
+
+    GameEvents::CloseBag.subscribe([]() {
+        DialogManager::getInstance().setActive(false);
+        Menu::getInstance().open();
+    });
 }
 
 void Bag::open() {
@@ -32,6 +44,18 @@ void Bag::open() {
 }
 
 void Bag::updateDisplay() {
+    std::string pocketName;
+    switch(m_pockets[m_currentpocketIndex]) {
+        case ItemPocket::Items: pocketName = "MÉDICAMENTS"; break;
+        case ItemPocket::Balls: pocketName = "BALLS"; break;
+        case ItemPocket::KeyItems: pocketName = "OBJETS RARES"; break;
+        case ItemPocket::TMsHMs: pocketName = "CT & CS"; break;
+        case ItemPocket::Berries: pocketName = "BAIES"; break;
+    }
+    DialogueStep step;
+    step.text = "Poche : " + pocketName;
+    DialogManager::getInstance().startDialogue({step});
+
     std::vector<std::pair<std::string, std::string>> choices;
     
     // On récupère le nom de la poche actuelle pour l'afficher (optionnel, mais utile)

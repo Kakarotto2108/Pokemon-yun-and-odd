@@ -29,6 +29,7 @@ public:
         {"Ev2", &GameEvents::Ev2},
         {"Ev3", &GameEvents::Ev3},
         {"OpenBag", &GameEvents::OpenBag},
+        {"CloseBag", &GameEvents::CloseBag},
         {"OpenPokedex", &GameEvents::OpenPokedex},
         {"OpenPokemon", &GameEvents::OpenPokemon},
         {"OpenPlayer", &GameEvents::OpenPlayer},
