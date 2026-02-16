@@ -36,6 +36,32 @@ inline std::string unescape(const std::string& s) {
     return res;
 }
 
+inline std::string wrapText(const std::string& text, std::size_t maxWidth)
+{
+    std::istringstream words(text);
+    std::string word;
+    std::string line;
+    std::string result;
+
+    while (words >> word)
+    {
+        if (line.length() + word.length() + 1 > maxWidth)
+        {
+            result += line + "\n";
+            line.clear();
+        }
+
+        if (!line.empty())
+            line += " ";
+
+        line += word;
+    }
+
+    result += line;
+    return result;
+}
+
+
 inline std::vector<std::string> split(const std::string& s, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -135,7 +161,7 @@ public:
                     std::string cleanPart = trim(p);
 
                     if (cleanPart.find("S:") == 0) {
-                        step.text = unescape(trim(cleanPart.substr(2)));
+                        step.text = wrapText(unescape(trim(cleanPart.substr(2))), 60);
                     } 
                     else if (cleanPart.find("T:") == 0) {
                         std::string type = trim(cleanPart.substr(2)); // Nettoyage ici
