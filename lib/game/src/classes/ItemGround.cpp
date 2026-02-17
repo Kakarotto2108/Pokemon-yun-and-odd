@@ -16,7 +16,6 @@ Iog::Iog(const std::string& name, sf::Vector2i pos)
     setSize(1.5f, 1.5f);
 }
 
-
 void Iog::interact()
 {
     std::string itemName = getName(); // si WorldEntity expose un getter
@@ -24,7 +23,7 @@ void Iog::interact()
     DialogueStep step1;
     step1.text = Player::getInstance().getName() + " trouve : $[blue]" + itemName + " $[white]!";
     step1.type = BoxType::Object;
-    Item item(itemName, ItemPocket::Items, "Objet trouvé au sol.");
+    Item item = ItemDatabase::getInstance().getItem(itemName);
     Player::getInstance().getInventory().addItem(item, 1);
     GameEvents::OnEntityDestroyed.notify(this);
     DialogueStep step2;

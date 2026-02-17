@@ -96,6 +96,9 @@ void Character::moveRequest(sf::Vector2i direction, Zone& zone) {
     m_playSequence = false;
 
     std::string prefix = m_isRunning ? "Run" : "Walk";
+    if (m_inventory->getQuantity(ItemDatabase::getInstance().getItem("Ch. de Sport")) == 0) {
+        prefix = "Walk";
+    }
 
     // Mise à jour orientation et nom d'animation
     if (direction.y > 0)      { 

@@ -10,6 +10,7 @@ Menu::Menu() {
             open();
     } else if (m_open) {
         GameChoiceBox::getInstance().setVisible(false);
+        DialogManager::getInstance().setActive(false);
         GameChoiceBox::getInstance().reset();
         m_open = false;
     }

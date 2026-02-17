@@ -83,7 +83,7 @@ void PlayerController::update(Zone& zone, float dt) {
     if (m_moveTimer.getElapsedTime().asSeconds() < m_player.getMoveDelay() && m_player.getIsMoving()) return;
 
     // Gestion de la course (Touche B / Run)
-    if (Controller::getInstance().isActionActive("Run")) {
+    if (Controller::getInstance().isActionActive("Run") && m_player.getInventory().getQuantity(ItemDatabase::getInstance().getItem("Ch. de Sport")) > 0) {
         m_player.setRunning(true);
         m_player.setMoveDelay(0.1f); // Plus rapide (0.1s par case au lieu de 0.2s)
     } else {

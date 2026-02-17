@@ -189,7 +189,7 @@ public:
                                     Character* speakerChar = dynamic_cast<Character*>(speaker);
                                     if (speakerChar) {
                                         // On crée un objet Item pour l'ajouter à l'inventaire.
-                                        Item item(itemID, ItemPocket::Items, "Objet reçu d'un PNJ.");
+                                        Item item = ItemDatabase::getInstance().getItem(itemID);
                                         Player::getInstance().getInventory().addItem(item, qty);
                                     }
                                     else {
@@ -199,7 +199,7 @@ public:
                                     if (obj) {
                                         obj->giveItem();
                                         // On crée un objet Item pour l'ajouter à l'inventaire.
-                                        Item item(itemID, ItemPocket::Items, "Objet reçu d'un PNJ.");
+                                        Item item = ItemDatabase::getInstance().getItem(itemID);
                                         Player::getInstance().getInventory().addItem(item, qty);
                                     }
                                     // On "supprime" la ligne pour les prochaines fois en la vidant.

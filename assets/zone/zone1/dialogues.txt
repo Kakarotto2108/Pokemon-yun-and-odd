@@ -1,7 +1,7 @@
 [camille_intro]
 S: Oh, bonjour ! Je ne t'avais pas vu arriver. | T: Classic| A: NONE
 S: Tiens, prends ceci, ça t'aidera pour ton voyage ! | T: Classic| A: NONE
-S: Vous recevez une $[blue]Pokéball $[white]! | T: Object| A: GIVE_ITEM:Pokeball:1
+S: Vous recevez une $[blue]Pokéball $[white]! | T: Object| A: GIVE_ITEM:Poké Ball:1
 S: Kakarotto place l'objet $[blue]Pokéball $[white]dans la poche $[blue]POKÉBALL $[white]. | T: Object| A: CHANGE_DIAG:camille_intro_2
 S: Fais-en bon usage ! | T: Classic| A: NONE
 
@@ -9,9 +9,14 @@ S: Fais-en bon usage ! | T: Classic| A: NONE
 S: Alors ? Comment tu trouves ma pokéball ? J'espère que tu l'utilises correctement | T: Classic| A: None
 
 [sage_conseil]
-S: Tes $[red]Pokemonitos $[black]ont l'air fatigués, mon enfant. | T: Classic| A: NONE
-S: Laisse-moi les soigner un instant... | T: Classic| A: MOVE:SIMPLE:{8,5}
-S: Voilà ! Ils sont en pleine forme maintenant. | T: Classic| A: NONE
+S: Salut petit gars, tu m'as l'air plein d'énergie ! J'étais pareil à ton âge...| T: Classic| A: NONE
+S: J'utilisais ces chaussures, mais maintenant, elle sont à toi ! | T: Classic| A: NONE
+S: Vous recevez des $[blue]Chaussures de Sport $[white]! | T: Object| A: GIVE_ITEM:Ch. de Sport:1
+S: Kakarotto place l'objet $[blue]Ch. de Sport$[white] dans la poche $[blue]OBJETS RARE $[white]. | T: Object| A: CHANGE_DIAG:sage_conseil2
+S: Aah... Ça me rappelle le bon vieux temps... | T: Classic| A: NONE
+
+[sage_conseil2]
+S: Ah, te revoilà, alors, comment trouves-tu mes vieilles basket ? Pas mal, hein ? |T : Classic| A : NONE
 
 [tv_maison]
 S: C'est ta console de jeux préférée. | T: Classic| A: NONE

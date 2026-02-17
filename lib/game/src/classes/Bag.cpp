@@ -10,7 +10,7 @@
 Bag::Bag() {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
-        if (!GameChoiceBox::getInstance().isVisible()) return;
+        if (!m_isOpen) return;
         
         // Cooldown pour éviter le défilement trop rapide
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
@@ -31,13 +31,23 @@ Bag::Bag() {
         open();
     });
 
-    GameEvents::CloseBag.subscribe([]() {
+    GameEvents::CloseBag.subscribe([this]() {
+        m_isOpen = false;
         DialogManager::getInstance().setActive(false);
+        GameChoiceBox::getInstance().setVisible(false);
+        GameChoiceBox::getInstance().reset();
         Menu::getInstance().open();
+    });
+
+    Controller::getInstance().onActionPressed("OpenMenu", [this]() {
+        if (m_isOpen) {
+            m_isOpen = false;
+        }
     });
 }
 
 void Bag::open() {
+    m_isOpen = true;
     updateDisplay();
     GameChoiceBox::getInstance().setVisible(true);
     GameChoiceBox::getInstance().setChoiceIndex(0);

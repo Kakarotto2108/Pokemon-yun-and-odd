@@ -13,6 +13,7 @@ private:
         ItemPocket::Berries};
     int m_currentpocketIndex = 0;
     sf::Clock m_inputClock;
+    bool m_isOpen = false;
 
     void updateDisplay();
     
