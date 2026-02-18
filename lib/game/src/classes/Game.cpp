@@ -4,6 +4,7 @@
 #include "Event.hpp"
 #include "Menu.hpp"
 #include "Item.hpp"
+#include "Bag.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -173,6 +174,7 @@ void Game::render() {
     // On dessine l'UI
     m_window.setView(m_uiView);
     DialogManager::getInstance().draw(m_window);
+    Bag::getInstance().draw(m_window);
 
     m_window.popGLStates(); // Restaure les états pour le prochain tour
     m_window.display();

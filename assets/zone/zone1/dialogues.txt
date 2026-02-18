@@ -1,8 +1,8 @@
 [camille_intro]
 S: Oh, bonjour ! Je ne t'avais pas vu arriver. | T: Classic| A: NONE
 S: Tiens, prends ceci, ça t'aidera pour ton voyage ! | T: Classic| A: NONE
-S: Vous recevez une $[blue]Pokéball $[white]! | T: Object| A: GIVE_ITEM:Poké Ball:1
-S: Kakarotto place l'objet $[blue]Pokéball $[white]dans la poche $[blue]POKÉBALL $[white]. | T: Object| A: CHANGE_DIAG:camille_intro_2
+S: Vous recevez une $[blue]Super Ball $[white]! | T: Object| A: GIVE_ITEM:Super Ball:1
+S: Kakarotto place l'objet $[blue]Super Ball $[white]dans la poche $[blue]POKÉBALL $[white]. | T: Object| A: CHANGE_DIAG:camille_intro_2
 S: Fais-en bon usage ! | T: Classic| A: NONE
 
 [camille_intro_2]

@@ -53,6 +53,20 @@ void Bag::open() {
     GameChoiceBox::getInstance().setChoiceIndex(0);
 }
 
+void Bag::displayItemDescription(){
+    std::string description;
+    // On récupère l'item sélectionné
+    std::string selectedItem = GameChoiceBox::getInstance().getChoiceName();
+    selectedItem = selectedItem.substr(0, selectedItem.size() - 3);
+    if (!selectedItem.empty()) {
+        description = ItemDatabase::getInstance().getItem(selectedItem).getDescription();
+    }
+    DialogManager::getInstance().startDialogue({{description}});
+    if (description == "Description manquante") {
+        DialogManager::getInstance().setActive(false);
+    }
+}
+
 void Bag::updateDisplay() {
     std::string pocketName;
     switch(m_pockets[m_currentpocketIndex]) {
@@ -62,9 +76,9 @@ void Bag::updateDisplay() {
         case ItemPocket::TMsHMs: pocketName = "CT & CS"; break;
         case ItemPocket::Berries: pocketName = "BAIES"; break;
     }
-    DialogueStep step;
-    step.text = "Poche : " + pocketName;
-    DialogManager::getInstance().startDialogue({step});
+
+    m_pocketDialog.setText(pocketName);
+    m_pocketDialog.show();
 
     std::vector<std::pair<std::string, std::string>> choices;
     
@@ -74,17 +88,29 @@ void Bag::updateDisplay() {
         if (m_pockets[m_currentpocketIndex] == pocket) {
             for (auto& [item, count] : items) {
                 std::string itemText = item + " x" + std::to_string(count);
+
                 // TODO: Ajouter un événement "UseItem" ou similaire
                 choices.emplace_back(itemText, "UseObj");
             }
         }
     }
     
-    // Ajout d'une option pour fermer si la poche est vide ou pour quitter
-    if (choices.empty()) {
-        choices.emplace_back("Poche vide", "");
-    }
     choices.emplace_back("Retour", "CloseBag"); // Il faudra gérer l'event CloseBag si tu veux une action explicite
 
     GameChoiceBox::getInstance().init(choices);
+}
+
+void Bag::draw(sf::RenderWindow& window)
+{
+    if (!m_isOpen) return;
+    
+    displayItemDescription();
+    sf::FloatRect choiceBounds = GameChoiceBox::getInstance().getGlobalBounds();
+    float height = 50.f;
+
+    m_pocketDialog.setVerticalPadding(10.f);
+    m_pocketDialog.setSize({choiceBounds.width, height});
+    m_pocketDialog.setPosition({choiceBounds.left, choiceBounds.top - height});
+
+    m_pocketDialog.draw(window);
 }

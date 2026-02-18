@@ -48,6 +48,8 @@ private:
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
     std::function<void()> m_actionAfter = nullptr;
+    std::vector<DialogueStep> wrapDialogueSteps(const std::vector<DialogueStep>& steps);
+    std::string wrapText(const std::string& text, std::size_t maxWidth);
 };
 
 #endif

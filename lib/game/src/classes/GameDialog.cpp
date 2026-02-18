@@ -19,6 +19,10 @@ void GameDialog::setPosition(const sf::Vector2f& pos) {
     m_boxSprite.setPosition(pos);
 }
 
+void GameDialog::setSize(const sf::Vector2f& size) {
+    m_boxSprite.setScale(size.x / m_boxSprite.getLocalBounds().width, size.y / m_boxSprite.getLocalBounds().height);
+}
+
 void GameDialog::parseText(const std::string& text) {
     m_segments.clear();
     sf::Color currentColor = sf::Color::Black;
@@ -90,7 +94,7 @@ void GameDialog::draw(sf::RenderWindow& window) {
 
     float startX = m_pos.x + 40.f;
     float currentX = startX;
-    float currentY = m_pos.y + 25.f;
+    float currentY = m_pos.y + m_verticalPadding;
 
     for (const auto& seg : m_segments) {
         std::string segmentText = seg.content;

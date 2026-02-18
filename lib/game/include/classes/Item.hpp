@@ -91,7 +91,6 @@ public:
             const auto& d = m_data.at(name);
             return Item(d.m_name, d.m_pocket, d.m_description, d.m_consumable);
         }
-        std::cerr << "Warning: Item '" << name << "' introuvable dans la database." << std::endl;
         return Item(name, ItemPocket::Items, "Description manquante", false);
     }
 

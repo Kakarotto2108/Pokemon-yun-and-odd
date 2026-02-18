@@ -19,13 +19,16 @@ public:
 
     void setBoxType(BoxType type);
     void setPosition(const sf::Vector2f& pos);
+    void setSize(const sf::Vector2f& size);
     void setText(const std::string& rawText);
     
     void show() { m_visible = true; }
     void hide() { m_visible = false; }
     bool isVisible() const { return m_visible; }
+    void setVerticalPadding(float padding) { m_verticalPadding = padding; }
 
     virtual void draw(sf::RenderWindow& window);
+    sf::FloatRect getGlobalBounds() const { return m_boxSprite.getGlobalBounds(); }
 
 private:
     void parseText(const std::string& text);
@@ -36,6 +39,7 @@ protected :sf::Sprite m_boxSprite;
     
     bool m_visible = false;
     sf::Vector2f m_pos; 
+    float m_verticalPadding = 25.f;
     
 };
 

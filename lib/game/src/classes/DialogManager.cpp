@@ -1,8 +1,49 @@
 #include "DialogManager.hpp"
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 void DialogManager::addLine(const std::string& text, BoxType type) {
     m_queue.push({text, type});
+}
+
+
+std::vector<DialogueStep> DialogManager::wrapDialogueSteps(const std::vector<DialogueStep>& steps) {
+    std::vector<DialogueStep> wrappedSteps;
+    for (const auto& step : steps) {
+        DialogueStep newStep = step;
+        // On ne reformate pas un texte qui contient déjà des retours à la ligne manuels.
+        if (newStep.text.find('\n') == std::string::npos) {
+            newStep.text = wrapText(newStep.text, 60);
+        }
+        wrappedSteps.push_back(newStep);
+    }
+    return wrappedSteps;
+}
+
+std::string DialogManager::wrapText(const std::string& text, std::size_t maxWidth)
+{
+    std::istringstream words(text);
+    std::string word;
+    std::string line;
+    std::string result;
+
+    while (words >> word)
+    {
+        if (line.length() + word.length() + 1 > maxWidth)
+        {
+            result += line + "\n";
+            line.clear();
+        }
+
+        if (!line.empty())
+            line += " ";
+
+        line += word;
+    }
+
+    result += line;
+    return result;
 }
 
 
@@ -13,10 +54,9 @@ void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, WorldE
     }
 
     m_currentSpeaker = speaker;
-    
     while(!m_queue.empty()) m_queue.pop();
 
-    for (const auto& step : steps) {
+    for (const auto& step : wrapDialogueSteps(steps)) {
         m_queue.push(step);
     }
 
