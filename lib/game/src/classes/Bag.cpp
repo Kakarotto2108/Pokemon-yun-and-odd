@@ -11,8 +11,7 @@ Bag::Bag() {
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
         if (!m_isOpen) return;
-        //1000
-        
+
         // Cooldown pour éviter le défilement trop rapide
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
         if (std::abs(val) < 0.5f) return;
@@ -25,6 +24,7 @@ Bag::Bag() {
         else if (m_currentpocketIndex > 4) m_currentpocketIndex = 0;
 
         updateDisplay();
+        GameChoiceBox::getInstance().reset();
         m_inputClock.restart();
     });
 
@@ -58,8 +58,6 @@ void Bag::displayItemDescription(){
     std::string description;
     // On récupère l'item sélectionné
     std::string selectedItem = GameChoiceBox::getInstance().getChoiceName();
-    std::string texture = "assets/sprite/obj/pokeball.png";
-    m_bagSprite.setTexture(TextureManager::getInstance().get(texture));
 
 
     if (selectedItem.size() <= 3 || selectedItem == "Retour") {
@@ -70,6 +68,10 @@ void Bag::displayItemDescription(){
     selectedItem = selectedItem.substr(0, selectedItem.size() - 3);
     if (!selectedItem.empty()) {
         description = ItemDatabase::getInstance().getItem(selectedItem).getDescription();
+        std::string texture = "assets/sprite/items/" + selectedItem + ".png";
+        m_bagSprite.setTexture(TextureManager::getInstance().get(texture));
+        m_bagSprite.setPosition(590, 375); // Positionner le sprite à un endroit approprié
+        m_bagSprite.setScale(3.f, 3.f); // Redimensionner le sprite si nécessaire
     }
     DialogManager::getInstance().startDialogue({{description}}, nullptr, nullptr, 45);
     if (description == "Description manquante") {
@@ -123,5 +125,10 @@ void Bag::draw(sf::RenderWindow& window)
     m_pocketDialog.setPosition({choiceBounds.left, choiceBounds.top - height});
 
     m_pocketDialog.draw(window);
-    window.draw(m_bagSprite);
+
+    std::string selectedItem = GameChoiceBox::getInstance().getChoiceName();
+
+    if (selectedItem.size() > 3 && selectedItem != "Retour") {
+        window.draw(m_bagSprite);
+    }
 }
