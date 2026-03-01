@@ -7,14 +7,13 @@ void DialogManager::addLine(const std::string& text, BoxType type) {
     m_queue.push({text, type});
 }
 
-
-std::vector<DialogueStep> DialogManager::wrapDialogueSteps(const std::vector<DialogueStep>& steps) {
+std::vector<DialogueStep> DialogManager::wrapDialogueSteps(const std::vector<DialogueStep>& steps, std::size_t maxWidth) {
     std::vector<DialogueStep> wrappedSteps;
     for (const auto& step : steps) {
         DialogueStep newStep = step;
         // On ne reformate pas un texte qui contient déjà des retours à la ligne manuels.
         if (newStep.text.find('\n') == std::string::npos) {
-            newStep.text = wrapText(newStep.text, 60);
+            newStep.text = wrapText(newStep.text, maxWidth);
         }
         wrappedSteps.push_back(newStep);
     }
@@ -47,7 +46,7 @@ std::string DialogManager::wrapText(const std::string& text, std::size_t maxWidt
 }
 
 
-void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, WorldEntity* speaker, std::function<void()> actionAfter) {
+void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, WorldEntity* speaker, std::function<void()> actionAfter, std::size_t maxWidth) {
     if (!m_msgBox) {
         std::cerr << "[DialogManager] Erreur : Pas de MessageBox liée (init non appelé)\n";
         return;
@@ -56,7 +55,7 @@ void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, WorldE
     m_currentSpeaker = speaker;
     while(!m_queue.empty()) m_queue.pop();
 
-    for (const auto& step : wrapDialogueSteps(steps)) {
+    for (const auto& step : wrapDialogueSteps(steps, maxWidth)) {
         m_queue.push(step);
     }
 

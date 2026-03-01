@@ -166,9 +166,6 @@ public:
                                         Item item = ItemDatabase::getInstance().getItem(itemID);
                                         Player::getInstance().getInventory().addItem(item, qty);
                                     }
-                                    else {
-                                        cmd = "CHANGE_DIAG";
-                                    }
                                     Obj* obj = dynamic_cast<Obj*>(speaker);
                                     if (obj) {
                                         obj->giveItem();
@@ -250,7 +247,7 @@ public:
                             if (cmd == "CHANGE_DIAG") {
                                 WorldEntity* speaker = DialogManager::getInstance().getCurrentSpeaker();
                                 Npc* npc = dynamic_cast<Npc*>(speaker);
-                                if (tokens.size() >= 2) {
+                                if (npc && tokens.size() >= 2) {
                                     std::string diagKey = trim(tokens[1]);
                                     npc->setDialogueKey(diagKey);
                                 }

@@ -24,6 +24,7 @@ public:
     
     void show() { m_visible = true; }
     void hide() { m_visible = false; }
+    
     bool isVisible() const { return m_visible; }
     void setVerticalPadding(float padding) { m_verticalPadding = padding; }
 

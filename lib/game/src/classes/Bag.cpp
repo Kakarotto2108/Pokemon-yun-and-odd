@@ -57,11 +57,20 @@ void Bag::displayItemDescription(){
     std::string description;
     // On récupère l'item sélectionné
     std::string selectedItem = GameChoiceBox::getInstance().getChoiceName();
+    std::string texture = "assets/sprite/obj/pokeball.png";
+    m_bagSprite.setTexture(TextureManager::getInstance().get(texture));
+
+
+    if (selectedItem.size() <= 3 || selectedItem == "Retour") {
+        DialogManager::getInstance().setActive(false);
+        return;
+    }
+
     selectedItem = selectedItem.substr(0, selectedItem.size() - 3);
     if (!selectedItem.empty()) {
         description = ItemDatabase::getInstance().getItem(selectedItem).getDescription();
     }
-    DialogManager::getInstance().startDialogue({{description}});
+    DialogManager::getInstance().startDialogue({{description}}, nullptr, nullptr, 45);
     if (description == "Description manquante") {
         DialogManager::getInstance().setActive(false);
     }
@@ -113,4 +122,5 @@ void Bag::draw(sf::RenderWindow& window)
     m_pocketDialog.setPosition({choiceBounds.left, choiceBounds.top - height});
 
     m_pocketDialog.draw(window);
+    window.draw(m_bagSprite);
 }

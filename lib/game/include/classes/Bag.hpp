@@ -2,6 +2,7 @@
 #define BAG_HPP
 #include "Item.hpp"
 #include "GameDialog.hpp"
+#include "ResourceManager.hpp"
 #include <vector>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics.hpp>
@@ -20,7 +21,8 @@ private:
     GameDialog m_pocketDialog;
 
     void updateDisplay();
-    
+    sf::Sprite m_bagSprite;
+
 public:
     static Bag& getInstance() {
         static Bag instance;

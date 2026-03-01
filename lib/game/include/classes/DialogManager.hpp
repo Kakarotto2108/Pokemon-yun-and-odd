@@ -32,7 +32,7 @@ public:
     void init(GameDialog* msgBox) { m_msgBox = msgBox; }
 
     void addLine(const std::string& text, BoxType type = BoxType::Classic);
-    void startDialogue(const std::vector<DialogueStep>& steps, WorldEntity* speaker = nullptr, std::function<void()> actionAfter = nullptr);
+    void startDialogue(const std::vector<DialogueStep>& steps, WorldEntity* speaker = nullptr, std::function<void()> actionAfter = nullptr,  std::size_t maxWidth = 60);
     void next();
 
     bool isActive() const { return m_active; }
@@ -48,7 +48,7 @@ private:
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
     std::function<void()> m_actionAfter = nullptr;
-    std::vector<DialogueStep> wrapDialogueSteps(const std::vector<DialogueStep>& steps);
+    std::vector<DialogueStep> wrapDialogueSteps(const std::vector<DialogueStep>& steps, std::size_t maxWidth);
     std::string wrapText(const std::string& text, std::size_t maxWidth);
 };
 
