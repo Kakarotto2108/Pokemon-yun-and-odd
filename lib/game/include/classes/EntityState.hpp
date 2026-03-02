@@ -35,7 +35,6 @@ struct EntityState {
         else
             j["inventory"] = nlohmann::json::array();
         if (size) {
-            std::cout << "sizeX et sizeY : " << size->x << " " << size->y << std::endl;
             j["sizeX"] = size->x;
             j["sizeY"] = size->y;
 }

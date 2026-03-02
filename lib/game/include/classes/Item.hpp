@@ -83,7 +83,6 @@ public:
 
             }
         }
-        std::cout << "ItemDatabase chargee : " << m_data.size() << " objets." << std::endl;
     }
 
     Item getItem(const std::string& name) {

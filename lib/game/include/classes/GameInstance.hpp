@@ -118,6 +118,13 @@ public:
         Player::getInstance().applyState(m_playerdata);
     }
 
+    // ------------------ CHECK SAVE FILE ------------------
+
+    bool saveFileExists(const std::string& filename) const
+    {
+        std::ifstream file(filename);
+        return file.good();
+    }
 private:
     std::string key = "LaLuneEstBelle2108";
 

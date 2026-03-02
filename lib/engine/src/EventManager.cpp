@@ -8,17 +8,27 @@
 #include "Bag.hpp"
 #include "Menu.hpp"
 
+namespace {
+    enum class YesNoContext {
+        NONE,
+        SAVE_GAME
+    };
+    YesNoContext g_currentYesNoContext = YesNoContext::NONE;
+}
+
 
 EventManager::EventManager() {
     GameEvents::SaveGame.subscribe([]() {
         DialogueStep step1;
-        step1.text = "Voulez-vous sauvegarder la partie ?";
+        if (GameInstance::getInstance().saveFileExists("savegame.dat")) {
+            step1.text = "Une sauvegarde existe déjà. L'écraser ?";
+        } else {
+            step1.text = "Voulez-vous sauvegarder la partie ?";
+        }
         step1.type = BoxType::Classic;
-        const std::vector<DialogueStep> script = {
-            step1
-        };
 
-        DialogManager::getInstance().startDialogue(script);
+        DialogManager::getInstance().startDialogue({step1});
+
         std::vector<std::pair<std::string, std::string>> choices = {
             {"Oui", "YesChoice"},
             {"Non", "NoChoice"}
@@ -26,33 +36,34 @@ EventManager::EventManager() {
         GameChoiceBox::getInstance().init(choices);
         GameChoiceBox::getInstance().setChoiceIndex(0);
         GameChoiceBox::getInstance().setVisible(true);
-        GameEvents::YesChoice.subscribe([]() {
+        g_currentYesNoContext = YesNoContext::SAVE_GAME;
+    });
+
+    GameEvents::YesChoice.subscribe([]() {
+        if (g_currentYesNoContext == YesNoContext::SAVE_GAME) {
             GameInstance::getInstance().saveZoneState(World::getInstance().getCurrentZoneId(), World::getInstance().getCurrentZone().getEntities());
             GameInstance::getInstance().saveToFileEncrypted("savegame.dat");
-            DialogueStep step2;
-            step2.text = "Sauvegarde effectuée !";
-            step2.type = BoxType::Classic;
-            const std::vector<DialogueStep> script = {
-                step2
-            };
+            DialogManager::getInstance().startDialogue({{"Sauvegarde effectuée !", BoxType::Classic}});
+            g_currentYesNoContext = YesNoContext::NONE;
+        }
+    });
 
-            DialogManager::getInstance().startDialogue(script);
-        });
-        GameEvents::NoChoice.subscribe([]() {
+    GameEvents::NoChoice.subscribe([]() {
+        if (g_currentYesNoContext == YesNoContext::SAVE_GAME) {
             DialogManager::getInstance().setActive(false);
             Menu::getInstance().open();
-        });
-
-        
-
-
+            g_currentYesNoContext = YesNoContext::NONE;
+        }
     });
+
     GameEvents::Ev1.subscribe([this]() {
         makeChoice("DIAG_1_1");
     });
+
     GameEvents::Ev2.subscribe([this]() {
         makeChoice("DIAG_1_2");
     });
+
     GameEvents::Ev3.subscribe([this]() {
         makeChoice("DIAG_1_3");
     });
