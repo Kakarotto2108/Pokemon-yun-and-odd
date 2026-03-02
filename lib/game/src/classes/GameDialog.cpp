@@ -3,6 +3,7 @@
 
 GameDialog::GameDialog() {
     setBoxType(BoxType::Classic); 
+    m_textSpeed = 50.f; // Vitesse d'affichage
 }
 
 void GameDialog::setBoxType(BoxType type) {
@@ -37,7 +38,7 @@ void GameDialog::parseText(const std::string& text) {
         std::smatch match = *i;
         
         if (static_cast<size_t>(match.position()) > lastPos) {
-            m_segments.push_back({text.substr(lastPos, match.position() - lastPos), currentColor});
+            m_segments.push_back({sf::String::fromUtf8(text.begin() + lastPos, text.begin() + match.position()), currentColor});
         }
         
         currentColor = getColorFromName(match[1].str());
@@ -45,7 +46,7 @@ void GameDialog::parseText(const std::string& text) {
     }
     
     if (lastPos < text.length()) {
-        m_segments.push_back({text.substr(lastPos), currentColor});
+        m_segments.push_back({sf::String::fromUtf8(text.begin() + lastPos, text.end()), currentColor});
     }
 }
 
@@ -78,8 +79,30 @@ sf::Color GameDialog::getColorFromName(const std::string& name) {
     return sf::Color::Black; // Couleur par défaut
 }
 
-void GameDialog::setText(const std::string& rawText) {
+void GameDialog::setText(const std::string& rawText, bool animate) {
     parseText(rawText);
+    if (animate) {
+        m_visibleChars = 0.f;
+    } else {
+        finish();
+    }
+}
+
+void GameDialog::update(float dt) {
+    if (!m_visible) return;
+    m_visibleChars += m_textSpeed * dt;
+}
+
+bool GameDialog::isFinished() const {
+    size_t totalLen = 0;
+    for (const auto& seg : m_segments) totalLen += seg.content.getSize();
+    return m_visibleChars >= static_cast<float>(totalLen);
+}
+
+void GameDialog::finish() {
+    size_t totalLen = 0;
+    for (const auto& seg : m_segments) totalLen += seg.content.getSize();
+    m_visibleChars = static_cast<float>(totalLen);
 }
 
 void GameDialog::draw(sf::RenderWindow& window) {
@@ -96,8 +119,25 @@ void GameDialog::draw(sf::RenderWindow& window) {
     float currentX = startX;
     float currentY = m_pos.y + m_verticalPadding;
 
+    int charsToDraw = static_cast<int>(m_visibleChars);
+    int currentGlobalIndex = 0;
+
     for (const auto& seg : m_segments) {
-        std::string segmentText = seg.content;
+        if (currentGlobalIndex >= charsToDraw) break;
+
+        sf::String segmentSfStr = seg.content;
+        
+        // Si on doit couper ce segment car l'animation s'arrête au milieu
+        int segLen = static_cast<int>(segmentSfStr.getSize());
+        if (currentGlobalIndex + segLen > charsToDraw) {
+            segmentSfStr = segmentSfStr.substring(0, charsToDraw - currentGlobalIndex);
+        }
+        auto utf8 = segmentSfStr.toUtf8();
+
+        std::string segmentText(utf8.begin(), utf8.end());
+        
+        currentGlobalIndex += segLen;
+
         size_t searchPos = 0;
         
         while(true) {

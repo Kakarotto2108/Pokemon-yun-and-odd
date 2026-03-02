@@ -70,6 +70,12 @@ void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, WorldE
 void DialogManager::next() {
     if (!m_active || !m_msgBox) return;
 
+    // Si le texte est en train de défiler, on le termine instantanément
+    if (!m_msgBox->isFinished()) {
+        m_msgBox->finish();
+        return;
+    }
+
     if (m_queue.empty()) {
         m_active = false;
         m_msgBox->hide();
@@ -104,8 +110,14 @@ void DialogManager::next() {
     }
 
     m_msgBox->setBoxType(current.type);
-    m_msgBox->setText(current.text);
+    m_msgBox->setText(current.text, !current.instant);
     m_msgBox->show();
+}
+
+void DialogManager::update(float dt) {
+    if (m_active && m_msgBox) {
+        m_msgBox->update(dt);
+    }
 }
 
 void DialogManager::draw(sf::RenderWindow& window) {

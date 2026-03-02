@@ -73,7 +73,7 @@ void Bag::displayItemDescription(){
         m_bagSprite.setPosition(590, 375); // Positionner le sprite à un endroit approprié
         m_bagSprite.setScale(3.f, 3.f); // Redimensionner le sprite si nécessaire
     }
-    DialogManager::getInstance().startDialogue({{description}}, nullptr, nullptr, 45);
+    DialogManager::getInstance().startDialogue({{description, BoxType::Classic, nullptr, true}}, nullptr, nullptr, 45);
     if (description == "Description manquante") {
         DialogManager::getInstance().setActive(false);
     }
@@ -89,7 +89,7 @@ void Bag::updateDisplay() {
         case ItemPocket::Berries: pocketName = "BAIES"; break;
     }
 
-    m_pocketDialog.setText(pocketName);
+    m_pocketDialog.setText(pocketName, false);
     m_pocketDialog.show();
 
     std::vector<std::pair<std::string, std::string>> choices;

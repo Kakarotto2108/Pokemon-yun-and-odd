@@ -15,6 +15,7 @@ struct DialogueStep {
     std::string text;
     BoxType type = BoxType::Classic;
     std::function<void()> action = nullptr;
+    bool instant = false;
 };
 
 class DialogManager {
@@ -34,7 +35,8 @@ public:
     void addLine(const std::string& text, BoxType type = BoxType::Classic);
     void startDialogue(const std::vector<DialogueStep>& steps, WorldEntity* speaker = nullptr, std::function<void()> actionAfter = nullptr,  std::size_t maxWidth = 60);
     void next();
-
+    void update(float dt);
+    
     bool isActive() const { return m_active; }
     void setActive(bool active) { m_active = active; }
     void draw(sf::RenderWindow& window);

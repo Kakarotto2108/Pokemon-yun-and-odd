@@ -62,6 +62,7 @@ void Game::run() {
 
 void Game::update(float dt) {
     TransitionManager::getInstance().update(dt);
+    DialogManager::getInstance().update(dt);
 
     // On bloque l'update du monde/joueur si on est en plein milieu d'une transition ? 
     // Ou on laisse tourner, selon ton choix de Game Design.
