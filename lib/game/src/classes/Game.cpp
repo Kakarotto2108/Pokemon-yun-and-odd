@@ -4,6 +4,7 @@
 #include "Event.hpp"
 #include "Menu.hpp"
 #include "Item.hpp"
+#include "Pokemon.hpp"
 #include "Bag.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
@@ -24,6 +25,7 @@ Game::Game(const GameConfig& config)
     }
     TransitionManager::getInstance().init(m_window.getSize());
     ItemDatabase::getInstance().load("assets/items/items.txt");
+    PokemonDataBase::getInstance().load("assets/pokemons/Pokemon.txt");
 
     // Caméra "Game"
     m_cameraView.setSize(static_cast<sf::Vector2f>(m_window.getSize())); // taille = fenêtre

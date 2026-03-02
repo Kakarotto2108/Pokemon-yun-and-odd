@@ -5,7 +5,6 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include "Item.hpp"
 
 enum class ItemPocket
 {
