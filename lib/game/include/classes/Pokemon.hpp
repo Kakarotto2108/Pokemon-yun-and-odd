@@ -19,7 +19,11 @@ public:
         std::string type,
         std::string xptype,
         std::vector<std::string> abilities,
+        std::string secret_ability,
+        int evol_level,
         std::vector<int> base_stats,
+        std::string ev_gived,
+        int catch_rate,
         std::vector<std::pair<std::string, int>> moves
     );
 
@@ -28,7 +32,11 @@ public:
     std::string m_type;
     std::string m_xptype;
     std::vector<std::string> m_abilities;
+    std::string m_secret_ability;
+    int m_evol_level;
     std::vector<int> m_base_stats;
+    std::string m_ev_gived;
+    int m_catch_rate;
     std::vector<std::pair<std::string, int>> m_moves;
 };
 
@@ -89,8 +97,12 @@ public:
                 data.m_type = trim(parts[2]);
                 data.m_xptype = trim(parts[3]);
                 data.m_abilities = split(trim(parts[4]), ';');
-                data.m_base_stats = splitToInts(trim(parts[5]), ';');
-                data.m_moves = splitToMoves(trim(parts[6]));
+                data.m_secret_ability = trim(parts[5]);
+                data.m_evol_level = std::stoi(trim(parts[6]));
+                data.m_base_stats = splitToInts(trim(parts[7]), ';');
+                data.m_ev_gived = trim(parts[8]);
+                data.m_catch_rate = std::stoi(trim(parts[9]));
+                data.m_moves = splitToMoves(trim(parts[10]));
 
                 m_pokemons.emplace(data.m_name, data);
                 printf("Loaded Pokemon: %s\n", data.m_name.c_str());
@@ -100,11 +112,15 @@ public:
                 for (const auto& ability : data.m_abilities) {
                     printf("%s ", ability.c_str());
                 }
-                printf("\nBase Stats: ");
+                printf("\nSecret Ability: %s\n", data.m_secret_ability.c_str());
+                printf("Evolution Level: %d\n", data.m_evol_level);
+                printf("Base Stats: ");
                 for (const auto& stat : data.m_base_stats) {
                     printf("%d ", stat);
                 }
-                printf("\nMoves: ");
+                printf("\nEV Gained: %s\n", data.m_ev_gived.c_str());
+                printf("Catch Rate: %d\n", data.m_catch_rate);
+                printf("Moves: ");
                 for (const auto& move : data.m_moves) {
                     printf("%s (Level %d) ", move.first.c_str(), move.second);
                 }
