@@ -7,6 +7,7 @@
 #include "Interactable.hpp"
 #include "Bag.hpp"
 #include "Menu.hpp"
+#include "PokemonInstance.hpp"
 
 namespace {
     enum class YesNoContext {
@@ -70,6 +71,11 @@ EventManager::EventManager() {
 
     GameEvents::OpenBag.subscribe([]() {
         Bag::getInstance().open();
+    });
+
+    GameEvents::OpenPokemon.subscribe([]() {
+        PokemonInstance pkm("Moustillon");
+        pkm.display();
     });
 }
 

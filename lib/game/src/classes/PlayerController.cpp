@@ -4,6 +4,7 @@
 #include "TransitionManager.hpp"
 #include "GameInstance.hpp"
 #include "GameChoiceBox.hpp"
+#include "PokemonInstance.hpp"
 #include <iostream>
 
 PlayerController* PlayerController::s_instance = nullptr;

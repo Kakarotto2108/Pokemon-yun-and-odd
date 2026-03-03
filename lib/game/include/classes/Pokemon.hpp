@@ -105,28 +105,15 @@ public:
                 data.m_moves = splitToMoves(trim(parts[10]));
 
                 m_pokemons.emplace(data.m_name, data);
-                printf("Loaded Pokemon: %s\n", data.m_name.c_str());
-                printf("Type: %s\n", data.m_type.c_str());
-                printf("XP Type: %s\n", data.m_xptype.c_str());
-                printf("Abilities: ");
-                for (const auto& ability : data.m_abilities) {
-                    printf("%s ", ability.c_str());
-                }
-                printf("\nSecret Ability: %s\n", data.m_secret_ability.c_str());
-                printf("Evolution Level: %d\n", data.m_evol_level);
-                printf("Base Stats: ");
-                for (const auto& stat : data.m_base_stats) {
-                    printf("%d ", stat);
-                }
-                printf("\nEV Gained: %s\n", data.m_ev_gived.c_str());
-                printf("Catch Rate: %d\n", data.m_catch_rate);
-                printf("Moves: ");
-                for (const auto& move : data.m_moves) {
-                    printf("%s (Level %d) ", move.first.c_str(), move.second);
-                }
-                printf("\n");
             }
         }
+    }
+
+    Pokemon getPokemon(const std::string& name) {
+        if (m_pokemons.find(name) != m_pokemons.end()) {
+            return m_pokemons.at(name);
+        }
+        return Pokemon();  // Return a default Pokemon if not found
     }
 
 private:

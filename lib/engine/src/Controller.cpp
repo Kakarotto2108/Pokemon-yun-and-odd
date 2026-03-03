@@ -8,7 +8,6 @@ Controller::Controller() {
     actionMapping["Cancel"] = sf::Keyboard::B;
     actionMapping["Run"] = sf::Keyboard::B;
 
-
     // Axis mapping
     axisMapping["MoveHorizontal"] = {sf::Keyboard::Q, sf::Keyboard::D};
     axisMapping["MoveVertical"] = {sf::Keyboard::Z, sf::Keyboard::S};
