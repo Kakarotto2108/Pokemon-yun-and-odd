@@ -24,8 +24,8 @@ Game::Game(const GameConfig& config)
         std::cerr << "Erreur : Impossible de créer m_sceneBuffer" << std::endl;
     }
     TransitionManager::getInstance().init(m_window.getSize());
-    ItemDatabase::getInstance().load("assets/items/items.txt");
-    PokemonDataBase::getInstance().load("assets/pokemons/Pokemon.txt");
+    ItemDatabase::getInstance().load("assets/ressources/items.txt");
+    PokemonDataBase::getInstance().load("assets/ressources/Pokemon.txt");
 
     // Caméra "Game"
     m_cameraView.setSize(static_cast<sf::Vector2f>(m_window.getSize())); // taille = fenêtre

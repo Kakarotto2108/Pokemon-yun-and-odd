@@ -74,7 +74,7 @@ EventManager::EventManager() {
     });
 
     GameEvents::OpenPokemon.subscribe([]() {
-        PokemonInstance pkm("Moustillon");
+        PokemonInstance pkm("Moustillon", 5, "Potion");
         pkm.display();
     });
 }
