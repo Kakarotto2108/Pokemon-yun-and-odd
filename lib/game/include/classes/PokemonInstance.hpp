@@ -36,6 +36,7 @@ public:
     std::vector<int> m_ev;
     std::vector<int> m_iv;
     std::string m_item;
+    std::vector<int> m_bonusNature;
     std::string m_nature;
     std::string m_description;
     std::vector<int> m_stats;

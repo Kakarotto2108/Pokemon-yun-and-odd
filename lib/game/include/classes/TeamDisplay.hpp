@@ -20,6 +20,8 @@ private:
     bool m_isOpen = false;
     GameDialog m_pocketDialog;
     GameDialog m_descriptionDialog;
+    int m_currentpocketIndex = 0;
+    std::string highlightWithNature(const PokemonInstance& pkm);
 
     void updateDisplay();
     sf::Sprite m_bagSprite;

@@ -38,10 +38,10 @@ PokemonInstance::PokemonInstance(const std::string& name, int level, std::string
     m_iv = {rand() % 32, rand() % 32, rand() % 32, rand() % 32, rand() % 32, rand() % 32};
     m_item = obj;
     sf::Vector2i posNature = {rand() % 5, rand() % 5};
-    std::vector<int> bonusNature = calculBonusNature(posNature);
+    m_bonusNature = calculBonusNature(posNature);
     m_nature = m_natures[posNature.x][posNature.y];
     m_description = findDescription(m_iv);
-    m_stats = calculStats(pkm.m_base_stats, m_iv, m_ev, m_level, bonusNature);
+    m_stats = calculStats(pkm.m_base_stats, m_iv, m_ev, m_level, m_bonusNature);
     std::uniform_int_distribution<> dist(0, 65535);
     m_id = dist(gen);
     m_currentPV = m_stats[0];

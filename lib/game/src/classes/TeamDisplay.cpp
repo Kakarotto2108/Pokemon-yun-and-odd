@@ -8,6 +8,20 @@
 #include "Pokemon.hpp"
 
 TeamDisplay::TeamDisplay() {
+    Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
+        // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
+        if (!m_isOpen) return;
+
+        // Cooldown pour éviter le défilement trop rapide
+        if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
+        if (std::abs(val) < 0.5f) return;
+
+        if (val < 0 && m_currentpocketIndex > 0) m_currentpocketIndex--;
+        else if (val > 0 && m_currentpocketIndex == 0) m_currentpocketIndex++;
+
+        updateDisplay();
+        m_inputClock.restart();
+    });
     Controller::getInstance().onActionPressed("Cancel", [this]() {
         m_isOpen = false;
         DialogManager::getInstance().setActive(false);
@@ -52,8 +66,14 @@ void TeamDisplay::displayDescription(){
             if (pkm.m_surname == selectedPkm) {
                 PokemonDataBase& db = PokemonDataBase::getInstance();
                 const Pokemon& basePkm = db.getPokemon(selectedPkm);
-                description = "$[blue]" + pkm.m_nature + "$[black] de nature.                   " + pkm.m_surname + "    " + pkm.m_sexe + "\nRencontré au N. " + std::to_string(pkm.m_encounterLevel) + "                   N." + std::to_string(pkm.m_level) + "\nle 04 mars 2026.\nProvenance :\n$[blue]Renouet.$[black]\n" + pkm.m_description + "\nN° Pokédex : " + std::to_string(basePkm.m_pkdxnumber) + "\nNom : " + basePkm.m_name + "\nType : " + basePkm.m_type + "\nD.O. : $[blue]" + pkm.m_surname + "$[black]\nN° ID : " + std::to_string(pkm.m_id);
-                description2 = "Points Exp. : " + std::to_string(pkm.m_xp) + "                      Objet : " + pkm.m_item + "\nNiveau suivant : " + std::to_string(pkm.toNextLevel(pkm.m_level, pkm.m_xpType));
+                if (m_currentpocketIndex == 0) {
+                    description = "$[blue]" + pkm.m_nature + "$[black] de nature.                   " + pkm.m_surname + "    " + pkm.m_sexe + "\nRencontré au N. " + std::to_string(pkm.m_encounterLevel) + "                   N." + std::to_string(pkm.m_level) + "\nle 04 mars 2026.\nProvenance :\n$[blue]Renouet.$[black]\n" + pkm.m_description + "\nN° Pokédex : " + std::to_string(basePkm.m_pkdxnumber) + "\nNom : " + basePkm.m_name + "\nType : " + basePkm.m_type + "\nD.O. : $[blue]" + pkm.m_surname + "$[black]\nN° ID : " + std::to_string(pkm.m_id);
+                    description2 = "Points Exp. : " + std::to_string(pkm.m_xp) + "                      Objet : " + pkm.m_item + "\nNiveau suivant : " + std::to_string(pkm.toNextLevel(pkm.m_level, pkm.m_xpType));
+                }
+                else {
+                    description = highlightWithNature(pkm);
+                    description2 = "CAP SPÉ     " + pkm.m_ability + "                      Objet : " + pkm.m_item + "\nBooste les capacités \nEau en cas de besoin.";
+                }
                 break;
             }
         }
@@ -68,6 +88,27 @@ void TeamDisplay::displayDescription(){
         DialogManager::getInstance().setActive(false);
     }
     m_descriptionDialog.show();
+}
+
+std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
+    std::vector<int> bonusNature = pkm.m_bonusNature;
+    std::string result = "PV     " + std::to_string(pkm.m_currentPV) + " / " + std::to_string(pkm.m_stats[0]) + "                   " + pkm.m_surname + "    " + pkm.m_sexe;
+    std::vector<std::string> statNames = {"ATTAQUE", "DÉFENSE", "ATQ SPÉ", "DEF SPÉ", "VITESSE"};
+    for (size_t i = 0; i < bonusNature.size(); ++i) {
+        if (bonusNature[i] < 0) {
+            result += "\n$[blue]" + statNames[i] + "$[black]     " + std::to_string(pkm.m_stats[i]);
+        }
+        else if (bonusNature[i] > 0) {
+            result += "\n$[red]" + statNames[i] + "$[black]     " + std::to_string(pkm.m_stats[i]);
+        }
+        else {
+            result += "\n" + statNames[i] + "     " + std::to_string(pkm.m_stats[i]);
+        }
+        if (i == 0) {
+            result += "                   N." + std::to_string(pkm.m_level);
+        }
+    }
+    return result;
 }
 
 void TeamDisplay::updateDisplay() {
