@@ -8,6 +8,7 @@
 #include "Bag.hpp"
 #include "Menu.hpp"
 #include "PokemonInstance.hpp"
+#include "TeamDisplay.hpp"
 
 namespace {
     enum class YesNoContext {
@@ -74,8 +75,13 @@ EventManager::EventManager() {
     });
 
     GameEvents::OpenPokemon.subscribe([]() {
-        PokemonInstance pkm("Moustillon", 5, "Potion");
-        pkm.display();
+        if (TeamDisplay::getInstance().m_team.empty()) {
+            PokemonInstance pkm("Moustillon", 5);
+            TeamDisplay::getInstance().addPokemon(pkm);
+            PokemonInstance pkm2("Pikachu", 7);
+            TeamDisplay::getInstance().addPokemon(pkm2);
+        }
+        TeamDisplay::getInstance().open();
     });
 }
 

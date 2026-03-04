@@ -34,6 +34,8 @@ public:
 
     virtual void draw(sf::RenderWindow& window);
     sf::FloatRect getGlobalBounds() const { return m_boxSprite.getGlobalBounds(); }
+    std::size_t getHeight() const { return m_boxSprite.getGlobalBounds().height; }
+    std::size_t getWidth() const { return m_boxSprite.getGlobalBounds().width; }
 
 private:
     void parseText(const std::string& text);

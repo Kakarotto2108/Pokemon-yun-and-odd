@@ -41,6 +41,8 @@ public:
     void setActive(bool active) { m_active = active; }
     void draw(sf::RenderWindow& window);
     WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
+    std::size_t getHeight() const { return m_msgBox->getHeight(); }
+    std::size_t getWidth() const { return m_msgBox->getWidth(); }
 
 private:
     DialogManager() = default; // Constructeur privé

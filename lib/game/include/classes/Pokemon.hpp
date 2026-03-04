@@ -78,7 +78,6 @@ public:
 
     void load(const std::string& filepath){        
         std::ifstream file(filepath);
-        std::ifstream sentencefile("assets/ressources/sentences.txt");
         if (!file.is_open()) {
             std::cerr << "Erreur : Impossible d'ouvrir " << filepath << std::endl;
             return;
