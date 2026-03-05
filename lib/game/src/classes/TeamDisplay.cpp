@@ -126,11 +126,13 @@ void TeamDisplay::updateDisplay() {
     for (auto& pkm : m_team) {
         choices.emplace_back(pkm.m_surname, "ViewPkm");
     }
-    for (int i = 0; i < 6 - m_team.size(); ++i) {
-        choices.emplace_back("---", "EmptySlot");
-    }
-    
+    size_t teamSize = m_team.size();
 
+    if (teamSize <= 6) {
+        for (size_t i = 0; i < 6 - teamSize; ++i) {
+            choices.emplace_back("---", "EmptySlot");
+        }
+    }
     m_choiceBox.init(choices);
 }
 

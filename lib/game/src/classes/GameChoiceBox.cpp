@@ -57,9 +57,7 @@ GameChoiceBox::GameChoiceBox() {
         
         // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
         auto previousChoices = m_choices;
-        printf("Ça bug ici");
         EventManager::getInstance().launchEvent(eventName);
-        printf("Et là");
         // On ne ferme la boîte que si les choix sont restés les mêmes (action simple)
         if (m_choices == previousChoices) {
             hide();
@@ -95,9 +93,12 @@ std::string GameChoiceBox::getEventForChoice(const std::string& choiceText) {
 }
 
 std::string GameChoiceBox::getChoiceName() const {
-    auto it = m_choices.begin();
-    std::advance(it, m_currentIndex);
-    return it != m_choices.end() ? it->first : "";
+    if (m_currentIndex < 0 || 
+        m_currentIndex >= static_cast<int>(m_choices.size())) {
+        return "";
+    }
+
+    return m_choices[m_currentIndex].first;
 }
 
 void GameChoiceBox::draw(sf::RenderWindow& window)

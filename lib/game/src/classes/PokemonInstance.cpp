@@ -118,7 +118,7 @@ std::vector<int> PokemonInstance::calculStats(const std::vector<int>& baseStats,
     std::vector<int> stats;
     stats.push_back(static_cast<int>(floor((baseStats[0] * 2 + ivs[0] + floor(evs[0] / 4)) * level / 100) + level + 10)); // PV
     for (size_t i = 1; i < baseStats.size(); ++i) {
-        int stat = static_cast<int>(floor((baseStats[i] * 2 + ivs[i] + floor(evs[i] / 4)) * level / 100 + 5) * (1 + bonusNature[i] * 0.1));
+        int stat = static_cast<int>(floor((baseStats[i] * 2 + ivs[i] + floor(evs[i] / 4)) * level / 100 + 5) * (1 + bonusNature[i-1] * 0.1));
         stats.push_back(stat);
     }
     return stats;
