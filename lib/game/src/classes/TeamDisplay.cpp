@@ -1,7 +1,6 @@
 #include "TeamDisplay.hpp"
 #include "Player.hpp"
 #include "Controller.hpp"
-#include "GameChoiceBox.hpp"
 #include "DialogManager.hpp"
 #include "EventManager.hpp"
 #include "Menu.hpp"
@@ -25,8 +24,8 @@ TeamDisplay::TeamDisplay() {
     Controller::getInstance().onActionPressed("Cancel", [this]() {
         m_isOpen = false;
         DialogManager::getInstance().setActive(false);
-        GameChoiceBox::getInstance().setVisible(false);
-        GameChoiceBox::getInstance().reset();
+        m_choiceBox.setVisible(false);
+        m_choiceBox.reset();
         Menu::getInstance().open();
     });
 
@@ -37,6 +36,10 @@ TeamDisplay::TeamDisplay() {
     Controller::getInstance().onActionPressed("OpenMenu", [this]() {
         if (m_isOpen) {
             m_isOpen = false;
+            DialogManager::getInstance().setActive(false);
+            m_choiceBox.setVisible(false);
+            m_choiceBox.reset();
+            Menu::getInstance().close();
         }
     });
 }
@@ -44,15 +47,15 @@ TeamDisplay::TeamDisplay() {
 void TeamDisplay::open() {
     m_isOpen = true;
     updateDisplay();
-    GameChoiceBox::getInstance().setVisible(true);
-    GameChoiceBox::getInstance().setChoiceIndex(0);
+    m_choiceBox.setVisible(true);
+    m_choiceBox.setChoiceIndex(0);
 }
 
 void TeamDisplay::displayDescription(){
     std::string description;
     std::string description2;
     // On récupère l'item sélectionné
-    std::string selectedPkm = GameChoiceBox::getInstance().getChoiceName();
+    std::string selectedPkm = m_choiceBox.getChoiceName();
 
 
     if (selectedPkm.size() <= 3 || selectedPkm == "Retour") {
@@ -128,7 +131,7 @@ void TeamDisplay::updateDisplay() {
     }
     
 
-    GameChoiceBox::getInstance().init(choices);
+    m_choiceBox.init(choices);
 }
 
 void TeamDisplay::addPokemon(const PokemonInstance& pkm)
@@ -141,7 +144,7 @@ void TeamDisplay::draw(sf::RenderWindow& window)
     if (!m_isOpen) return;
     
     displayDescription();
-    sf::FloatRect choiceBounds = GameChoiceBox::getInstance().getGlobalBounds();
+    sf::FloatRect choiceBounds = m_choiceBox.getGlobalBounds();
     float height = 50.f;
 
     m_pocketDialog.setVerticalPadding(10.f);
@@ -160,7 +163,9 @@ void TeamDisplay::draw(sf::RenderWindow& window)
 
     m_descriptionDialog.draw(window);
 
-    std::string selectedPkm = GameChoiceBox::getInstance().getChoiceName();
+    m_choiceBox.draw(window);
+
+    std::string selectedPkm = m_choiceBox.getChoiceName();
     if (selectedPkm != "---") {
         window.draw(m_bagSprite);
     }

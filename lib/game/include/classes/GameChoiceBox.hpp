@@ -14,13 +14,8 @@ private:
     sf::Clock m_inputClock; // Horloge pour gérer le cooldown
 
 public:
-    GameChoiceBox(const GameChoiceBox&) = delete;
-    GameChoiceBox& operator=(const GameChoiceBox&) = delete;
+    GameChoiceBox();
 
-    static GameChoiceBox& getInstance() {
-        static GameChoiceBox instance;
-        return instance;
-    }
     void init(std::vector<std::pair<std::string, std::string>> choices);
     void setChoiceIndex(int index);
     void reset() { m_currentIndex = 0; m_scrollOffset = 0; }
@@ -30,8 +25,6 @@ public:
     bool isVisible() const { return m_visible; }
     std::string getChoiceName() const;
     void draw(sf::RenderWindow& window) override;
-
-    GameChoiceBox();
 };
 
 #endif

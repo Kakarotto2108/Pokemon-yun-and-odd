@@ -2,7 +2,6 @@
 #include "Inventory.hpp"
 #include "Player.hpp"
 #include "Controller.hpp"
-#include "GameChoiceBox.hpp"
 #include "DialogManager.hpp"
 #include "EventManager.hpp"
 #include "Menu.hpp"
@@ -24,7 +23,7 @@ Bag::Bag() {
         else if (m_currentpocketIndex > 4) m_currentpocketIndex = 0;
 
         updateDisplay();
-        GameChoiceBox::getInstance().reset();
+        m_choiceBox.reset();
         m_inputClock.restart();
     });
 
@@ -35,14 +34,18 @@ Bag::Bag() {
     GameEvents::CloseBag.subscribe([this]() {
         m_isOpen = false;
         DialogManager::getInstance().setActive(false);
-        GameChoiceBox::getInstance().setVisible(false);
-        GameChoiceBox::getInstance().reset();
+        m_choiceBox.setVisible(false);
+        m_choiceBox.reset();
         Menu::getInstance().open();
     });
 
     Controller::getInstance().onActionPressed("OpenMenu", [this]() {
         if (m_isOpen) {
             m_isOpen = false;
+            DialogManager::getInstance().setActive(false);
+            m_choiceBox.setVisible(false);
+            m_choiceBox.reset();
+            Menu::getInstance().close();
         }
     });
 }
@@ -50,14 +53,14 @@ Bag::Bag() {
 void Bag::open() {
     m_isOpen = true;
     updateDisplay();
-    GameChoiceBox::getInstance().setVisible(true);
-    GameChoiceBox::getInstance().setChoiceIndex(0);
+    m_choiceBox.setVisible(true);
+    m_choiceBox.setChoiceIndex(0);
 }
 
 void Bag::displayItemDescription(){
     std::string description;
     // On récupère l'item sélectionné
-    std::string selectedItem = GameChoiceBox::getInstance().getChoiceName();
+    std::string selectedItem = m_choiceBox.getChoiceName();
 
 
     if (selectedItem.size() <= 3 || selectedItem == "Retour") {
@@ -109,7 +112,7 @@ void Bag::updateDisplay() {
     
     choices.emplace_back("Retour", "CloseBag"); // Il faudra gérer l'event CloseBag si tu veux une action explicite
 
-    GameChoiceBox::getInstance().init(choices);
+    m_choiceBox.init(choices);
 }
 
 void Bag::draw(sf::RenderWindow& window)
@@ -117,7 +120,7 @@ void Bag::draw(sf::RenderWindow& window)
     if (!m_isOpen) return;
     
     displayItemDescription();
-    sf::FloatRect choiceBounds = GameChoiceBox::getInstance().getGlobalBounds();
+    sf::FloatRect choiceBounds = m_choiceBox.getGlobalBounds();
     float height = 50.f;
 
     m_pocketDialog.setVerticalPadding(10.f);
@@ -126,7 +129,9 @@ void Bag::draw(sf::RenderWindow& window)
 
     m_pocketDialog.draw(window);
 
-    std::string selectedItem = GameChoiceBox::getInstance().getChoiceName();
+    m_choiceBox.draw(window);
+
+    std::string selectedItem = m_choiceBox.getChoiceName();
 
     if (selectedItem.size() > 3 && selectedItem != "Retour") {
         window.draw(m_bagSprite);

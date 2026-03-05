@@ -57,8 +57,9 @@ GameChoiceBox::GameChoiceBox() {
         
         // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
         auto previousChoices = m_choices;
+        printf("Ça bug ici");
         EventManager::getInstance().launchEvent(eventName);
-        
+        printf("Et là");
         // On ne ferme la boîte que si les choix sont restés les mêmes (action simple)
         if (m_choices == previousChoices) {
             hide();

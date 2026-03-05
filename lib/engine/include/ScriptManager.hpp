@@ -6,7 +6,6 @@
 #include <iostream>
 #include "CharacterPath.hpp"
 #include "DialogManager.hpp"
-#include "GameChoiceBox.hpp"
 #include "Player.hpp"
 #include "Npc.hpp"
 #include "Obj.hpp"
@@ -206,8 +205,8 @@ public:
                                     }
                                 }
 
-                                GameChoiceBox::getInstance().init(choices);
-                                GameChoiceBox::getInstance().show();
+                                DialogManager::getInstance().getChoiceBox().init(choices);
+                                DialogManager::getInstance().getChoiceBox().show();
                             }
                             else if (cmd == "MOVE") {
                                 if (tokens.size() < 3){

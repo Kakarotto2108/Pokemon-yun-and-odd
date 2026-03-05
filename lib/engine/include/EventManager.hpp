@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include "Event.hpp"
+#include "GameChoiceBox.hpp"
 
 class EventManager {
 public:
@@ -40,7 +41,7 @@ public:
 private:
     EventManager();
 
-
+    GameChoiceBox m_choiceBox;
     // --- INTERDIRE LA COPIE ---
     EventManager(const EventManager&) = delete;
     EventManager& operator=(const EventManager&) = delete;

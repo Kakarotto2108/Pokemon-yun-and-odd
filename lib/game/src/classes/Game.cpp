@@ -179,6 +179,8 @@ void Game::render() {
     m_window.setView(m_uiView);
     DialogManager::getInstance().draw(m_window);
     Bag::getInstance().draw(m_window);
+    Menu::getInstance().draw(m_window);
+    DialogManager::getInstance().getChoiceBox().draw(m_window);
     TeamDisplay::getInstance().draw(m_window);
 
     m_window.popGLStates(); // Restaure les états pour le prochain tour

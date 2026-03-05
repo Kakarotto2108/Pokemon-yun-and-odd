@@ -1,5 +1,6 @@
 #ifndef BAG_HPP
 #define BAG_HPP
+#include "GameChoiceBox.hpp"
 #include "Item.hpp"
 #include "GameDialog.hpp"
 #include "ResourceManager.hpp"
@@ -19,6 +20,7 @@ private:
     sf::Clock m_inputClock;
     bool m_isOpen = false;
     GameDialog m_pocketDialog;
+    GameChoiceBox m_choiceBox;
 
     void updateDisplay();
     sf::Sprite m_bagSprite;
@@ -30,6 +32,8 @@ public:
     }
     void open();
     void displayItemDescription();
+    bool isOpen() const { return m_isOpen; }
+    GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void draw(sf::RenderWindow& window);
 
 };

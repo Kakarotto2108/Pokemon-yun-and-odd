@@ -1,5 +1,6 @@
 #ifndef TEAMDISPLAY_HPP
 #define TEAMDISPLAY_HPP
+#include "GameChoiceBox.hpp"
 #include "Item.hpp"
 #include "PokemonInstance.hpp"
 #include "GameDialog.hpp"
@@ -20,6 +21,7 @@ private:
     bool m_isOpen = false;
     GameDialog m_pocketDialog;
     GameDialog m_descriptionDialog;
+    GameChoiceBox m_choiceBox;
     int m_currentpocketIndex = 0;
     std::string highlightWithNature(const PokemonInstance& pkm);
 
@@ -33,6 +35,8 @@ public:
     }
     std::vector<PokemonInstance> m_team;
     void open();
+    bool isOpen() const { return m_isOpen; }
+    GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void displayDescription();
     void draw(sf::RenderWindow& window);
     void addPokemon(const PokemonInstance& pkm);

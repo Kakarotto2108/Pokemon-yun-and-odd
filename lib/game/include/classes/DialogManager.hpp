@@ -42,6 +42,7 @@ public:
     void draw(sf::RenderWindow& window);
     WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
     std::size_t getHeight() const { return m_msgBox->getHeight(); }
+    GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     std::size_t getWidth() const { return m_msgBox->getWidth(); }
 
 private:
@@ -52,6 +53,7 @@ private:
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
     std::function<void()> m_actionAfter = nullptr;
+    GameChoiceBox m_choiceBox;
     std::vector<DialogueStep> wrapDialogueSteps(const std::vector<DialogueStep>& steps, std::size_t maxWidth);
     std::string wrapText(const std::string& text, std::size_t maxWidth);
 };

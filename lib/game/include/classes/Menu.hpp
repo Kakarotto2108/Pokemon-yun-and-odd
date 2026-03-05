@@ -9,6 +9,7 @@ public:
     Menu();
     bool m_open = true;
     void open();
+    void close();
     Menu(const Menu&) = delete;
     Menu& operator=(const Menu&) = delete;
     static Menu& getInstance() {

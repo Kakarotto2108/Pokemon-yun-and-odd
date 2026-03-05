@@ -6,13 +6,10 @@
 
 Menu::Menu() {
     Controller::getInstance().onActionPressed("OpenMenu", [this]() {
-        if (!GameChoiceBox::getInstance().isVisible() && !DialogManager::getInstance().isActive()) {
+        if (!this->isVisible() && !DialogManager::getInstance().isActive()) {
             open();
     } else if (m_open) {
-        GameChoiceBox::getInstance().setVisible(false);
-        DialogManager::getInstance().setActive(false);
-        GameChoiceBox::getInstance().reset();
-        m_open = false;
+        close();
     }
     });    
 }
@@ -27,9 +24,16 @@ void Menu::open() {
         {"Sauver", "SaveGame"},
         {"Option", "OpenOptions"}
     };
-    GameChoiceBox::getInstance().init(choices);
-    GameChoiceBox::getInstance().setChoiceIndex(0);
-    GameChoiceBox::getInstance().setVisible(true);
+    this->init(choices);
+    this->setChoiceIndex(0);
+    this->setVisible(true);
+}
+
+void Menu::close() {
+    m_open = false;
+    this->setVisible(false);
+    DialogManager::getInstance().setActive(false);
+    this->reset();
 }
 
 void Menu::draw(sf::RenderWindow& window) {

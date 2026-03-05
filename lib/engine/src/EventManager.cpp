@@ -2,7 +2,6 @@
 #include "World.hpp"
 #include "GameInstance.hpp"
 #include "DialogManager.hpp"
-#include "GameChoiceBox.hpp"
 #include "Npc.hpp"
 #include "Interactable.hpp"
 #include "Bag.hpp"
@@ -20,7 +19,7 @@ namespace {
 
 
 EventManager::EventManager() {
-    GameEvents::SaveGame.subscribe([]() {
+    GameEvents::SaveGame.subscribe([this]() {
         DialogueStep step1;
         if (GameInstance::getInstance().saveFileExists("savegame.dat")) {
             step1.text = "Une sauvegarde existe déjà. L'écraser ?";
@@ -35,9 +34,9 @@ EventManager::EventManager() {
             {"Oui", "YesChoice"},
             {"Non", "NoChoice"}
         };
-        GameChoiceBox::getInstance().init(choices);
-        GameChoiceBox::getInstance().setChoiceIndex(0);
-        GameChoiceBox::getInstance().setVisible(true);
+        m_choiceBox.init(choices);
+        m_choiceBox.setChoiceIndex(0);
+        m_choiceBox.setVisible(true);
         g_currentYesNoContext = YesNoContext::SAVE_GAME;
     });
 

@@ -124,5 +124,4 @@ void DialogManager::draw(sf::RenderWindow& window) {
     if (m_active && m_msgBox) {
         m_msgBox->draw(window);        
     }
-    GameChoiceBox::getInstance().draw(window);
 }

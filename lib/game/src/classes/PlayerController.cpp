@@ -3,8 +3,10 @@
 #include "DialogManager.hpp"
 #include "TransitionManager.hpp"
 #include "GameInstance.hpp"
-#include "GameChoiceBox.hpp"
 #include "PokemonInstance.hpp"
+#include "Menu.hpp"
+#include "Bag.hpp"
+#include "TeamDisplay.hpp"
 #include <iostream>
 
 PlayerController* PlayerController::s_instance = nullptr;
@@ -24,26 +26,37 @@ void PlayerController::destroy() {
 }
 
 PlayerController::PlayerController(World& world, Player& player) : m_world(world), m_player(player) {
-    Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
-        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning() || GameChoiceBox::getInstance().isVisible()) {
+    auto isChoiceBoxVisible = []() {
+        return Menu::getInstance().isVisible() ||
+               Bag::getInstance().getChoiceBox().isVisible() ||
+               TeamDisplay::getInstance().getChoiceBox().isVisible() ||
+               DialogManager::getInstance().getChoiceBox().isVisible();
+    };
+
+    auto isInputLocked = [isChoiceBoxVisible]() {
+        return DialogManager::getInstance().isActive() ||
+               TransitionManager::getInstance().isRunning() ||
+               isChoiceBoxVisible();
+    };
+
+    Controller::getInstance().onAxisChanged("MoveHorizontal", [this, isInputLocked](float val) {
+        if (isInputLocked()) {
             m_hAxis = 0.f;
             return;
         }
         m_hAxis = val;
     });
-    Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
-        if (DialogManager::getInstance().isActive() || TransitionManager::getInstance().isRunning() || GameChoiceBox::getInstance().isVisible()) {
+    Controller::getInstance().onAxisChanged("MoveVertical", [this, isInputLocked](float val) {
+        if (isInputLocked()) {
             m_vAxis = 0.f;
             return;
         }
         m_vAxis = val;
     });
 
-    Controller::getInstance().onActionPressed("Interact", [this]() {
+    Controller::getInstance().onActionPressed("Interact", [this, isChoiceBoxVisible]() {
         // On bloque toute interaction pendant une transition
         if (TransitionManager::getInstance().isRunning()) return;
-
-        if (GameChoiceBox::getInstance().isVisible()) return;
 
         if(Player::getInstance().getFrame() == "ReceiveItem2"){
             std::vector<std::string> lstAnim = {"ReceiveItem3", "WalkDown"};
@@ -52,7 +65,7 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
         
         if (DialogManager::getInstance().isActive()) {
             DialogManager::getInstance().next();
-        } else {
+        } else if (!isChoiceBoxVisible()) { // Ne pas interagir avec la map si une boite de choix est visible
             sf::Vector2i front = m_player.getFacingTile();
             Zone& currentZone = m_world.getCurrentZone();
             Interactable* interactable = dynamic_cast<Interactable*>(currentZone.getEntityAt(front.x, front.y));
@@ -63,9 +76,9 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
             }
         }
     });
-        Controller::getInstance().onActionPressed("Load", [this]() {
+        Controller::getInstance().onActionPressed("Load", [this, isInputLocked]() {
             
-            if (GameChoiceBox::getInstance().isVisible() || DialogManager::getInstance().isActive()) {
+            if (isInputLocked()) {
                 return;
             }
             try {
