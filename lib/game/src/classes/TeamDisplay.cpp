@@ -217,12 +217,13 @@ void TeamDisplay::switchMove()
                 if (currant_move == move) {
                     currant_move = move2;
                 }
-                if (currant_move == move2) {
+                else if (currant_move == move2) {
                     currant_move = move;
                 }
             }
         }
     }
+    updateDisplay();
 }
 
 void TeamDisplay::draw(sf::RenderWindow& window)
