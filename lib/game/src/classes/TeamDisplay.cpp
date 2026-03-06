@@ -28,6 +28,14 @@ TeamDisplay::TeamDisplay() {
         updateDisplay();
         m_inputClock.restart();
     });
+    Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
+        if (!m_isOpen) return;
+
+        if (summary && !m_moveChoiceBox.hasFocus() && m_currentpocketIndex == 1) {
+            updateMove();
+            return;
+        }
+    });
     Controller::getInstance().onActionPressed("SelectMove", [this]() {
         if (!m_isOpen) return;
 
@@ -156,45 +164,43 @@ std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
 }
 
 void TeamDisplay::updateDisplay() {
-
     std::vector<std::pair<std::string, std::string>> choices;
-    if (m_currentpocketIndex == 0) {
-        m_pocketDialog.setText("Pokémon", false);
+    m_pocketDialog.setText("Pokémon", false);
 
-        for (auto& pkm : m_team) {
-            choices.emplace_back(pkm.m_surname, "ViewPokemon");
-        }
-        size_t teamSize = m_team.size();
-
-        if (teamSize <= 6) {
-            for (size_t i = 0; i < 6 - teamSize; ++i) {
-                choices.emplace_back("---", "EmptySlot");
-            }
-        }
-        m_choiceBox.init(choices);
+    for (auto& pkm : m_team) {
+        choices.emplace_back(pkm.m_surname, "ViewPokemon");
     }
+    size_t teamSize = m_team.size();
 
-    else {
-        m_pocketDialog.setText("Attaques", false);
-        std::string selectedPkm = m_choiceBox.getChoiceName();
-        if (selectedPkm != "---") {
-            for (const auto& pkm : m_team) {
-                if (pkm.m_surname == selectedPkm) {
-                    for (const auto& move : pkm.m_currentMoves) {
-                        choices.emplace_back(move, "OrderChoice");
-                    }
-                    if (pkm.m_currentMoves.size() < 4) {
-                        for (size_t i = 0; i < 4 - pkm.m_currentMoves.size(); ++i) {
-                            choices.emplace_back("---", "EmptySlot");
-                        }
-                    }
-                }
-            }
+    if (teamSize <= 6) {
+        for (size_t i = 0; i < 6 - teamSize; ++i) {
+            choices.emplace_back("---", "EmptySlot");
         }
-        m_moveChoiceBox.init(choices);
     }
-
+    m_choiceBox.init(choices);
     m_pocketDialog.show();
+}
+
+void TeamDisplay::updateMove() {
+    std::vector<std::pair<std::string, std::string>> choices;
+    m_pocketDialog.setText("Attaques", false);
+    std::string selectedPkm = m_choiceBox.getChoiceName();
+    if (selectedPkm != "---") {
+        for (const auto& pkm : m_team) {
+            if (pkm.m_surname == selectedPkm) {
+                for (const auto& move : pkm.m_currentMoves) {
+                    choices.emplace_back(move, "OrderChoice");                    
+                }
+                if (pkm.m_currentMoves.size() < 4) {
+                    for (size_t i = 0; i < 4 - pkm.m_currentMoves.size(); ++i) {
+                        choices.emplace_back("---", "EmptySlot");                        
+                    }
+                }                
+            }
+        }        
+    }
+        m_moveChoiceBox.init(choices);
+        m_pocketDialog.show();
 }
 
 void TeamDisplay::addPokemon(const PokemonInstance& pkm)
@@ -223,7 +229,7 @@ void TeamDisplay::switchMove()
             }
         }
     }
-    updateDisplay();
+    updateMove();
 }
 
 void TeamDisplay::draw(sf::RenderWindow& window)

@@ -12,21 +12,17 @@
 class TeamDisplay {
 private:
     TeamDisplay();
-    std::vector<ItemPocket> m_pockets = {ItemPocket::Items,
-        ItemPocket::Balls, 
-        ItemPocket::KeyItems, 
-        ItemPocket::TMsHMs, 
-        ItemPocket::Berries};
     sf::Clock m_inputClock;
     bool m_isOpen = false;
     bool summary = false;
     GameDialog m_pocketDialog;
     GameDialog m_descriptionDialog;
     int m_currentpocketIndex = 0;
-    std::vector<std::string> m_switchMove;
+    std::vector<std::string> m_switchMove = {};
     std::string highlightWithNature(const PokemonInstance& pkm);
 
     void updateDisplay();
+    void updateMove();
     sf::Sprite m_bagSprite;
 
 public:
