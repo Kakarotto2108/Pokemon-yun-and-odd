@@ -27,6 +27,7 @@ void Menu::open() {
     this->init(choices);
     this->setChoiceIndex(0);
     this->setVisible(true);
+    this->setFocus(true);
 }
 
 void Menu::close() {

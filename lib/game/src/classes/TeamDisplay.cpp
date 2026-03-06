@@ -189,7 +189,7 @@ void TeamDisplay::updateMove() {
         for (const auto& pkm : m_team) {
             if (pkm.m_surname == selectedPkm) {
                 for (const auto& move : pkm.m_currentMoves) {
-                    choices.emplace_back(move, "OrderChoice");                    
+                    choices.emplace_back(move, "MoveOrder");                    
                 }
                 if (pkm.m_currentMoves.size() < 4) {
                     for (size_t i = 0; i < 4 - pkm.m_currentMoves.size(); ++i) {
@@ -208,28 +208,49 @@ void TeamDisplay::addPokemon(const PokemonInstance& pkm)
     m_team.push_back(pkm);
 }
 
-void TeamDisplay::switchMove()
+void TeamDisplay::switchChoice(bool isMove)
 {
-    if (m_switchMove.empty()) return;
+    if (m_switchChoice.empty()) return;
 
-    std::string move = m_switchMove.back();
-    m_switchMove.pop_back();
-    std::string move2 = m_switchMove.back();
-    m_switchMove.pop_back();
+    std::string choice1 = m_switchChoice.back();
+    m_switchChoice.pop_back();
+    std::string choice2 = m_switchChoice.back();
+    m_switchChoice.pop_back();
 
-    for (auto& pkm : m_team) {
-        if (pkm.m_surname == m_choiceBox.getChoiceName()) {
-            for (auto& currant_move : pkm.m_currentMoves) {
-                if (currant_move == move) {
-                    currant_move = move2;
-                }
-                else if (currant_move == move2) {
-                    currant_move = move;
+    if (isMove) {
+        for (auto& pkm : m_team) {
+            if (pkm.m_surname == m_choiceBox.getChoiceName()) {
+                for (auto& currant_move : pkm.m_currentMoves) {
+                    if (currant_move == choice1) {
+                        currant_move = choice2;
+                    }
+                    else if (currant_move == choice2) {
+                        currant_move = choice1;
+                    }
                 }
             }
         }
+        updateMove();
     }
-    updateMove();
+    else {
+        PokemonInstance* pkm1 = nullptr;
+        PokemonInstance* pkm2 = nullptr;
+
+        for (auto& pkm : m_team) {
+            if (pkm.m_surname == choice1) {
+                pkm1 = &pkm;
+            }
+            else if (pkm.m_surname == choice2) {
+                pkm2 = &pkm;
+            }
+        }
+
+        if (pkm1 && pkm2) {
+            std::swap(*pkm1, *pkm2);
+        }
+        updateDisplay();
+        m_subChoiceBox.reset();
+    }
 }
 
 void TeamDisplay::draw(sf::RenderWindow& window)

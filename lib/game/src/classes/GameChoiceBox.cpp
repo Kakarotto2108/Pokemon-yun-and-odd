@@ -57,7 +57,7 @@ GameChoiceBox::GameChoiceBox() {
         // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
         auto previousChoices = m_choices;
 
-        if (eventName == "OrderChoice")
+        if (eventName == "MoveOrder" || eventName == "OrderChoice")
             EventManager::getInstance().launchEvent(eventName, getChoiceName());
         else
             EventManager::getInstance().launchEvent(eventName);

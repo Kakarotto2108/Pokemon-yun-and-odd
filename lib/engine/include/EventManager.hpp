@@ -48,7 +48,8 @@ public:
     };
 
     std::unordered_map<std::string, Event<std::string>*> stringEvents {
-        {"OrderChoice", &GameEvents::OrderChoice},
+        {"MoveOrder", &GameEvents::MoveOrder},
+        {"OrderChoice", &GameEvents::OrderChoice}
     };
 
 

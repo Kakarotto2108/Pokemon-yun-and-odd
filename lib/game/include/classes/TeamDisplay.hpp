@@ -18,7 +18,7 @@ private:
     GameDialog m_pocketDialog;
     GameDialog m_descriptionDialog;
     int m_currentpocketIndex = 0;
-    std::vector<std::string> m_switchMove = {};
+    std::vector<std::string> m_switchChoice = {};
     std::string highlightWithNature(const PokemonInstance& pkm);
 
     void updateDisplay();
@@ -40,9 +40,9 @@ public:
     void displayDescription();
     void draw(sf::RenderWindow& window);
     void addPokemon(const PokemonInstance& pkm);
-    void addSwitchMove(const std::string& move) { m_switchMove.push_back(move); }
-    const std::vector<std::string>& getSwitchMoves() const { return m_switchMove; }
-    void switchMove();
+    void addSwitchChoice(const std::string& choice) { m_switchChoice.push_back(choice); }
+    const std::vector<std::string>& getSwitchChoice() const { return m_switchChoice; }
+    void switchChoice(bool isMove);
     void setSummary(bool value) { summary = value; }
     bool getSummary() const { return summary; }
 };

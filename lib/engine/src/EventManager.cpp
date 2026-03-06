@@ -106,11 +106,40 @@ EventManager::EventManager() {
         Menu::getInstance().close();
     });
 
-    GameEvents::OrderChoice.subscribe([](const std::string& choice) {
-        TeamDisplay::getInstance().addSwitchMove(choice);
-        if (TeamDisplay::getInstance().getSwitchMoves().size() > 1) {
-            TeamDisplay::getInstance().switchMove();
+    GameEvents::MoveOrder.subscribe([](const std::string& choice) {
+        TeamDisplay::getInstance().addSwitchChoice(choice);
+        if (TeamDisplay::getInstance().getSwitchChoice().size() > 1) {
+            TeamDisplay::getInstance().switchChoice(true);
         }
+    });
+
+    GameEvents::OrderChoice.subscribe([](const std::string& choice) {
+        if (TeamDisplay::getInstance().m_subChoiceBox.isVisible()) {
+            TeamDisplay::getInstance().addSwitchChoice(TeamDisplay::getInstance().m_choiceBox.getChoiceName());
+            TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+            TeamDisplay::getInstance().m_choiceBox.setFocus(true);
+            std::vector<std::pair<std::string, std::string>> choices;
+            for (const auto& pkm : TeamDisplay::getInstance().m_team) {
+                choices.emplace_back(pkm.m_surname, "OrderChoice");
+            }
+            
+            size_t teamSize = TeamDisplay::getInstance().m_team.size();
+
+            if (teamSize <= 6) {
+                for (size_t i = 0; i < 6 - teamSize; ++i) {
+                    choices.emplace_back("---", "EmptySlot");
+                }
+            }
+            TeamDisplay::getInstance().m_choiceBox.init(choices);
+        } else {
+            TeamDisplay::getInstance().addSwitchChoice(choice);
+            if (TeamDisplay::getInstance().getSwitchChoice().size() > 1) {
+                TeamDisplay::getInstance().switchChoice(false);
+            }
+        }
+    });
+
+    GameEvents::ItemsChoice.subscribe([]() {
     });
 }
 

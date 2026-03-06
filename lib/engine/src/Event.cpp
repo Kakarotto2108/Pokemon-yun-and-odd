@@ -17,5 +17,6 @@ Event<> GameEvents::OpenPlayer;
 Event<> GameEvents::OpenOptions;
 Event<> GameEvents::ViewPokemon;
 Event<> GameEvents::SummaryChoice;
+Event<std::string> GameEvents::MoveOrder;
 Event<std::string> GameEvents::OrderChoice;
 Event<> GameEvents::ItemsChoice;
