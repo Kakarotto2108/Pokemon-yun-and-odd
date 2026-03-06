@@ -14,10 +14,17 @@ public:
     }
 
     // Accès aux events
-    void launchEvent(const std::string& name) {
-        auto it = justEvents.find(name);
-        if (it != justEvents.end()) {
-            it->second->notify();
+    void launchEvent(const std::string& name, const std::string& arg = "") {
+        if (arg.empty()) {
+            auto it = justEvents.find(name);
+            if (it != justEvents.end()) {
+                it->second->notify();
+            }
+        } else {
+            auto it = stringEvents.find(name);
+            if (it != stringEvents.end()) {
+                it->second->notify(arg);
+            }
         }
     }
 
@@ -35,6 +42,13 @@ public:
         {"OpenPokemon", &GameEvents::OpenPokemon},
         {"OpenPlayer", &GameEvents::OpenPlayer},
         {"OpenOptions", &GameEvents::OpenOptions},
+        {"ViewPokemon", &GameEvents::ViewPokemon},
+        {"SummaryChoice", &GameEvents::SummaryChoice},
+        {"ItemsChoice", &GameEvents::ItemsChoice}
+    };
+
+    std::unordered_map<std::string, Event<std::string>*> stringEvents {
+        {"OrderChoice", &GameEvents::OrderChoice},
     };
 
 

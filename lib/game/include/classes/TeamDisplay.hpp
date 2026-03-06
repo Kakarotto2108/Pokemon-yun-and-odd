@@ -19,10 +19,11 @@ private:
         ItemPocket::Berries};
     sf::Clock m_inputClock;
     bool m_isOpen = false;
+    bool summary = false;
     GameDialog m_pocketDialog;
     GameDialog m_descriptionDialog;
-    GameChoiceBox m_choiceBox;
     int m_currentpocketIndex = 0;
+    std::vector<std::string> m_switchMove;
     std::string highlightWithNature(const PokemonInstance& pkm);
 
     void updateDisplay();
@@ -34,12 +35,20 @@ public:
         return instance;
     }
     std::vector<PokemonInstance> m_team;
+    GameChoiceBox m_choiceBox;
+    GameChoiceBox m_subChoiceBox;
+    GameChoiceBox m_moveChoiceBox;
     void open();
     bool isOpen() const { return m_isOpen; }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void displayDescription();
     void draw(sf::RenderWindow& window);
     void addPokemon(const PokemonInstance& pkm);
+    void addSwitchMove(const std::string& move) { m_switchMove.push_back(move); }
+    const std::vector<std::string>& getSwitchMoves() const { return m_switchMove; }
+    void switchMove();
+    void setSummary(bool value) { summary = value; }
+    bool getSummary() const { return summary; }
 };
 
 #endif

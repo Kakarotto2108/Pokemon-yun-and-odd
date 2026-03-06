@@ -7,6 +7,10 @@
 #include "Pokemon.hpp"
 
 TeamDisplay::TeamDisplay() {
+    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
+    m_subChoiceBox.init(choices);
+    m_subChoiceBox.setPosition({280.f, 145.f});
+
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
         if (!m_isOpen) return;
@@ -15,18 +19,52 @@ TeamDisplay::TeamDisplay() {
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
         if (std::abs(val) < 0.5f) return;
 
-        if (val < 0 && m_currentpocketIndex > 0) m_currentpocketIndex--;
-        else if (val > 0 && m_currentpocketIndex == 0) m_currentpocketIndex++;
+        if (summary && val < 0 && m_currentpocketIndex > 0) m_currentpocketIndex--;
+        else if (summary && val > 0 && m_currentpocketIndex == 0) m_currentpocketIndex++;
+
+        m_moveChoiceBox.setChoiceIndex(0);
+        m_moveChoiceBox.hideCursor(true);
 
         updateDisplay();
         m_inputClock.restart();
     });
+    Controller::getInstance().onActionPressed("SelectMove", [this]() {
+        if (!m_isOpen) return;
+
+        if (summary) {
+            m_moveChoiceBox.setFocus(true);
+            m_choiceBox.setFocus(false);
+            m_moveChoiceBox.hideCursor(false);
+        }
+    });
     Controller::getInstance().onActionPressed("Cancel", [this]() {
+        if (m_moveChoiceBox.hasFocus()) {
+            m_moveChoiceBox.setFocus(false);
+            m_moveChoiceBox.hideCursor(true);
+            m_choiceBox.setFocus(true);
+            Menu::getInstance().close();
+            return;
+        }
+        if (summary) {
+            summary = false;
+            m_currentpocketIndex = 0;
+            m_pocketDialog.setText("Pokémon", false);
+            m_choiceBox.setFocus(true);
+            return;
+        }
+        if (m_subChoiceBox.isVisible()) {
+            m_subChoiceBox.setVisible(false);
+            m_subChoiceBox.setFocus(false);
+            m_choiceBox.setFocus(true);
+            return;
+        }
         m_isOpen = false;
         DialogManager::getInstance().setActive(false);
         m_choiceBox.setVisible(false);
         m_choiceBox.reset();
         Menu::getInstance().open();
+        Menu::getInstance().setFocus(true);
+        summary = false;
     });
 
     GameEvents::OpenPokemon.subscribe([this]() {
@@ -54,7 +92,6 @@ void TeamDisplay::open() {
 void TeamDisplay::displayDescription(){
     std::string description;
     std::string description2;
-    // On récupère l'item sélectionné
     std::string selectedPkm = m_choiceBox.getChoiceName();
 
 
@@ -86,28 +123,32 @@ void TeamDisplay::displayDescription(){
         m_bagSprite.setScale(3.f, 3.f); // Redimensionner le sprite si nécessaire
     }
     m_descriptionDialog.setText(description, false);
-    DialogManager::getInstance().startDialogue({{description2, BoxType::Classic, nullptr, true}}, nullptr, nullptr, 45);
+    //DialogManager::getInstance().startDialogue({{description2, BoxType::Classic, nullptr, true}}, nullptr, nullptr, 45);
     if (description == "Description manquante") {
         DialogManager::getInstance().setActive(false);
     }
-    m_descriptionDialog.show();
+
+    if (summary) {
+        m_descriptionDialog.show();
+        DialogManager::getInstance().startDialogue({{description2, BoxType::Classic, nullptr, true}}, nullptr, nullptr, 45);
+    }
 }
 
 std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
     std::vector<int> bonusNature = pkm.m_bonusNature;
     std::string result = "PV     " + std::to_string(pkm.m_currentPV) + " / " + std::to_string(pkm.m_stats[0]) + "                   " + pkm.m_surname + "    " + pkm.m_sexe;
     std::vector<std::string> statNames = {"ATTAQUE", "DÉFENSE", "ATQ SPÉ", "DEF SPÉ", "VITESSE"};
-    for (size_t i = 0; i < bonusNature.size(); ++i) {
-        if (bonusNature[i] < 0) {
-            result += "\n$[blue]" + statNames[i] + "$[black]     " + std::to_string(pkm.m_stats[i]);
+    for (size_t i = 1; i < 6; ++i) {
+        if (bonusNature[i-1] < 0) {
+            result += "\n$[blue]" + statNames[i-1] + "$[black]     " + std::to_string(pkm.m_stats[i]);
         }
-        else if (bonusNature[i] > 0) {
-            result += "\n$[red]" + statNames[i] + "$[black]     " + std::to_string(pkm.m_stats[i]);
+        else if (bonusNature[i-1] > 0) {
+            result += "\n$[red]" + statNames[i-1] + "$[black]     " + std::to_string(pkm.m_stats[i]);
         }
         else {
-            result += "\n" + statNames[i] + "     " + std::to_string(pkm.m_stats[i]);
+            result += "\n" + statNames[i-1] + "     " + std::to_string(pkm.m_stats[i]);
         }
-        if (i == 0) {
+        if (i == 1) {
             result += "                   N." + std::to_string(pkm.m_level);
         }
     }
@@ -116,29 +157,72 @@ std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
 
 void TeamDisplay::updateDisplay() {
 
-    m_pocketDialog.setText("Pokémon", false);
-    m_pocketDialog.show();
-
     std::vector<std::pair<std::string, std::string>> choices;
-    
-    // On récupère le nom de la poche actuelle pour l'afficher (optionnel, mais utile)
-    // Ici on liste juste les items
-    for (auto& pkm : m_team) {
-        choices.emplace_back(pkm.m_surname, "ViewPkm");
-    }
-    size_t teamSize = m_team.size();
+    if (m_currentpocketIndex == 0) {
+        m_pocketDialog.setText("Pokémon", false);
 
-    if (teamSize <= 6) {
-        for (size_t i = 0; i < 6 - teamSize; ++i) {
-            choices.emplace_back("---", "EmptySlot");
+        for (auto& pkm : m_team) {
+            choices.emplace_back(pkm.m_surname, "ViewPokemon");
         }
+        size_t teamSize = m_team.size();
+
+        if (teamSize <= 6) {
+            for (size_t i = 0; i < 6 - teamSize; ++i) {
+                choices.emplace_back("---", "EmptySlot");
+            }
+        }
+        m_choiceBox.init(choices);
     }
-    m_choiceBox.init(choices);
+
+    else {
+        m_pocketDialog.setText("Attaques", false);
+        std::string selectedPkm = m_choiceBox.getChoiceName();
+        if (selectedPkm != "---") {
+            for (const auto& pkm : m_team) {
+                if (pkm.m_surname == selectedPkm) {
+                    for (const auto& move : pkm.m_currentMoves) {
+                        choices.emplace_back(move, "OrderChoice");
+                    }
+                    if (pkm.m_currentMoves.size() < 4) {
+                        for (size_t i = 0; i < 4 - pkm.m_currentMoves.size(); ++i) {
+                            choices.emplace_back("---", "EmptySlot");
+                        }
+                    }
+                }
+            }
+        }
+        m_moveChoiceBox.init(choices);
+    }
+
+    m_pocketDialog.show();
 }
 
 void TeamDisplay::addPokemon(const PokemonInstance& pkm)
 {
     m_team.push_back(pkm);
+}
+
+void TeamDisplay::switchMove()
+{
+    if (m_switchMove.empty()) return;
+
+    std::string move = m_switchMove.back();
+    m_switchMove.pop_back();
+    std::string move2 = m_switchMove.back();
+    m_switchMove.pop_back();
+
+    for (auto& pkm : m_team) {
+        if (pkm.m_surname == m_choiceBox.getChoiceName()) {
+            for (auto& currant_move : pkm.m_currentMoves) {
+                if (currant_move == move) {
+                    currant_move = move2;
+                }
+                if (currant_move == move2) {
+                    currant_move = move;
+                }
+            }
+        }
+    }
 }
 
 void TeamDisplay::draw(sf::RenderWindow& window)
@@ -155,20 +239,40 @@ void TeamDisplay::draw(sf::RenderWindow& window)
 
     m_pocketDialog.draw(window);
 
-    m_descriptionDialog.setVerticalPadding(10.f);
-    float width = static_cast<float>(window.getSize().x) - choiceBounds.width - 20.f;
-    float height2 = static_cast<float>(window.getSize().y)
-             - static_cast<float>(DialogManager::getInstance().getHeight());
+    if (m_currentpocketIndex == 0) {
+        m_choiceBox.draw(window);
+        m_moveChoiceBox.setFocus(false);
+        m_choiceBox.setFocus(true);
+    }
+    else {
+        m_moveChoiceBox.setVisible(true);
+        m_moveChoiceBox.draw(window);
+    }
+    if (m_subChoiceBox.isVisible()) {
+        m_subChoiceBox.setFocus(true);
+        m_choiceBox.setFocus(false);
+        m_subChoiceBox.draw(window);
+    }
+    
+    if (summary){
+        m_descriptionDialog.setVerticalPadding(10.f);
+        float width = static_cast<float>(window.getSize().x) - choiceBounds.width - 20.f;
+        float height2 = static_cast<float>(window.getSize().y)
+                - static_cast<float>(DialogManager::getInstance().getHeight());
 
-    m_descriptionDialog.setSize({width, height2});
-    m_descriptionDialog.setPosition({0,0});
+        m_descriptionDialog.setSize({width, height2});
+        m_descriptionDialog.setPosition({0,0});
 
-    m_descriptionDialog.draw(window);
-
-    m_choiceBox.draw(window);
-
-    std::string selectedPkm = m_choiceBox.getChoiceName();
-    if (selectedPkm != "---") {
-        window.draw(m_bagSprite);
+        m_descriptionDialog.draw(window);
+        std::string selectedPkm = m_choiceBox.getChoiceName();
+        if (selectedPkm != "---") {
+            window.draw(m_bagSprite);
+        }
+        else {
+            m_choiceBox.setFocus(true);
+            m_moveChoiceBox.setFocus(false);
+            m_currentpocketIndex = 0;
+            m_pocketDialog.setText("Pokémon", false);
+        }
     }
 }

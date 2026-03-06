@@ -17,9 +17,8 @@ namespace {
     YesNoContext g_currentYesNoContext = YesNoContext::NONE;
 }
 
-
 EventManager::EventManager() {
-    GameEvents::SaveGame.subscribe([this]() {
+    GameEvents::SaveGame.subscribe([]() {
         DialogueStep step1;
         if (GameInstance::getInstance().saveFileExists("savegame.dat")) {
             step1.text = "Une sauvegarde existe déjà. L'écraser ?";
@@ -34,9 +33,9 @@ EventManager::EventManager() {
             {"Oui", "YesChoice"},
             {"Non", "NoChoice"}
         };
-        m_choiceBox.init(choices);
-        m_choiceBox.setChoiceIndex(0);
-        m_choiceBox.setVisible(true);
+        DialogManager::getInstance().setChoiceBox(choices);
+        DialogManager::getInstance().setChoiceBoxVisible(true);
+        Menu::getInstance().close();
         g_currentYesNoContext = YesNoContext::SAVE_GAME;
     });
 
@@ -47,6 +46,8 @@ EventManager::EventManager() {
             DialogManager::getInstance().startDialogue({{"Sauvegarde effectuée !", BoxType::Classic}});
             g_currentYesNoContext = YesNoContext::NONE;
         }
+        DialogManager::getInstance().setActive(false);
+        DialogManager::getInstance().setChoiceBoxVisible(false);
     });
 
     GameEvents::NoChoice.subscribe([]() {
@@ -55,22 +56,28 @@ EventManager::EventManager() {
             Menu::getInstance().open();
             g_currentYesNoContext = YesNoContext::NONE;
         }
+        DialogManager::getInstance().setActive(false);
+        DialogManager::getInstance().setChoiceBoxVisible(false);
     });
 
     GameEvents::Ev1.subscribe([this]() {
         makeChoice("DIAG_1_1");
+        DialogManager::getInstance().setChoiceBoxVisible(false);
     });
 
     GameEvents::Ev2.subscribe([this]() {
         makeChoice("DIAG_1_2");
+        DialogManager::getInstance().setChoiceBoxVisible(false);
     });
 
     GameEvents::Ev3.subscribe([this]() {
         makeChoice("DIAG_1_3");
+        DialogManager::getInstance().setChoiceBoxVisible(false);
     });
 
     GameEvents::OpenBag.subscribe([]() {
         Bag::getInstance().open();
+        Menu::getInstance().close();
     });
 
     GameEvents::OpenPokemon.subscribe([]() {
@@ -81,6 +88,29 @@ EventManager::EventManager() {
             TeamDisplay::getInstance().addPokemon(pkm2);
         }
         TeamDisplay::getInstance().open();
+        Menu::getInstance().setFocus(false);
+        Menu::getInstance().close();
+    });
+
+    GameEvents::ViewPokemon.subscribe([]() {
+        if (!TeamDisplay::getInstance().getSummary()) {
+            TeamDisplay::getInstance().m_subChoiceBox.open();
+        }
+    });
+
+    GameEvents::SummaryChoice.subscribe([]() {
+        TeamDisplay::getInstance().setSummary(true);
+        TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+        TeamDisplay::getInstance().m_choiceBox.setFocus(true);
+        Menu::getInstance().setFocus(false);
+        Menu::getInstance().close();
+    });
+
+    GameEvents::OrderChoice.subscribe([](const std::string& choice) {
+        TeamDisplay::getInstance().addSwitchMove(choice);
+        if (TeamDisplay::getInstance().getSwitchMoves().size() > 1) {
+            TeamDisplay::getInstance().switchMove();
+        }
     });
 }
 

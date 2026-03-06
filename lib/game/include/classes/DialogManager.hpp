@@ -43,6 +43,8 @@ public:
     WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
     std::size_t getHeight() const { return m_msgBox->getHeight(); }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
+    void setChoiceBox(std::vector<std::pair<std::string, std::string>> choices) { m_choiceBox.init(choices); }
+    void setChoiceBoxVisible(bool visible) { m_choiceBox.setVisible(visible); }
     std::size_t getWidth() const { return m_msgBox->getWidth(); }
 
 private:

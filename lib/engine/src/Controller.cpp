@@ -3,6 +3,7 @@
 Controller::Controller() {
     // Action mapping
     actionMapping["Interact"] = sf::Keyboard::E;
+    actionMapping["SelectMove"] = sf::Keyboard::E;
     actionMapping["Load"] = sf::Keyboard::L;
     actionMapping["OpenMenu"] = sf::Keyboard::O;
     actionMapping["Cancel"] = sf::Keyboard::B;

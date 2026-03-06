@@ -15,8 +15,7 @@ GameChoiceBox::GameChoiceBox() {
     m_boxSprite.setScale(1.f, 1.f);
 
     Controller::getInstance().onAxisChanged("MoveVertical", [this](float value) {
-        if (!m_visible || m_choices.empty()) return;
-
+        if (!m_visible || !m_hasFocus || m_choices.empty()) return;
         // --- GESTION DU COOLDOWN ---
         // Si moins de 0.2 secondes se sont écoulées, on ignore l'input
         if (m_inputClock.getElapsedTime().asSeconds() < 0.15f) {
@@ -47,7 +46,7 @@ GameChoiceBox::GameChoiceBox() {
         }
     });
     Controller::getInstance().onActionPressed("Interact", [this]() {
-        if (!m_visible) return;
+        if (!m_visible || !m_hasFocus || m_choices.empty()) return;
 
         // Sécurité : Si la boîte vient juste de s'ouvrir (moins de 0.2s), on ignore l'appui
         // Cela évite de valider le choix avec la même touche qui a ouvert le menu.
@@ -57,13 +56,11 @@ GameChoiceBox::GameChoiceBox() {
         
         // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
         auto previousChoices = m_choices;
-        EventManager::getInstance().launchEvent(eventName);
-        // On ne ferme la boîte que si les choix sont restés les mêmes (action simple)
-        if (m_choices == previousChoices) {
-            hide();
-            m_currentIndex = 0;
-            m_scrollOffset = 0;
-        }
+
+        if (eventName == "OrderChoice")
+            EventManager::getInstance().launchEvent(eventName, getChoiceName());
+        else
+            EventManager::getInstance().launchEvent(eventName);
     });
 }
 
@@ -71,6 +68,11 @@ void GameChoiceBox::init(std::vector<std::pair<std::string, std::string>> choice
     m_choices = choices;
     m_scrollOffset = 0;
     m_inputClock.restart(); // On reset le timer à l'ouverture pour activer la sécurité
+}
+
+void GameChoiceBox::open() {
+    m_visible = true;
+    m_inputClock.restart(); // reset sécurité anti double validation
 }
 
 void GameChoiceBox::setChoiceIndex(int index) {
@@ -84,6 +86,7 @@ int GameChoiceBox::getChoiceIndex() const {
 }
 
 std::string GameChoiceBox::getEventForChoice(const std::string& choiceText) {
+    if (!m_hasFocus) return "";
     for (const auto& pair : m_choices) {
         if (pair.first == choiceText) {   // pair.first = texte du choix
             return pair.second;           // pair.second = événement associé
@@ -126,16 +129,12 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
 
     // --- 2. Ajuster la taille du sprite ---
     if (m_boxSprite.getTexture()) {
-        float originalWidth = static_cast<float>(m_boxSprite.getTexture()->getSize().x);
         float originalHeight = static_cast<float>(m_boxSprite.getTexture()->getSize().y);
 
         // Pour que la boîte grandisse vers le haut, on ancre son origine en bas.
         // On ancre aussi à droite pour la positionner facilement sur le côté de l'écran.
-        m_boxSprite.setOrigin(originalWidth, originalHeight);
-
-        // On positionne le point d'ancrage (le coin bas-droit) de la boîte.
-        // Ici, on la place près du coin bas-droit de la fenêtre, au-dessus du dialogue principal.
-        m_boxSprite.setPosition(window.getSize().x - 20.f, window.getSize().y - 145.f);
+        m_boxSprite.setOrigin(0.f, 0.f);
+        m_boxSprite.setPosition(m_pos);
 
         float scaleX = 0.3f; // Un peu plus large pour le texte
         float scaleY = totalTextHeight > 0 ? totalTextHeight / originalHeight : 0;
@@ -157,7 +156,9 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     m_cursorSprite.setRotation(0.f);
     m_cursorSprite.setOrigin(0.f, 0.f);
     m_cursorSprite.setPosition(currentX - 30.f, currentY + (visibleIndex * singleLineHeight) + 5.f);
-    window.draw(m_cursorSprite);
+    if (!m_hideCursor){
+        window.draw(m_cursorSprite);
+    }
 
     // On avance l'itérateur jusqu'à l'offset de défilement
     auto it = m_choices.begin();

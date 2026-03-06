@@ -32,7 +32,6 @@ void Menu::open() {
 void Menu::close() {
     m_open = false;
     this->setVisible(false);
-    DialogManager::getInstance().setActive(false);
     this->reset();
 }
 

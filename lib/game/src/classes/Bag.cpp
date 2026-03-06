@@ -27,6 +27,15 @@ Bag::Bag() {
         m_inputClock.restart();
     });
 
+    
+    Controller::getInstance().onActionPressed("Cancel", [this]() {
+        m_isOpen = false;
+        DialogManager::getInstance().setActive(false);
+        m_choiceBox.setVisible(false);
+        m_choiceBox.reset();
+        Menu::getInstance().open();
+    });
+    
     GameEvents::OpenBag.subscribe([this]() {
         open();
     });
