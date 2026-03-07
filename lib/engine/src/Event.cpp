@@ -24,4 +24,5 @@ Event<> GameEvents::SelectGiveItem;
 Event<> GameEvents::TakeItem;
 Event<> GameEvents::SwitchItem;
 Event<std::string> GameEvents::GiveItem;
+Event<> GameEvents::YesGiveItem;
 

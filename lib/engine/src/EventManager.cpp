@@ -158,8 +158,7 @@ EventManager::EventManager() {
         TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
         TeamDisplay::getInstance().m_choiceBox.setVisible(false);
         TeamDisplay::getInstance().m_pocketDialog.hide();
-        std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
-        TeamDisplay::getInstance().m_subChoiceBox.init(choices);
+        TeamDisplay::getInstance().resetSubChoiceBox();
     });
 
     GameEvents::GiveItem.subscribe([](const std::string& itemName) {
@@ -171,9 +170,24 @@ EventManager::EventManager() {
         }
         for (auto& pkm : TeamDisplay::getInstance().m_team) {
             if (pkm.m_surname == selectedPkm) {
-                pkm.m_item = selectedItemName;
-                dialogue = pkm.m_surname + " tient " + selectedItemName + " !";
-                break;
+                if (pkm.m_item.empty()) {
+                    pkm.m_item = selectedItemName;
+                    dialogue = pkm.m_surname + " tient " + selectedItemName + " !";
+                    Item item = ItemDatabase::getInstance().getItem(selectedItemName);
+                    Player::getInstance().getInventory().removeItem(item, 1);
+                    break;
+                } else {
+                    dialogue = pkm.m_surname + " tient déjà l'objet " + pkm.m_item + " . Voulez-vous échanger les deux objets ?";
+                    std::vector<std::pair<std::string, std::string>> choices = {
+                        {"Oui", "YesGiveItem"},
+                        {"Non", "Cancel"}
+                    };
+                    DialogManager::getInstance().setChoiceBox(choices);
+                    DialogManager::getInstance().setChoiceBoxVisible(true);
+                    DialogManager::getInstance().getChoiceBox().setPosition({280.f, 145.f});
+                    Menu::getInstance().close();
+                    break;
+                }
             }
         }
         Bag::getInstance().lookingForItem = false;
@@ -181,8 +195,52 @@ EventManager::EventManager() {
         Menu::getInstance().close();
         TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
         TeamDisplay::getInstance().m_choiceBox.open();
-        Item item = ItemDatabase::getInstance().getItem(selectedItemName);
-        Player::getInstance().getInventory().removeItem(item, 1);
+        TeamDisplay::getInstance().m_pocketDialog.show();
+        DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
+    });
+
+    GameEvents::YesGiveItem.subscribe([]() {
+        std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
+        std::string dialogue = "";
+        for (auto& pkm : TeamDisplay::getInstance().m_team) {
+            if (pkm.m_surname == selectedPkm) {
+                Item olditem = ItemDatabase::getInstance().getItem(pkm.m_item);
+                Player::getInstance().getInventory().addItem(olditem, 1);
+                std::string itemName = Bag::getInstance().getChoiceBox().getChoiceName();
+                std::string selectedItemName = itemName.substr(0, itemName.size() - 3);
+                Item item = ItemDatabase::getInstance().getItem(selectedItemName);
+                Player::getInstance().getInventory().removeItem(item, 1);
+                pkm.m_item = selectedItemName;
+                dialogue = pkm.m_surname + " tient " + pkm.m_item + " !";
+                break;
+            }
+        }
+        DialogManager::getInstance().setChoiceBoxVisible(false);
+        DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
+    });
+
+    GameEvents::TakeItem.subscribe([]() {
+        std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
+        std::string dialogue = "";
+        if (selectedPkm.size() <= 3 || selectedPkm == "Retour") {
+            return;
+        }
+        for (auto& pkm : TeamDisplay::getInstance().m_team) {
+            if (pkm.m_surname == selectedPkm) {
+                if (pkm.m_item.empty()) {
+                    dialogue = pkm.m_surname + " ne tient rien.";
+                } else {
+                    Item item = ItemDatabase::getInstance().getItem(pkm.m_item);
+                    Player::getInstance().getInventory().addItem(item, 1);
+                    dialogue = pkm.m_surname + " vous a remis l'objet " + pkm.m_item + " !";
+                    pkm.m_item = "";
+                }
+                break;
+            }
+        }
+        TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+        TeamDisplay::getInstance().m_choiceBox.open();
+        TeamDisplay::getInstance().resetSubChoiceBox();
         DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
     });
 }

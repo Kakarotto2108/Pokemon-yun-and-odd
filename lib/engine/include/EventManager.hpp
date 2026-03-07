@@ -47,7 +47,8 @@ public:
         {"ItemsChoice", &GameEvents::ItemsChoice},
         {"SelectGiveItem", &GameEvents::SelectGiveItem},
         {"TakeItem", &GameEvents::TakeItem},
-        {"SwitchItem", &GameEvents::SwitchItem}
+        {"SwitchItem", &GameEvents::SwitchItem},
+        {"YesGiveItem", &GameEvents::YesGiveItem},
     };
 
     std::unordered_map<std::string, Event<std::string>*> stringEvents {

@@ -38,6 +38,7 @@ public:
     bool isOpen() const { return m_isOpen; }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void displayDescription();
+    void resetSubChoiceBox();
     void draw(sf::RenderWindow& window);
     void addPokemon(const PokemonInstance& pkm);
     void addSwitchChoice(const std::string& choice) { m_switchChoice.push_back(choice); }

@@ -219,6 +219,12 @@ void TeamDisplay::addPokemon(const PokemonInstance& pkm)
     m_team.push_back(pkm);
 }
 
+void TeamDisplay::resetSubChoiceBox() {
+    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
+    m_subChoiceBox.init(choices);
+    m_subChoiceBox.setPosition({280.f, 145.f});
+}
+
 void TeamDisplay::switchChoice(bool isMove)
 {
     if (m_switchChoice.empty()) return;
