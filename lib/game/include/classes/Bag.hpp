@@ -31,10 +31,12 @@ public:
         return instance;
     }
     void open();
+    void close();
     void displayItemDescription();
     bool isOpen() const { return m_isOpen; }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void draw(sf::RenderWindow& window);
+    bool lookingForItem = false;
 
 };
 

@@ -5,6 +5,7 @@
 #include "EventManager.hpp"
 #include "Menu.hpp"
 #include "Pokemon.hpp"
+#include "Bag.hpp"
 
 TeamDisplay::TeamDisplay() {
     std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
@@ -13,7 +14,7 @@ TeamDisplay::TeamDisplay() {
 
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
-        if (!m_isOpen) return;
+        if (!m_isOpen || !summary) return;
 
         // Cooldown pour éviter le défilement trop rapide
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
@@ -39,6 +40,8 @@ TeamDisplay::TeamDisplay() {
     Controller::getInstance().onActionPressed("SelectMove", [this]() {
         if (!m_isOpen) return;
 
+        if (DialogManager::getInstance().isActive()) return;
+
         if (summary) {
             m_moveChoiceBox.setFocus(true);
             m_choiceBox.setFocus(false);
@@ -46,6 +49,14 @@ TeamDisplay::TeamDisplay() {
         }
     });
     Controller::getInstance().onActionPressed("Cancel", [this]() {
+        if (Bag::getInstance().lookingForItem) {
+            Bag::getInstance().lookingForItem = false;
+            m_choiceBox.setVisible(true);
+            m_choiceBox.setFocus(true);
+            m_pocketDialog.show();
+            Menu::getInstance().close();
+            return;
+        }
         if (m_moveChoiceBox.hasFocus()) {
             m_moveChoiceBox.setFocus(false);
             m_moveChoiceBox.hideCursor(true);
@@ -270,7 +281,12 @@ void TeamDisplay::draw(sf::RenderWindow& window)
     if (m_currentpocketIndex == 0) {
         m_choiceBox.draw(window);
         m_moveChoiceBox.setFocus(false);
-        m_choiceBox.setFocus(true);
+        if (DialogManager::getInstance().isActive()) {
+            m_choiceBox.setFocus(false);
+        }
+        else {
+            m_choiceBox.setFocus(true);
+        }
     }
     else {
         m_moveChoiceBox.setVisible(true);

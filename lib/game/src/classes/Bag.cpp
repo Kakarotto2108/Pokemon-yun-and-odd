@@ -66,6 +66,14 @@ void Bag::open() {
     m_choiceBox.setChoiceIndex(0);
 }
 
+void Bag::close() {
+    m_isOpen = false;
+    DialogManager::getInstance().setActive(false);
+    m_choiceBox.setVisible(false);
+    m_choiceBox.reset();
+    Menu::getInstance().open();
+}
+
 void Bag::displayItemDescription(){
     std::string description;
     // On récupère l'item sélectionné
@@ -113,8 +121,10 @@ void Bag::updateDisplay() {
             for (auto& [item, count] : items) {
                 std::string itemText = item + " x" + std::to_string(count);
 
-                // TODO: Ajouter un événement "UseItem" ou similaire
-                choices.emplace_back(itemText, "UseObj");
+                if (lookingForItem)
+                    choices.emplace_back(itemText, "GiveItem");
+                else 
+                    choices.emplace_back(itemText, "UseObj");
             }
         }
     }

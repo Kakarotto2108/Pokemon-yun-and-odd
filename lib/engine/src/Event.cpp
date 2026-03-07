@@ -20,3 +20,8 @@ Event<> GameEvents::SummaryChoice;
 Event<std::string> GameEvents::MoveOrder;
 Event<std::string> GameEvents::OrderChoice;
 Event<> GameEvents::ItemsChoice;
+Event<> GameEvents::SelectGiveItem;
+Event<> GameEvents::TakeItem;
+Event<> GameEvents::SwitchItem;
+Event<std::string> GameEvents::GiveItem;
+

@@ -15,7 +15,6 @@ private:
     sf::Clock m_inputClock;
     bool m_isOpen = false;
     bool summary = false;
-    GameDialog m_pocketDialog;
     GameDialog m_descriptionDialog;
     int m_currentpocketIndex = 0;
     std::vector<std::string> m_switchChoice = {};
@@ -32,6 +31,7 @@ public:
     }
     std::vector<PokemonInstance> m_team;
     GameChoiceBox m_choiceBox;
+    GameDialog m_pocketDialog;
     GameChoiceBox m_subChoiceBox;
     GameChoiceBox m_moveChoiceBox;
     void open();

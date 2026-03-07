@@ -13,7 +13,7 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
       m_isMoving(false),
       m_inventory(std::make_unique<Inventory>(inventory)),
       m_path(std::move(path))
-{
+{   
     // Attention au chemin : assure-toi que le dossier existe
     sf::Texture& tex = ResourceManager<sf::Texture>::getInstance().get(spriteSheetName);
     m_sprite.setTexture(tex);

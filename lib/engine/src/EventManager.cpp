@@ -8,6 +8,7 @@
 #include "Menu.hpp"
 #include "PokemonInstance.hpp"
 #include "TeamDisplay.hpp"
+#include "Player.hpp"
 
 namespace {
     enum class YesNoContext {
@@ -140,6 +141,49 @@ EventManager::EventManager() {
     });
 
     GameEvents::ItemsChoice.subscribe([]() {
+        std::vector<std::pair<std::string, std::string>> choices = {
+            {"Donner", "SelectGiveItem"},
+            {"Prendre", "TakeItem"},
+            {"Echanger", "SwitchItem"},
+            {"Retour", "Cancel"}
+        };
+        TeamDisplay::getInstance().m_subChoiceBox.init(choices);
+        TeamDisplay::getInstance().m_subChoiceBox.reset();
+    });
+
+    GameEvents::SelectGiveItem.subscribe([]() {
+        Bag::getInstance().lookingForItem = true;
+        Bag::getInstance().open();
+        Menu::getInstance().close();
+        TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+        TeamDisplay::getInstance().m_choiceBox.setVisible(false);
+        TeamDisplay::getInstance().m_pocketDialog.hide();
+        std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
+        TeamDisplay::getInstance().m_subChoiceBox.init(choices);
+    });
+
+    GameEvents::GiveItem.subscribe([](const std::string& itemName) {
+        std::string selectedItemName = itemName.substr(0, itemName.size() - 3);
+        std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
+        std::string dialogue = "";
+        if (selectedPkm.size() <= 3 || selectedPkm == "Retour") {
+            return;
+        }
+        for (auto& pkm : TeamDisplay::getInstance().m_team) {
+            if (pkm.m_surname == selectedPkm) {
+                pkm.m_item = selectedItemName;
+                dialogue = pkm.m_surname + " tient " + selectedItemName + " !";
+                break;
+            }
+        }
+        Bag::getInstance().lookingForItem = false;
+        Bag::getInstance().close();
+        Menu::getInstance().close();
+        TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+        TeamDisplay::getInstance().m_choiceBox.open();
+        Item item = ItemDatabase::getInstance().getItem(selectedItemName);
+        Player::getInstance().getInventory().removeItem(item, 1);
+        DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
     });
 }
 

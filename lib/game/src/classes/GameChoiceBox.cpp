@@ -53,11 +53,11 @@ GameChoiceBox::GameChoiceBox() {
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
 
         std::string eventName = getEventForChoice(getChoiceName());
-        
+
         // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
         auto previousChoices = m_choices;
 
-        if (eventName == "MoveOrder" || eventName == "OrderChoice")
+        if (eventName == "MoveOrder" || eventName == "OrderChoice" || eventName == "GiveItem")
             EventManager::getInstance().launchEvent(eventName, getChoiceName());
         else
             EventManager::getInstance().launchEvent(eventName);

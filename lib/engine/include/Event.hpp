@@ -57,5 +57,9 @@ struct GameEvents {
     static Event<std::string> MoveOrder;
     static Event<std::string> OrderChoice;
     static Event<> ItemsChoice;
+    static Event<> SelectGiveItem;
+    static Event<> TakeItem;
+    static Event<> SwitchItem;
+    static Event<std::string> GiveItem;
 };
 

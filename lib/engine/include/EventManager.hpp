@@ -44,12 +44,16 @@ public:
         {"OpenOptions", &GameEvents::OpenOptions},
         {"ViewPokemon", &GameEvents::ViewPokemon},
         {"SummaryChoice", &GameEvents::SummaryChoice},
-        {"ItemsChoice", &GameEvents::ItemsChoice}
+        {"ItemsChoice", &GameEvents::ItemsChoice},
+        {"SelectGiveItem", &GameEvents::SelectGiveItem},
+        {"TakeItem", &GameEvents::TakeItem},
+        {"SwitchItem", &GameEvents::SwitchItem}
     };
 
     std::unordered_map<std::string, Event<std::string>*> stringEvents {
         {"MoveOrder", &GameEvents::MoveOrder},
-        {"OrderChoice", &GameEvents::OrderChoice}
+        {"OrderChoice", &GameEvents::OrderChoice},
+        {"GiveItem", &GameEvents::GiveItem},
     };
 
 
