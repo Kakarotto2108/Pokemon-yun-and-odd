@@ -8,7 +8,7 @@
 #include "Bag.hpp"
 
 TeamDisplay::TeamDisplay() {
-    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
+    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
     m_subChoiceBox.init(choices);
     m_subChoiceBox.setPosition({280.f, 145.f});
 
@@ -223,6 +223,7 @@ void TeamDisplay::resetSubChoiceBox() {
     std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
     m_subChoiceBox.init(choices);
     m_subChoiceBox.setPosition({280.f, 145.f});
+    m_subChoiceBox.reset();
 }
 
 void TeamDisplay::switchChoice(bool isMove)
@@ -270,6 +271,17 @@ void TeamDisplay::switchChoice(bool isMove)
     }
 }
 
+GameChoiceBox& TeamDisplay::getCurrentChoiceBox() {
+    if (m_subChoiceBox.hasFocus()){
+        return m_subChoiceBox;
+    }
+    else if (m_moveChoiceBox.hasFocus()){
+        return m_moveChoiceBox;
+    }
+    return m_choiceBox;
+}
+
+
 void TeamDisplay::draw(sf::RenderWindow& window)
 {
     if (!m_isOpen) return;
@@ -287,7 +299,7 @@ void TeamDisplay::draw(sf::RenderWindow& window)
     if (m_currentpocketIndex == 0) {
         m_choiceBox.draw(window);
         m_moveChoiceBox.setFocus(false);
-        if (DialogManager::getInstance().isActive()) {
+        if (DialogManager::getInstance().isActive() && !summary) {
             m_choiceBox.setFocus(false);
         }
         else {

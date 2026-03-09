@@ -243,6 +243,77 @@ EventManager::EventManager() {
         TeamDisplay::getInstance().resetSubChoiceBox();
         DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
     });
+
+    GameEvents::Cancel.subscribe([]() {
+        TeamDisplay::getInstance().getCurrentChoiceBox().setVisible(false);
+        TeamDisplay::getInstance().resetSubChoiceBox();
+    });
+
+    GameEvents::SwitchItem.subscribe([]() {
+        if (TeamDisplay::getInstance().m_subChoiceBox.isVisible()) {
+            std::string pkmSelected = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
+            TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+            TeamDisplay::getInstance().m_choiceBox.setFocus(true);
+            std::vector<std::pair<std::string, std::string>> choices;
+            for (const auto& pkm : TeamDisplay::getInstance().m_team) {
+                if (pkm.m_surname == pkmSelected) {
+                    if (pkm.m_item.empty()) {
+                        DialogManager::getInstance().startDialogue({{pkm.m_surname + " ne tient rien.", BoxType::Classic}});
+                        TeamDisplay::getInstance().resetSubChoiceBox();
+                        TeamDisplay::getInstance().updateDisplay();
+                        return;
+                    }
+                    TeamDisplay::getInstance().addSwitchChoice(pkm.m_item);
+                    TeamDisplay::getInstance().addSwitchChoice(pkm.m_surname);
+                }
+                choices.emplace_back(pkm.m_surname, "SwitchItem");
+            }
+
+            
+            size_t teamSize = TeamDisplay::getInstance().m_team.size();
+
+            if (teamSize <= 6) {
+                for (size_t i = 0; i < 6 - teamSize; ++i) {
+                    choices.emplace_back("---", "EmptySlot");
+                }
+            }
+            TeamDisplay::getInstance().m_choiceBox.init(choices);
+        } else {
+            std::string firstPkmSelected = TeamDisplay::getInstance().getSwitchChoice().back();
+            TeamDisplay::getInstance().getSwitchChoice().pop_back();
+            std::string item = TeamDisplay::getInstance().getSwitchChoice().back();
+            TeamDisplay::getInstance().getSwitchChoice().pop_back();
+            std::string pkmSelected = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
+            std::string sndItem = "";
+            std::string dialogue = "";
+
+
+            if (pkmSelected == firstPkmSelected) {                
+                TeamDisplay::getInstance().addSwitchChoice(item);
+                TeamDisplay::getInstance().addSwitchChoice(pkmSelected);
+                return;
+            }
+
+            for (auto& pkm : TeamDisplay::getInstance().m_team) {
+                if (pkm.m_surname == pkmSelected) {
+                    if (!pkm.m_item.empty()) {
+                        dialogue = "Vous avez échangé 1 " + item + " de " + firstPkmSelected + " contre 1 " + pkm.m_item + " de " + pkm.m_surname + ".";
+                        sndItem = pkm.m_item;
+                    }
+                    else dialogue = pkmSelected + " tient " + item + " !";
+                    pkm.m_item = item;
+                }
+            }
+            for (auto& pkm : TeamDisplay::getInstance().m_team) {
+                if (pkm.m_surname == firstPkmSelected) {
+                    if (!sndItem.empty()) pkm.m_item = sndItem;
+                }
+            }
+            DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
+            TeamDisplay::getInstance().resetSubChoiceBox();
+            TeamDisplay::getInstance().updateDisplay();
+        }
+    });
 }
 
 void EventManager::makeChoice(std::string dialoguekey) {

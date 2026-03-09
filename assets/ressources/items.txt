@@ -1,3 +1,4 @@
 Ch. de Sport|KeyItems|Des chaussures bon marché mais qui te permettent de courir.|false
 Poké Ball|Balls|Un objet pareil à une capsule, qui capture les Pokémon sauvages. Il suffit pour cela de le jeter comme une balle|true
 Super Ball|Balls|Une Poké Ball très performante dont le taux de réussite est supérieur à celui de la Poké Ball.|true
+Potion|Items|Un spray qui soigne les blessures. Restaure 20 PV d'un Pokémon.|true
