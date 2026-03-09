@@ -28,6 +28,11 @@ Game::Game(const GameConfig& config)
     ItemDatabase::getInstance().load("assets/ressources/items.txt");
     PokemonDataBase::getInstance().load("assets/ressources/Pokemon.txt");
 
+    Item item = ItemDatabase::getInstance().getItem("Potion");
+    Player::getInstance().getInventory().addItem(item, 1);
+    Item item2 = ItemDatabase::getInstance().getItem("Super Ball");
+    Player::getInstance().getInventory().addItem(item2, 1);
+
     // Caméra "Game"
     m_cameraView.setSize(static_cast<sf::Vector2f>(m_window.getSize())); // taille = fenêtre
     m_cameraView.setCenter(m_player.getDrawPosition()); // centre sur le joueur

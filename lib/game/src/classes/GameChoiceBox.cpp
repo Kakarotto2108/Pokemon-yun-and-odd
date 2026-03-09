@@ -132,8 +132,7 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
         float originalHeight = static_cast<float>(m_boxSprite.getTexture()->getSize().y);
 
         // Pour que la boîte grandisse vers le haut, on ancre son origine en bas.
-        // On ancre aussi à droite pour la positionner facilement sur le côté de l'écran.
-        m_boxSprite.setOrigin(0.f, 0.f);
+        m_boxSprite.setOrigin(0.f, originalHeight);             // ancre en haut
         m_boxSprite.setPosition(m_pos);
 
         float scaleX = 0.3f; // Un peu plus large pour le texte

@@ -43,9 +43,18 @@ public:
     WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
     std::size_t getHeight() const { return m_msgBox->getHeight(); }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
-    void setChoiceBox(std::vector<std::pair<std::string, std::string>> choices) { m_choiceBox.init(choices); }
+    void setChoiceBox(std::vector<std::pair<std::string, std::string>> choices) { 
+        m_choiceBox.init(choices);
+        if (m_msgBox) {
+            // Par défaut, on place la boîte de choix au-dessus de la boîte de dialogue
+            m_choiceBox.setPosition({m_choiceBox.getPosition().x, m_msgBox->getGlobalBounds().top});        
+        }
+    }
     void setChoiceBoxVisible(bool visible) { m_choiceBox.setVisible(visible); }
     std::size_t getWidth() const { return m_msgBox->getWidth(); }
+    float getTop() const { return m_msgBox->getGlobalBounds().top; }
+    float getLeft() const { return m_msgBox->getGlobalBounds().left; }
+
 
 private:
     DialogManager() = default; // Constructeur privé

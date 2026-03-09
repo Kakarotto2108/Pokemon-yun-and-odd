@@ -8,9 +8,10 @@
 #include "Bag.hpp"
 
 TeamDisplay::TeamDisplay() {
-    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
+    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
     m_subChoiceBox.init(choices);
-    m_subChoiceBox.setPosition({280.f, 145.f});
+    m_subChoiceBox.setPosition({280.f, m_choiceBox.getPosition().y + m_subChoiceBox.getGlobalBounds().height + 10.f});
+
 
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
@@ -223,6 +224,7 @@ void TeamDisplay::resetSubChoiceBox() {
     std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
     m_subChoiceBox.init(choices);
     m_subChoiceBox.setPosition({280.f, 145.f});
+    m_subChoiceBox.reset();
 }
 
 void TeamDisplay::switchChoice(bool isMove)
@@ -270,6 +272,17 @@ void TeamDisplay::switchChoice(bool isMove)
     }
 }
 
+GameChoiceBox& TeamDisplay::getCurrentChoiceBox() {
+    if (m_subChoiceBox.hasFocus()){
+        return m_subChoiceBox;
+    }
+    else if (m_moveChoiceBox.hasFocus()){
+        return m_moveChoiceBox;
+    }
+    return m_choiceBox;
+}
+
+
 void TeamDisplay::draw(sf::RenderWindow& window)
 {
     if (!m_isOpen) return;
@@ -277,17 +290,17 @@ void TeamDisplay::draw(sf::RenderWindow& window)
     displayDescription();
     sf::FloatRect choiceBounds = m_choiceBox.getGlobalBounds();
     float height = 50.f;
+    auto& dialog = DialogManager::getInstance();
 
     m_pocketDialog.setVerticalPadding(10.f);
     m_pocketDialog.setSize({choiceBounds.width, height});
     m_pocketDialog.setPosition({choiceBounds.left, choiceBounds.top - height});
-
-    m_pocketDialog.draw(window);
+    m_choiceBox.setPosition({m_choiceBox.getPosition().x, dialog.getTop()});
 
     if (m_currentpocketIndex == 0) {
         m_choiceBox.draw(window);
         m_moveChoiceBox.setFocus(false);
-        if (DialogManager::getInstance().isActive()) {
+        if (DialogManager::getInstance().isActive() && !summary) {
             m_choiceBox.setFocus(false);
         }
         else {
@@ -296,7 +309,15 @@ void TeamDisplay::draw(sf::RenderWindow& window)
     }
     else {
         m_moveChoiceBox.setVisible(true);
-        m_moveChoiceBox.draw(window);
+
+        m_moveChoiceBox.setPosition({
+            m_moveChoiceBox.getPosition().x,
+            dialog.getTop()
+        });
+        sf::FloatRect moveBounds = m_moveChoiceBox.getGlobalBounds();
+
+        m_pocketDialog.setPosition({moveBounds.left, moveBounds.top - height});
+        m_moveChoiceBox.draw(window);   
     }
     if (m_subChoiceBox.isVisible()) {
         m_subChoiceBox.setFocus(true);
@@ -304,6 +325,8 @@ void TeamDisplay::draw(sf::RenderWindow& window)
         m_subChoiceBox.draw(window);
     }
     
+    m_pocketDialog.draw(window);
+
     if (summary){
         m_descriptionDialog.setVerticalPadding(10.f);
         float width = static_cast<float>(window.getSize().x) - choiceBounds.width - 20.f;

@@ -28,6 +28,7 @@ void Menu::open() {
     this->setChoiceIndex(0);
     this->setVisible(true);
     this->setFocus(true);
+    this->setPosition({this->getPosition().x, DialogManager::getInstance().getTop()});
 }
 
 void Menu::close() {

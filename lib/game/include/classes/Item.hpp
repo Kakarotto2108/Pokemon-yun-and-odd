@@ -37,6 +37,24 @@ public:
     std::string m_description;
     ItemPocket  m_pocket;
     bool        m_consumable;
+
+    void debugPrint() const {
+        std::cerr << "Item: " << m_name << "\n";
+        if (m_pocket == ItemPocket::Items)
+            std::cerr << "Pocket: Items\n";
+        else if (m_pocket == ItemPocket::Balls)
+            std::cerr << "Pocket: Balls\n";
+        else if (m_pocket == ItemPocket::KeyItems)
+            std::cerr << "Pocket: Key Items\n";
+        else if (m_pocket == ItemPocket::TMsHMs)
+            std::cerr << "Pocket: TMs/HMs\n";
+        else if (m_pocket == ItemPocket::Berries)
+            std::cerr << "Pocket: Berries\n";
+        else
+            std::cerr << "Pocket: Unknown\n";
+        std::cerr << "Description: " << m_description << "\n";
+        std::cerr << "Consumable: " << (m_consumable ? "true" : "false") << "\n";
+    }
 };
 
 class ItemDatabase {

@@ -148,6 +148,8 @@ void Bag::draw(sf::RenderWindow& window)
 
     m_pocketDialog.draw(window);
 
+    m_choiceBox.setPosition({m_choiceBox.getPosition().x, DialogManager::getInstance().getTop()});
+
     m_choiceBox.draw(window);
 
     std::string selectedItem = m_choiceBox.getChoiceName();
