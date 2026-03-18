@@ -7,9 +7,12 @@
 #include "Menu.hpp"
 
 Bag::Bag() {
+    
+    resetSubChoiceBox();
+
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
-        if (!m_isOpen) return;
+        if (!m_isOpen || m_subChoiceBox2.isVisible()) return;
 
         // Cooldown pour éviter le défilement trop rapide
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
@@ -29,6 +32,15 @@ Bag::Bag() {
 
     
     Controller::getInstance().onActionPressed("Cancel", [this]() {
+        if (!m_isOpen) return;
+
+        if (m_subChoiceBox2.isVisible()) {
+            m_subChoiceBox2.setVisible(false);
+            m_subChoiceBox2.setFocus(false);
+            m_choiceBox.setFocus(true);
+            Menu::getInstance().close();
+            return;
+        }
         m_isOpen = false;
         DialogManager::getInstance().setActive(false);
         m_choiceBox.setVisible(false);
@@ -71,7 +83,8 @@ void Bag::close() {
     DialogManager::getInstance().setActive(false);
     m_choiceBox.setVisible(false);
     m_choiceBox.reset();
-    Menu::getInstance().open();
+    m_subChoiceBox2.setVisible(false);
+    m_subChoiceBox2.reset();
 }
 
 void Bag::displayItemDescription(){
@@ -124,7 +137,7 @@ void Bag::updateDisplay() {
                 if (lookingForItem)
                     choices.emplace_back(itemText, "GiveItem");
                 else 
-                    choices.emplace_back(itemText, "UseObj");
+                    choices.emplace_back(itemText, "ViewItem");
             }
         }
     }
@@ -134,11 +147,28 @@ void Bag::updateDisplay() {
     m_choiceBox.init(choices);
 }
 
+void Bag::resetSubChoiceBox() {
+    std::vector<std::pair<std::string, std::string>> choices;
+    switch (m_pockets[m_currentpocketIndex]) {
+        case ItemPocket::Items:
+        case ItemPocket::Berries: choices = {{"Utiliser", "UseItem"}, {"Donner", "GiveItem"}, {"Jeter", "SelectDiscardItem"}, {"Retour", "Cancel"}}; break;
+        case ItemPocket::Balls: choices = {{"Donner", "GiveItem"}, {"Jeter", "SelectDiscardItem"}, {"Retour", "Cancel"}}; break;
+        case ItemPocket::KeyItems: choices = {{"Utiliser", "UseItem"}, {"Enregistrer", "SaveItem"}, {"Retour", "Cancel"}}; break;
+        case ItemPocket::TMsHMs: choices = {{"Utiliser", "UseItem"}, {"Retour", "Cancel"}}; break;
+        default: break;
+    }
+    m_subChoiceBox2.init(choices);
+    m_subChoiceBox2.setPosition({280.f, DialogManager::getInstance().getTop()});
+    m_subChoiceBox2.reset();
+}
+
 void Bag::draw(sf::RenderWindow& window)
 {
     if (!m_isOpen) return;
-    
-    displayItemDescription();
+
+    // On affiche la description uniquement si aucun sous-menu ou dialogue n'est déjà actif.
+    if (!m_subChoiceBox2.isVisible() || !DialogManager::getInstance().isActive())
+        displayItemDescription();
     sf::FloatRect choiceBounds = m_choiceBox.getGlobalBounds();
     float height = 50.f;
 
@@ -151,6 +181,7 @@ void Bag::draw(sf::RenderWindow& window)
     m_choiceBox.setPosition({m_choiceBox.getPosition().x, DialogManager::getInstance().getTop()});
 
     m_choiceBox.draw(window);
+    m_subChoiceBox2.draw(window);
 
     std::string selectedItem = m_choiceBox.getChoiceName();
 

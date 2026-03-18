@@ -37,6 +37,8 @@ public:
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void draw(sf::RenderWindow& window);
     bool lookingForItem = false;
+    GameChoiceBox m_subChoiceBox2;
+    void resetSubChoiceBox();
 
 };
 

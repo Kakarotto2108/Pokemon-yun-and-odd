@@ -16,7 +16,7 @@ public:
 
     void notify(Args... args) {
         for (auto& l : listeners) {
-            l(args...);
+            if (l) l(args...);
         }
     }
 
@@ -60,8 +60,11 @@ struct GameEvents {
     static Event<> SelectGiveItem;
     static Event<> TakeItem;
     static Event<> SwitchItem;
-    static Event<std::string> GiveItem;
+    static Event<> GiveItem;
     static Event<> YesGiveItem;
     static Event<> Cancel;
+    static Event<> ViewItem;
+    static Event<> UseItem;
+    static Event<> DiscardItem;
+    static Event<> SelectDiscardItem;
 };
-

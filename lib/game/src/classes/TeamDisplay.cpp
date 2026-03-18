@@ -8,7 +8,7 @@
 #include "Bag.hpp"
 
 TeamDisplay::TeamDisplay() {
-    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
+    std::vector<std::vector<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
     m_subChoiceBox.init(choices);
     m_subChoiceBox.setPosition({280.f, m_choiceBox.getPosition().y + m_subChoiceBox.getGlobalBounds().height + 10.f});
 
@@ -70,12 +70,14 @@ TeamDisplay::TeamDisplay() {
             m_currentpocketIndex = 0;
             m_pocketDialog.setText("Pokémon", false);
             m_choiceBox.setFocus(true);
+            Menu::getInstance().close();
             return;
         }
         if (m_subChoiceBox.isVisible()) {
             m_subChoiceBox.setVisible(false);
             m_subChoiceBox.setFocus(false);
             m_choiceBox.setFocus(true);
+            resetSubChoiceBox();
             return;
         }
         m_isOpen = false;
@@ -176,7 +178,7 @@ std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
 }
 
 void TeamDisplay::updateDisplay() {
-    std::vector<std::pair<std::string, std::string>> choices;
+    std::vector<std::vector<std::string, std::string>> choices;
     m_pocketDialog.setText("Pokémon", false);
 
     for (auto& pkm : m_team) {
@@ -194,7 +196,7 @@ void TeamDisplay::updateDisplay() {
 }
 
 void TeamDisplay::updateMove() {
-    std::vector<std::pair<std::string, std::string>> choices;
+    std::vector<std::vector<std::string, std::string>> choices;
     m_pocketDialog.setText("Attaques", false);
     std::string selectedPkm = m_choiceBox.getChoiceName();
     if (selectedPkm != "---") {
@@ -221,9 +223,8 @@ void TeamDisplay::addPokemon(const PokemonInstance& pkm)
 }
 
 void TeamDisplay::resetSubChoiceBox() {
-    std::vector<std::pair<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "BackChoice"}};
+    std::vector<std::vector<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
     m_subChoiceBox.init(choices);
-    m_subChoiceBox.setPosition({280.f, 145.f});
     m_subChoiceBox.reset();
 }
 
@@ -282,6 +283,12 @@ GameChoiceBox& TeamDisplay::getCurrentChoiceBox() {
     return m_choiceBox;
 }
 
+void TeamDisplay::changeEvent(GameChoiceBox choiceBox, std::string eventName){
+    for (auto& choice : choiceBox.getChoices()) {
+        if (choice.first != "---") choice.second = eventName;
+    }
+    choiceBox.init(choiceBox.getChoices());
+}
 
 void TeamDisplay::draw(sf::RenderWindow& window)
 {

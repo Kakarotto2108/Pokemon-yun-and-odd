@@ -27,7 +27,7 @@ GameChoiceBox::GameChoiceBox() {
                 m_currentIndex--;
                 if (m_currentIndex < 0) {
                     m_currentIndex = static_cast<int>(m_choices.size()) - 1;
-                    m_scrollOffset = std::max(0, static_cast<int>(m_choices.size()) - MAX_VISIBLE_CHOICES);
+                    m_scrollOffset = std::max(0, static_cast<int>(m_choices.size()) - m_visible_choices);
                 } else if (m_currentIndex < m_scrollOffset) {
                     m_scrollOffset = m_currentIndex;
                 }
@@ -38,7 +38,7 @@ GameChoiceBox::GameChoiceBox() {
                 if (m_currentIndex >= static_cast<int>(m_choices.size())) {
                     m_currentIndex = 0;
                     m_scrollOffset = 0;
-                } else if (m_currentIndex >= m_scrollOffset + MAX_VISIBLE_CHOICES) {
+                } else if (m_currentIndex >= m_scrollOffset + m_visible_choices) {
                     m_scrollOffset++;
                 }
                 m_inputClock.restart(); // On relance le cooldown
@@ -54,11 +54,10 @@ GameChoiceBox::GameChoiceBox() {
 
         std::string eventName = getEventForChoice(getChoiceName());
 
-        // On sauvegarde les choix actuels pour détecter s'ils changent (ouverture d'un sous-menu)
-        auto previousChoices = m_choices;
+        std::cout << "Event : " << eventName << std::endl;
 
-        if (eventName == "MoveOrder" || eventName == "OrderChoice" || eventName == "GiveItem")
-            EventManager::getInstance().launchEvent(eventName, getChoiceName());
+        if (if getParamChoice() != "")
+            EventManager::getInstance().launchEvent(eventName, getParamChoice());
         else
             EventManager::getInstance().launchEvent(eventName);
     });
@@ -66,6 +65,7 @@ GameChoiceBox::GameChoiceBox() {
 
 void GameChoiceBox::init(std::vector<std::pair<std::string, std::string>> choices) {
     m_choices = choices;
+    m_currentIndex = 0;
     m_scrollOffset = 0;
     m_inputClock.restart(); // On reset le timer à l'ouverture pour activer la sécurité
 }
@@ -85,11 +85,20 @@ int GameChoiceBox::getChoiceIndex() const {
     return m_currentIndex;
 }
 
+auto GameChoiceBox::getParamChoice() const {
+    if (static_cast<int>(m_choices[m_currentIndex].size()) == 3) {
+        return m_choices[m_currentIndex][2];
+    }
+    return "";
+}
+
+
+
 std::string GameChoiceBox::getEventForChoice(const std::string& choiceText) {
     if (!m_hasFocus) return "";
-    for (const auto& pair : m_choices) {
-        if (pair.first == choiceText) {   // pair.first = texte du choix
-            return pair.second;           // pair.second = événement associé
+    for (const auto& vect : m_choices) {
+        if (vect[0] == choiceText) {   // pair.first = texte du choix
+            return vect[1];           // pair.second = événement associé
         }
     }
     return ""; // ou "NONE", si le choix n'existe pas
@@ -101,7 +110,7 @@ std::string GameChoiceBox::getChoiceName() const {
         return "";
     }
 
-    return m_choices[m_currentIndex].first;
+    return m_choices[m_currentIndex][0];
 }
 
 void GameChoiceBox::draw(sf::RenderWindow& window)
@@ -119,7 +128,7 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     if (!m_choices.empty()) {
         sf::Text tempText("X", font, 28);
         singleLineHeight = tempText.getGlobalBounds().height + lineSpacing;
-        int visibleCount = std::min(static_cast<int>(m_choices.size()), MAX_VISIBLE_CHOICES);
+        int visibleCount = std::min(static_cast<int>(m_choices.size()), m_visible_choices);
         totalTextHeight = visibleCount * singleLineHeight;
     }
 
@@ -163,10 +172,10 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     auto it = m_choices.begin();
     for(int i = 0; i < m_scrollOffset; ++i) if(it != m_choices.end()) ++it;
 
-    // On affiche seulement MAX_VISIBLE_CHOICES éléments
-    for (int i = 0; i < MAX_VISIBLE_CHOICES && it != m_choices.end(); ++i, ++it) {
+    // On affiche seulement m_visible_choices éléments
+    for (int i = 0; i < m_visible_choices && it != m_choices.end(); ++i, ++it) {
         // On dessine directement le texte de chaque choix
-        sf::Text t(sf::String::fromUtf8(it->first.begin(), it->first.end()), font, 28);
+        sf::Text t(sf::String::fromUtf8(it[0].begin(), it[0].end()), font, 28);
         t.setFillColor(sf::Color::Black);
         t.setPosition(currentX, currentY);
         
@@ -180,15 +189,15 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
         m_indicatorSprite.setOrigin(cSize.x / 2.f, cSize.y / 2.f);
         float arrowX = boxBounds.left + boxBounds.width - 25.f;
 
-        if (m_scrollOffset > 0) {
+        if (m_scrollOffset > 0 || m_visible_choices == 1) {
             m_indicatorSprite.setRotation(180.f);
-            m_indicatorSprite.setPosition(arrowX, boxBounds.top + 25.f);
+            m_indicatorSprite.setPosition(arrowX - 1.f, boxBounds.top + 15.f);
             window.draw(m_indicatorSprite);
         }
 
-        if (m_scrollOffset + MAX_VISIBLE_CHOICES < static_cast<int>(m_choices.size())) {
+        if (m_scrollOffset + m_visible_choices < static_cast<int>(m_choices.size()) || m_visible_choices == 1) {
             m_indicatorSprite.setRotation(0.f);
-            m_indicatorSprite.setPosition(arrowX, boxBounds.top + boxBounds.height - 25.f);
+            m_indicatorSprite.setPosition(arrowX, boxBounds.top + boxBounds.height - 15.f);
             window.draw(m_indicatorSprite);
         }
     }

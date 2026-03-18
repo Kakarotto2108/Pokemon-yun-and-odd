@@ -5,12 +5,12 @@
 
 class GameChoiceBox : public GameDialog {
 private:
-    std::vector<std::pair<std::string, std::string>> m_choices;
+    std::vector<std::vector<std::string, std::string>> m_choices;
     bool m_hasFocus = true;
     bool m_hideCursor = false;
     int m_currentIndex = 0;
     int m_scrollOffset = 0;
-    const int MAX_VISIBLE_CHOICES = 6;
+    int m_visible_choices = 6;
     sf::Sprite m_cursorSprite;
     sf::Sprite m_indicatorSprite;
     sf::Clock m_inputClock; // Horloge pour gérer le cooldown
@@ -18,7 +18,7 @@ private:
 public:
     GameChoiceBox();
 
-    void init(std::vector<std::pair<std::string, std::string>> choices);
+    void init(std::vector<std::vector<std::string, std::string, auto>> choices);
     void open();
     void setChoiceIndex(int index);
     void reset() { m_currentIndex = 0; m_scrollOffset = 0; }
@@ -35,6 +35,8 @@ public:
     void setFocus(bool focus) { m_hasFocus = focus; }
     bool hasFocus() const { return m_hasFocus; }
     void hideCursor(bool hide) { m_hideCursor = hide; }
+    std::vector<std::vector<std::string, std::string, auto>>& getChoices() { return m_choices; }
+    void setMaxVisibleChoices(int max) { m_visible_choices = max; }
 
     virtual ~GameChoiceBox() = default;
 };

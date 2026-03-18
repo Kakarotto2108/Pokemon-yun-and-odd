@@ -41,6 +41,7 @@ public:
     void resetSubChoiceBox();
     void draw(sf::RenderWindow& window);
     void addPokemon(const PokemonInstance& pkm);
+    void changeEvent(GameChoiceBox choiceBox, std::string eventName);
     void addSwitchChoice(const std::string& choice) { m_switchChoice.push_back(choice); }
     const std::vector<std::string>& getSwitchChoice() const { return m_switchChoice; }
     std::vector<std::string>& getSwitchChoice() { return m_switchChoice; }

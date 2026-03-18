@@ -53,7 +53,7 @@ void Controller::handleInput(sf::RenderWindow& window) {
             pressedActions.insert(action.first);
             if (pressedCallbacks.count(action.first)) {
                 for (auto& cb : pressedCallbacks[action.first]) {
-                    cb();
+                    if (cb) cb();
                 }
             }
         } 

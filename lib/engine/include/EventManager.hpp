@@ -48,13 +48,18 @@ public:
         {"SelectGiveItem", &GameEvents::SelectGiveItem},
         {"TakeItem", &GameEvents::TakeItem},
         {"SwitchItem", &GameEvents::SwitchItem},
+        {"GiveItem", &GameEvents::GiveItem},
         {"YesGiveItem", &GameEvents::YesGiveItem},
+        {"Cancel", &GameEvents::Cancel},
+        {"ViewItem", &GameEvents::ViewItem},
+        {"UseItem", &GameEvents::UseItem},
+        {"DiscardItem", &GameEvents::DiscardItem},
+        {"SelectDiscardItem", &GameEvents::SelectDiscardItem},
     };
 
     std::unordered_map<std::string, Event<std::string>*> stringEvents {
         {"MoveOrder", &GameEvents::MoveOrder},
-        {"OrderChoice", &GameEvents::OrderChoice},
-        {"GiveItem", &GameEvents::GiveItem},
+        {"OrderChoice", &GameEvents::OrderChoice}
     };
 
 
@@ -62,6 +67,7 @@ private:
     EventManager();
 
     GameChoiceBox m_choiceBox;
+
     // --- INTERDIRE LA COPIE ---
     EventManager(const EventManager&) = delete;
     EventManager& operator=(const EventManager&) = delete;

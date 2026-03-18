@@ -78,16 +78,11 @@ EventManager::EventManager() {
 
     GameEvents::OpenBag.subscribe([]() {
         Bag::getInstance().open();
+        Bag::getInstance().getChoiceBox().setFocus(true);
         Menu::getInstance().close();
     });
 
     GameEvents::OpenPokemon.subscribe([]() {
-        if (TeamDisplay::getInstance().m_team.empty()) {
-            PokemonInstance pkm("Moustillon", 5);
-            TeamDisplay::getInstance().addPokemon(pkm);
-            PokemonInstance pkm2("Pikachu", 7);
-            TeamDisplay::getInstance().addPokemon(pkm2);
-        }
         TeamDisplay::getInstance().open();
         Menu::getInstance().setFocus(false);
         Menu::getInstance().close();
@@ -161,8 +156,28 @@ EventManager::EventManager() {
         TeamDisplay::getInstance().resetSubChoiceBox();
     });
 
-    GameEvents::GiveItem.subscribe([](const std::string& itemName) {
-        std::string selectedItemName = itemName.substr(0, itemName.size() - 3);
+    GameEvents::GiveItem.subscribe([]() {
+        if (Bag::getInstance().m_subChoiceBox2.isVisible()) {
+            TeamDisplay::getInstance().open();
+            TeamDisplay::getInstance().updateDisplay();
+            Bag::getInstance().close();
+            TeamDisplay::getInstance().m_choiceBox.setFocus(true);
+            std::vector<std::pair<std::string, std::string>> choices;
+            for (const auto& pkm : TeamDisplay::getInstance().m_team) {
+                choices.emplace_back(pkm.m_surname, "GiveItem");
+            }
+    
+            size_t teamSize = TeamDisplay::getInstance().m_team.size();
+
+            if (teamSize <= 6) {
+                for (size_t i = 0; i < 6 - teamSize; ++i) {
+                    choices.emplace_back("---", "EmptySlot");
+                }
+            }
+            TeamDisplay::getInstance().m_choiceBox.init(choices);
+            return;
+        }
+        std::string selectedItemName = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
         std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
         std::string dialogue = "";
         if (selectedPkm.size() <= 3 || selectedPkm == "Retour") {
@@ -184,7 +199,7 @@ EventManager::EventManager() {
                     };
                     DialogManager::getInstance().setChoiceBox(choices);
                     DialogManager::getInstance().setChoiceBoxVisible(true);
-                    DialogManager::getInstance().getChoiceBox().setPosition({280.f, 145.f});
+                    DialogManager::getInstance().getChoiceBox().setPosition({280.f, DialogManager::getInstance().getTop()});
                     Menu::getInstance().close();
                     break;
                 }
@@ -194,6 +209,7 @@ EventManager::EventManager() {
         Bag::getInstance().close();
         Menu::getInstance().close();
         TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
+        TeamDisplay::getInstance().updateDisplay();
         TeamDisplay::getInstance().m_choiceBox.open();
         TeamDisplay::getInstance().m_pocketDialog.show();
         DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
@@ -247,6 +263,17 @@ EventManager::EventManager() {
     GameEvents::Cancel.subscribe([]() {
         TeamDisplay::getInstance().getCurrentChoiceBox().setVisible(false);
         TeamDisplay::getInstance().resetSubChoiceBox();
+        if (Bag::getInstance().m_subChoiceBox2.isVisible()) {
+            Bag::getInstance().getChoiceBox().setFocus(true);
+            Bag::getInstance().m_subChoiceBox2.setFocus(false);
+        }
+        Bag::getInstance().m_subChoiceBox2.setVisible(false);
+        DialogManager::getInstance().setChoiceBoxVisible(false);
+        if (Bag::getInstance().isOpen()){
+            Bag::getInstance().m_subChoiceBox2.setVisible(false);
+            Bag::getInstance().m_subChoiceBox2.setFocus(false);
+            Bag::getInstance().getChoiceBox().setFocus(true);        
+        }
     });
 
     GameEvents::SwitchItem.subscribe([]() {
@@ -298,20 +325,57 @@ EventManager::EventManager() {
                 if (pkm.m_surname == pkmSelected) {
                     if (!pkm.m_item.empty()) {
                         dialogue = "Vous avez échangé 1 " + item + " de " + firstPkmSelected + " contre 1 " + pkm.m_item + " de " + pkm.m_surname + ".";
-                        sndItem = pkm.m_item;
                     }
                     else dialogue = pkmSelected + " tient " + item + " !";
+                    sndItem = pkm.m_item;
                     pkm.m_item = item;
                 }
             }
             for (auto& pkm : TeamDisplay::getInstance().m_team) {
-                if (pkm.m_surname == firstPkmSelected) {
-                    if (!sndItem.empty()) pkm.m_item = sndItem;
-                }
+                if (pkm.m_surname == firstPkmSelected)  pkm.m_item = sndItem;
             }
             DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
             TeamDisplay::getInstance().resetSubChoiceBox();
             TeamDisplay::getInstance().updateDisplay();
+        }
+    });
+
+    GameEvents::ViewItem.subscribe([]() {
+        Bag::getInstance().resetSubChoiceBox();
+        Bag::getInstance().m_subChoiceBox2.open();
+        Bag::getInstance().getChoiceBox().setFocus(false);
+        Bag::getInstance().m_subChoiceBox2.setFocus(true);
+    });
+
+    GameEvents::SelectDiscardItem.subscribe([]() {
+        std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
+        Item item = ItemDatabase::getInstance().getItem(selectedItem);
+        std::vector<std::pair<std::string, std::string>> choices;
+        choices.emplace_back("1", "DiscardItem");
+        for (int i = Player::getInstance().getInventory().getQuantity(item); i > 1; i--) {
+            choices.emplace_back(std::to_string(i), "DiscardItem");            
+            }
+        Bag::getInstance().m_subChoiceBox2.init(choices);
+        Bag::getInstance().m_subChoiceBox2.setMaxVisibleChoices(1);
+        Bag::getInstance().m_subChoiceBox2.hideCursor(true);
+        std::string dialogue = "En jeter combien ?";
+        DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
+    });
+
+    GameEvents::DiscardItem.subscribe([]() {
+        std::string quantity = Bag::getInstance().m_subChoiceBox2.getChoiceName();
+        std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
+        Item item = ItemDatabase::getInstance().getItem(selectedItem);        
+        if (Bag::getInstance().m_subChoiceBox2.isVisible()){
+            std::vector<std::vector<std::string, std::string>> choices;    
+            choices = {{"Oui", "YesDiscardItem", quantity}, {"Non", "Cancel"}};
+            std::string dialogue = "Voulez-vous jeter " + quantity + " " + selectedItem + " ? ";        
+            Bag::getInstance().m_subChoiceBox2.init(choices);
+            Bag::getInstance().m_subChoiceBox2.setMaxVisibleChoices(6);
+            Bag::getInstance().m_subChoiceBox2.hideCursor(false);
+            DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
+        } else {
+            Player::getInstance().getInventory().removeItem(item, std::stoi(quantity));
         }
     });
 }

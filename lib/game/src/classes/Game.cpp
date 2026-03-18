@@ -6,6 +6,7 @@
 #include "Item.hpp"
 #include "Pokemon.hpp"
 #include "Bag.hpp"
+#include "PokemonInstance.hpp"
 #include "TeamDisplay.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
@@ -29,9 +30,15 @@ Game::Game(const GameConfig& config)
     PokemonDataBase::getInstance().load("assets/ressources/Pokemon.txt");
 
     Item item = ItemDatabase::getInstance().getItem("Potion");
-    Player::getInstance().getInventory().addItem(item, 1);
+    Player::getInstance().getInventory().addItem(item, 8);
     Item item2 = ItemDatabase::getInstance().getItem("Super Ball");
     Player::getInstance().getInventory().addItem(item2, 1);
+    if (TeamDisplay::getInstance().m_team.empty()) {
+        PokemonInstance pkm("Moustillon", 5);
+        TeamDisplay::getInstance().addPokemon(pkm);
+        PokemonInstance pkm2("Pikachu", 7);
+        TeamDisplay::getInstance().addPokemon(pkm2);
+    }
 
     // Caméra "Game"
     m_cameraView.setSize(static_cast<sf::Vector2f>(m_window.getSize())); // taille = fenêtre
