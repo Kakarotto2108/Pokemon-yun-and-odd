@@ -16,13 +16,13 @@ Menu::Menu() {
 
 void Menu::open() {
     m_open = true;
-    std::vector<std::pair<std::string, std::string>> choices = {
-        {"Pokedex", "OpenPokedex"},
-        {"Pokemon", "OpenPokemon"},
-        {"Sac", "OpenBag"},
-        {Player::getInstance().getName(), "OpenPlayer"},
-        {"Sauver", "SaveGame"},
-        {"Option", "OpenOptions"}
+    std::vector<Choice> choices = {
+        {"Pokedex", "OpenPokedex", std::monostate()},
+        {"Pokemon", "OpenPokemon", std::monostate()},
+        {"Sac", "OpenBag", std::monostate()},
+        {Player::getInstance().getName(), "OpenPlayer", std::monostate()},
+        {"Sauver", "SaveGame", std::monostate()},
+        {"Option", "OpenOptions", std::monostate()}
     };
     this->init(choices);
     this->setChoiceIndex(0);

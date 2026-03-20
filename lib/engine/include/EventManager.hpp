@@ -14,19 +14,28 @@ public:
     }
 
     // Accès aux events
-    void launchEvent(const std::string& name, const std::string& arg = "") {
-        if (arg.empty()) {
-            auto it = justEvents.find(name);
-            if (it != justEvents.end()) {
-                it->second->notify();
+    void launchEvent(const std::string& name, const ChoiceParam& param) {
+        std::visit([&](auto&& value) {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, std::monostate>) {
+                auto it = justEvents.find(name);
+                if (it != justEvents.end()) {
+                    it->second->notify();
+                }
+            } else if constexpr (std::is_same_v<T, std::string>){
+                auto it = stringEvents.find(name);
+                if (it != stringEvents.end()) {
+                    it->second->notify(value);
+                }
+            } else if constexpr (std::is_same_v<T, int>) {
+                auto it = intEvents.find(name);
+                if (it != intEvents.end()) {
+                    it->second->notify(value);
+                }
             }
-        } else {
-            auto it = stringEvents.find(name);
-            if (it != stringEvents.end()) {
-                it->second->notify(arg);
-            }
-        }
+        }, param);
     }
+    
 
     void makeChoice(std::string dialoguekey);
     std::unordered_map<std::string, Event<>*> justEvents {
@@ -62,6 +71,8 @@ public:
         {"OrderChoice", &GameEvents::OrderChoice}
     };
 
+    std::unordered_map<std::string, Event<int>*> intEvents {
+    };
 
 private:
     EventManager();

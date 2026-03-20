@@ -183,7 +183,7 @@ public:
                                 }
                             }
                             else if (cmd == "CHOICE") {
-                                std::vector<std::pair<std::string, std::string>> choices;
+                                std::vector<Choice> choices;
 
                                 // On commence à i=1 car i=0 est la commande "CHOICE"
                                 for (size_t i = 1; i < tokens.size(); ++i) {
@@ -201,7 +201,7 @@ public:
                                         std::string text = trim(choicePair[0]);
                                         std::string event = trim(choicePair[1]);
             
-                                        choices.emplace_back(text, event);
+                                        choices.emplace_back(text, event, std::monostate());
                                     }
                                 }
 

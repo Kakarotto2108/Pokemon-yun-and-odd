@@ -125,7 +125,7 @@ void Bag::updateDisplay() {
     m_pocketDialog.setText(pocketName, false);
     m_pocketDialog.show();
 
-    std::vector<std::pair<std::string, std::string>> choices;
+    std::vector<Choice> choices;
     
     // On récupère le nom de la poche actuelle pour l'afficher (optionnel, mais utile)
     // Ici on liste juste les items
@@ -135,9 +135,9 @@ void Bag::updateDisplay() {
                 std::string itemText = item + " x" + std::to_string(count);
 
                 if (lookingForItem)
-                    choices.emplace_back(itemText, "GiveItem");
+                    choices.emplace_back(itemText, "GiveItem", std::monostate());
                 else 
-                    choices.emplace_back(itemText, "ViewItem");
+                    choices.emplace_back(itemText, "ViewItem", std::monostate());
             }
         }
     }
@@ -148,13 +148,13 @@ void Bag::updateDisplay() {
 }
 
 void Bag::resetSubChoiceBox() {
-    std::vector<std::pair<std::string, std::string>> choices;
+    std::vector<Choice> choices;
     switch (m_pockets[m_currentpocketIndex]) {
         case ItemPocket::Items:
-        case ItemPocket::Berries: choices = {{"Utiliser", "UseItem"}, {"Donner", "GiveItem"}, {"Jeter", "SelectDiscardItem"}, {"Retour", "Cancel"}}; break;
-        case ItemPocket::Balls: choices = {{"Donner", "GiveItem"}, {"Jeter", "SelectDiscardItem"}, {"Retour", "Cancel"}}; break;
-        case ItemPocket::KeyItems: choices = {{"Utiliser", "UseItem"}, {"Enregistrer", "SaveItem"}, {"Retour", "Cancel"}}; break;
-        case ItemPocket::TMsHMs: choices = {{"Utiliser", "UseItem"}, {"Retour", "Cancel"}}; break;
+        case ItemPocket::Berries: choices = {{"Utiliser", "UseItem", std::monostate()}, {"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
+        case ItemPocket::Balls: choices = {{"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
+        case ItemPocket::KeyItems: choices = {{"Utiliser", "UseItem", std::monostate()}, {"Enregistrer", "SaveItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
+        case ItemPocket::TMsHMs: choices = {{"Utiliser", "UseItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
         default: break;
     }
     m_subChoiceBox2.init(choices);

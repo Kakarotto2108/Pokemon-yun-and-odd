@@ -8,7 +8,7 @@
 #include "Bag.hpp"
 
 TeamDisplay::TeamDisplay() {
-    std::vector<std::vector<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
+    std::vector<Choice> choices = {{"Résumé", "SummaryChoice", std::monostate()}, {"Ordre", "OrderChoice", std::string("init")}, {"Objet", "ItemsChoice", std::monostate()}, {"Retour", "Cancel", std::monostate()}};
     m_subChoiceBox.init(choices);
     m_subChoiceBox.setPosition({280.f, m_choiceBox.getPosition().y + m_subChoiceBox.getGlobalBounds().height + 10.f});
 
@@ -178,17 +178,17 @@ std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
 }
 
 void TeamDisplay::updateDisplay() {
-    std::vector<std::vector<std::string, std::string>> choices;
+    std::vector<Choice> choices;
     m_pocketDialog.setText("Pokémon", false);
 
     for (auto& pkm : m_team) {
-        choices.emplace_back(pkm.m_surname, "ViewPokemon");
+        choices.emplace_back(pkm.m_surname, "ViewPokemon", std::monostate());
     }
     size_t teamSize = m_team.size();
 
     if (teamSize <= 6) {
         for (size_t i = 0; i < 6 - teamSize; ++i) {
-            choices.emplace_back("---", "EmptySlot");
+            choices.emplace_back("---", "EmptySlot", std::monostate());
         }
     }
     m_choiceBox.init(choices);
@@ -196,18 +196,18 @@ void TeamDisplay::updateDisplay() {
 }
 
 void TeamDisplay::updateMove() {
-    std::vector<std::vector<std::string, std::string>> choices;
+    std::vector<Choice> choices;
     m_pocketDialog.setText("Attaques", false);
     std::string selectedPkm = m_choiceBox.getChoiceName();
     if (selectedPkm != "---") {
         for (const auto& pkm : m_team) {
             if (pkm.m_surname == selectedPkm) {
-                for (const auto& move : pkm.m_currentMoves) {
-                    choices.emplace_back(move, "MoveOrder");                    
+                for (const auto& move : pkm.m_currentMoves) {                    
+                    choices.emplace_back(move, "MoveOrder", move);                    
                 }
                 if (pkm.m_currentMoves.size() < 4) {
                     for (size_t i = 0; i < 4 - pkm.m_currentMoves.size(); ++i) {
-                        choices.emplace_back("---", "EmptySlot");                        
+                        choices.emplace_back("---", "EmptySlot", std::monostate());                        
                     }
                 }                
             }
@@ -223,7 +223,7 @@ void TeamDisplay::addPokemon(const PokemonInstance& pkm)
 }
 
 void TeamDisplay::resetSubChoiceBox() {
-    std::vector<std::vector<std::string, std::string>> choices = {{"Résumé", "SummaryChoice"}, {"Ordre", "OrderChoice"}, {"Objet", "ItemsChoice"}, {"Retour", "Cancel"}};
+    std::vector<Choice> choices = {{"Résumé", "SummaryChoice", std::monostate()}, {"Ordre", "OrderChoice", std::string("init")}, {"Objet", "ItemsChoice", std::monostate()}, {"Retour", "Cancel", std::monostate()}};
     m_subChoiceBox.init(choices);
     m_subChoiceBox.reset();
 }
@@ -285,7 +285,7 @@ GameChoiceBox& TeamDisplay::getCurrentChoiceBox() {
 
 void TeamDisplay::changeEvent(GameChoiceBox choiceBox, std::string eventName){
     for (auto& choice : choiceBox.getChoices()) {
-        if (choice.first != "---") choice.second = eventName;
+        if (choice.name != "---") choice.event = eventName;
     }
     choiceBox.init(choiceBox.getChoices());
 }

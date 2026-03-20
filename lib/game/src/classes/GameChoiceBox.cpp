@@ -56,14 +56,11 @@ GameChoiceBox::GameChoiceBox() {
 
         std::cout << "Event : " << eventName << std::endl;
 
-        if (if getParamChoice() != "")
-            EventManager::getInstance().launchEvent(eventName, getParamChoice());
-        else
-            EventManager::getInstance().launchEvent(eventName);
+        EventManager::getInstance().launchEvent(eventName, getParamChoice());
     });
 }
 
-void GameChoiceBox::init(std::vector<std::pair<std::string, std::string>> choices) {
+void GameChoiceBox::init(std::vector<Choice> choices) {
     m_choices = choices;
     m_currentIndex = 0;
     m_scrollOffset = 0;
@@ -85,23 +82,24 @@ int GameChoiceBox::getChoiceIndex() const {
     return m_currentIndex;
 }
 
-auto GameChoiceBox::getParamChoice() const {
-    if (static_cast<int>(m_choices[m_currentIndex].size()) == 3) {
-        return m_choices[m_currentIndex][2];
-    }
-    return "";
-}
-
-
-
 std::string GameChoiceBox::getEventForChoice(const std::string& choiceText) {
     if (!m_hasFocus) return "";
     for (const auto& vect : m_choices) {
-        if (vect[0] == choiceText) {   // pair.first = texte du choix
-            return vect[1];           // pair.second = événement associé
+        if (vect.name == choiceText) {   // pair.first = texte du choix
+            return vect.event;           // pair.second = événement associé
         }
     }
     return ""; // ou "NONE", si le choix n'existe pas
+}
+
+bool GameChoiceBox::hasParam() const {
+    return !std::holds_alternative<std::monostate>(
+        m_choices[m_currentIndex].param
+    );
+}
+
+const ChoiceParam& GameChoiceBox::getParamChoice() const {
+    return m_choices[m_currentIndex].param;
 }
 
 std::string GameChoiceBox::getChoiceName() const {
@@ -110,7 +108,7 @@ std::string GameChoiceBox::getChoiceName() const {
         return "";
     }
 
-    return m_choices[m_currentIndex][0];
+    return m_choices[m_currentIndex].name;
 }
 
 void GameChoiceBox::draw(sf::RenderWindow& window)
@@ -175,7 +173,7 @@ void GameChoiceBox::draw(sf::RenderWindow& window)
     // On affiche seulement m_visible_choices éléments
     for (int i = 0; i < m_visible_choices && it != m_choices.end(); ++i, ++it) {
         // On dessine directement le texte de chaque choix
-        sf::Text t(sf::String::fromUtf8(it[0].begin(), it[0].end()), font, 28);
+        sf::Text t(sf::String::fromUtf8(it->name.begin(), it->name.end()), font, 28);
         t.setFillColor(sf::Color::Black);
         t.setPosition(currentX, currentY);
         

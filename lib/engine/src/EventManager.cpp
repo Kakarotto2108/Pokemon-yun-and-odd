@@ -30,9 +30,9 @@ EventManager::EventManager() {
 
         DialogManager::getInstance().startDialogue({step1});
 
-        std::vector<std::pair<std::string, std::string>> choices = {
-            {"Oui", "YesChoice"},
-            {"Non", "NoChoice"}
+        std::vector<Choice> choices = {
+            {"Oui", "YesChoice", std::monostate()},
+            {"Non", "NoChoice", std::monostate()}
         };
         DialogManager::getInstance().setChoiceBox(choices);
         DialogManager::getInstance().setChoiceBoxVisible(true);
@@ -114,16 +114,16 @@ EventManager::EventManager() {
             TeamDisplay::getInstance().addSwitchChoice(TeamDisplay::getInstance().m_choiceBox.getChoiceName());
             TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
             TeamDisplay::getInstance().m_choiceBox.setFocus(true);
-            std::vector<std::pair<std::string, std::string>> choices;
+            std::vector<Choice> choices;
             for (const auto& pkm : TeamDisplay::getInstance().m_team) {
-                choices.emplace_back(pkm.m_surname, "OrderChoice");
+                choices.emplace_back(pkm.m_surname, "OrderChoice", pkm.m_surname);
             }
             
             size_t teamSize = TeamDisplay::getInstance().m_team.size();
 
             if (teamSize <= 6) {
                 for (size_t i = 0; i < 6 - teamSize; ++i) {
-                    choices.emplace_back("---", "EmptySlot");
+                    choices.emplace_back("---", "EmptySlot", std::monostate());
                 }
             }
             TeamDisplay::getInstance().m_choiceBox.init(choices);
@@ -136,11 +136,11 @@ EventManager::EventManager() {
     });
 
     GameEvents::ItemsChoice.subscribe([]() {
-        std::vector<std::pair<std::string, std::string>> choices = {
-            {"Donner", "SelectGiveItem"},
-            {"Prendre", "TakeItem"},
-            {"Echanger", "SwitchItem"},
-            {"Retour", "Cancel"}
+        std::vector<Choice> choices = {
+            {"Donner", "SelectGiveItem", std::monostate()},
+            {"Prendre", "TakeItem", std::monostate()},
+            {"Echanger", "SwitchItem", std::monostate()},
+            {"Retour", "Cancel", std::monostate()}
         };
         TeamDisplay::getInstance().m_subChoiceBox.init(choices);
         TeamDisplay::getInstance().m_subChoiceBox.reset();
@@ -162,16 +162,16 @@ EventManager::EventManager() {
             TeamDisplay::getInstance().updateDisplay();
             Bag::getInstance().close();
             TeamDisplay::getInstance().m_choiceBox.setFocus(true);
-            std::vector<std::pair<std::string, std::string>> choices;
+            std::vector<Choice> choices;
             for (const auto& pkm : TeamDisplay::getInstance().m_team) {
-                choices.emplace_back(pkm.m_surname, "GiveItem");
+                choices.emplace_back(pkm.m_surname, "GiveItem", std::monostate());
             }
     
             size_t teamSize = TeamDisplay::getInstance().m_team.size();
 
             if (teamSize <= 6) {
                 for (size_t i = 0; i < 6 - teamSize; ++i) {
-                    choices.emplace_back("---", "EmptySlot");
+                    choices.emplace_back("---", "EmptySlot", std::monostate());
                 }
             }
             TeamDisplay::getInstance().m_choiceBox.init(choices);
@@ -193,9 +193,9 @@ EventManager::EventManager() {
                     break;
                 } else {
                     dialogue = pkm.m_surname + " tient déjà l'objet " + pkm.m_item + " . Voulez-vous échanger les deux objets ?";
-                    std::vector<std::pair<std::string, std::string>> choices = {
-                        {"Oui", "YesGiveItem"},
-                        {"Non", "Cancel"}
+                    std::vector<Choice> choices = {
+                        {"Oui", "YesGiveItem", std::monostate()},
+                        {"Non", "Cancel", std::monostate()}
                     };
                     DialogManager::getInstance().setChoiceBox(choices);
                     DialogManager::getInstance().setChoiceBoxVisible(true);
@@ -281,7 +281,7 @@ EventManager::EventManager() {
             std::string pkmSelected = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
             TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
             TeamDisplay::getInstance().m_choiceBox.setFocus(true);
-            std::vector<std::pair<std::string, std::string>> choices;
+            std::vector<Choice> choices;
             for (const auto& pkm : TeamDisplay::getInstance().m_team) {
                 if (pkm.m_surname == pkmSelected) {
                     if (pkm.m_item.empty()) {
@@ -293,7 +293,7 @@ EventManager::EventManager() {
                     TeamDisplay::getInstance().addSwitchChoice(pkm.m_item);
                     TeamDisplay::getInstance().addSwitchChoice(pkm.m_surname);
                 }
-                choices.emplace_back(pkm.m_surname, "SwitchItem");
+                choices.emplace_back(pkm.m_surname, "SwitchItem", std::monostate());
             }
 
             
@@ -301,7 +301,7 @@ EventManager::EventManager() {
 
             if (teamSize <= 6) {
                 for (size_t i = 0; i < 6 - teamSize; ++i) {
-                    choices.emplace_back("---", "EmptySlot");
+                    choices.emplace_back("---", "EmptySlot", std::monostate());
                 }
             }
             TeamDisplay::getInstance().m_choiceBox.init(choices);
@@ -350,8 +350,8 @@ EventManager::EventManager() {
     GameEvents::SelectDiscardItem.subscribe([]() {
         std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
         Item item = ItemDatabase::getInstance().getItem(selectedItem);
-        std::vector<std::pair<std::string, std::string>> choices;
-        choices.emplace_back("1", "DiscardItem");
+        std::vector<Choice> choices;
+        choices.emplace_back("1", "DiscardItem", std::monostate());
         for (int i = Player::getInstance().getInventory().getQuantity(item); i > 1; i--) {
             choices.emplace_back(std::to_string(i), "DiscardItem");            
             }
@@ -367,7 +367,7 @@ EventManager::EventManager() {
         std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
         Item item = ItemDatabase::getInstance().getItem(selectedItem);        
         if (Bag::getInstance().m_subChoiceBox2.isVisible()){
-            std::vector<std::vector<std::string, std::string>> choices;    
+            std::vector<Choice> choices;    
             choices = {{"Oui", "YesDiscardItem", quantity}, {"Non", "Cancel"}};
             std::string dialogue = "Voulez-vous jeter " + quantity + " " + selectedItem + " ? ";        
             Bag::getInstance().m_subChoiceBox2.init(choices);

@@ -43,7 +43,7 @@ public:
     WorldEntity* getCurrentSpeaker() const { return m_currentSpeaker; }
     std::size_t getHeight() const { return m_msgBox->getHeight(); }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
-    void setChoiceBox(std::vector<std::pair<std::string, std::string>> choices) { 
+    void setChoiceBox(std::vector<Choice> choices) { 
         m_choiceBox.init(choices);
         if (m_msgBox) {
             // Par défaut, on place la boîte de choix au-dessus de la boîte de dialogue
