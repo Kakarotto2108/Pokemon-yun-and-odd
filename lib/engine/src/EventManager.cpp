@@ -351,9 +351,9 @@ EventManager::EventManager() {
         std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
         Item item = ItemDatabase::getInstance().getItem(selectedItem);
         std::vector<Choice> choices;
-        choices.emplace_back("1", "DiscardItem", std::monostate());
+        choices.emplace_back("1", "DiscardItem", -1);
         for (int i = Player::getInstance().getInventory().getQuantity(item); i > 1; i--) {
-            choices.emplace_back(std::to_string(i), "DiscardItem");            
+            choices.emplace_back(std::to_string(i), "DiscardItem", -1);            
             }
         Bag::getInstance().m_subChoiceBox2.init(choices);
         Bag::getInstance().m_subChoiceBox2.setMaxVisibleChoices(1);
@@ -362,20 +362,24 @@ EventManager::EventManager() {
         DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
     });
 
-    GameEvents::DiscardItem.subscribe([]() {
-        std::string quantity = Bag::getInstance().m_subChoiceBox2.getChoiceName();
+    GameEvents::DiscardItem.subscribe([](int quantity) {
         std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
-        Item item = ItemDatabase::getInstance().getItem(selectedItem);        
-        if (Bag::getInstance().m_subChoiceBox2.isVisible()){
+        Item item = ItemDatabase::getInstance().getItem(selectedItem); 
+        if (quantity == -1){
+            std::string newquantity = Bag::getInstance().m_subChoiceBox2.getChoiceName();  
             std::vector<Choice> choices;    
-            choices = {{"Oui", "YesDiscardItem", quantity}, {"Non", "Cancel"}};
-            std::string dialogue = "Voulez-vous jeter " + quantity + " " + selectedItem + " ? ";        
+            choices = {{"Oui", "DiscardItem", std::stoi(newquantity)}, {"Non", "Cancel"}};
+            std::string dialogue = "Voulez-vous jeter " + newquantity + " " + selectedItem + " ? ";        
             Bag::getInstance().m_subChoiceBox2.init(choices);
             Bag::getInstance().m_subChoiceBox2.setMaxVisibleChoices(6);
             Bag::getInstance().m_subChoiceBox2.hideCursor(false);
             DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
-        } else {
-            Player::getInstance().getInventory().removeItem(item, std::stoi(quantity));
+        } else {          
+            Player::getInstance().getInventory().removeItem(item, quantity);
+            Bag::getInstance().updateDisplay();
+            Bag::getInstance().m_subChoiceBox2.setVisible(false);
+            Bag::getInstance().getChoiceBox().setFocus(true);
+
         }
     });
 }

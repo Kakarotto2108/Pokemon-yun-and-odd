@@ -70,6 +70,7 @@ TeamDisplay::TeamDisplay() {
             m_currentpocketIndex = 0;
             m_pocketDialog.setText("Pokémon", false);
             m_choiceBox.setFocus(true);
+            DialogManager::getInstance().setActive(false);
             Menu::getInstance().close();
             return;
         }

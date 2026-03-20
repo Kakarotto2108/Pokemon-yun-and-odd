@@ -65,6 +65,6 @@ struct GameEvents {
     static Event<> Cancel;
     static Event<> ViewItem;
     static Event<> UseItem;
-    static Event<> DiscardItem;
+    static Event<int> DiscardItem;
     static Event<> SelectDiscardItem;
 };

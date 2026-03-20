@@ -22,7 +22,6 @@ private:
     GameDialog m_pocketDialog;
     GameChoiceBox m_choiceBox;
 
-    void updateDisplay();
     sf::Sprite m_bagSprite;
 
 public:
@@ -33,6 +32,7 @@ public:
     void open();
     void close();
     void displayItemDescription();
+    void updateDisplay();
     bool isOpen() const { return m_isOpen; }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void draw(sf::RenderWindow& window);

@@ -28,6 +28,6 @@ Event<> GameEvents::YesGiveItem;
 Event<> GameEvents::Cancel;
 Event<> GameEvents::ViewItem;
 Event<> GameEvents::UseItem;
-Event<> GameEvents::DiscardItem;
+Event<int> GameEvents::DiscardItem;
 Event<> GameEvents::SelectDiscardItem;
 

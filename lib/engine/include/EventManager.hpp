@@ -62,7 +62,6 @@ public:
         {"Cancel", &GameEvents::Cancel},
         {"ViewItem", &GameEvents::ViewItem},
         {"UseItem", &GameEvents::UseItem},
-        {"DiscardItem", &GameEvents::DiscardItem},
         {"SelectDiscardItem", &GameEvents::SelectDiscardItem},
     };
 
@@ -72,6 +71,7 @@ public:
     };
 
     std::unordered_map<std::string, Event<int>*> intEvents {
+        {"DiscardItem", &GameEvents::DiscardItem}
     };
 
 private:

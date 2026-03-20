@@ -205,8 +205,8 @@ public:
                                     }
                                 }
 
-                                DialogManager::getInstance().getChoiceBox().init(choices);
-                                DialogManager::getInstance().getChoiceBox().show();
+                                DialogManager::getInstance().setChoiceBox(choices);
+                                DialogManager::getInstance().setChoiceBoxVisible(true);
                             }
                             else if (cmd == "MOVE") {
                                 if (tokens.size() < 3){
