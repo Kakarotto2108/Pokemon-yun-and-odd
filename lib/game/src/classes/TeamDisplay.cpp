@@ -27,7 +27,7 @@ TeamDisplay::TeamDisplay() {
         m_moveChoiceBox.setChoiceIndex(0);
         m_moveChoiceBox.hideCursor(true);
 
-        updateDisplay();
+        //updateDisplay();
         m_inputClock.restart();
     });
     Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
@@ -182,6 +182,7 @@ std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
 }
 
 void TeamDisplay::updateDisplay() {
+    int savedIndex = m_choiceBox.getChoiceIndex();
     std::vector<Choice> choices;
     m_pocketDialog.setText("Pokémon", false);
 
@@ -196,6 +197,7 @@ void TeamDisplay::updateDisplay() {
         }
     }
     m_choiceBox.init(choices);
+    m_choiceBox.setChoiceIndex(savedIndex);
     m_pocketDialog.show();
 }
 
@@ -221,20 +223,27 @@ void TeamDisplay::updateMove() {
         m_pocketDialog.show();
 }
 
-void TeamDisplay::heal(std::vector<std::pair<std::string, std::string>> effects, std::string pkmName){
+std::string TeamDisplay::heal(std::vector<std::pair<std::string, std::string>> effects, std::string pkmName){
+    std::string dialogue = "";
     for (auto& pkm : m_team) {
         if (pkm.m_surname == pkmName) {
             for (const auto& effect : effects) {
                 if (effect.first == "PV") {
-                    std::cout << effect.first << std::endl;
                     int val = std::stoi(effect.second);
+                    if (pkm.m_currentPV == pkm.m_stats[0]){
+                        return "Cela n'aura aucune effet...";
+                    }
+                    if (pkm.m_currentPV + val > pkm.m_stats[0]){
+                        val = pkm.m_stats[0] - pkm.m_currentPV;
+                    }
                     pkm.m_currentPV += val;
+                    dialogue += pkm.m_surname + " a récupéré " + std::to_string(val) + " PV !\n";                
                 }
             }
         }
     }
-    std::cout << "heal" << std::endl;
     updateDisplay();
+    return dialogue;
 }
 
 void TeamDisplay::addPokemon(const PokemonInstance& pkm)

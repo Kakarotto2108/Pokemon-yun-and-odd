@@ -61,6 +61,7 @@ void DialogManager::startDialogue(const std::vector<DialogueStep>& steps, WorldE
 
     if (!m_queue.empty()) {
         m_active = true;
+        m_dialogueStartedClock.restart();
         next(); 
     }
 
@@ -72,6 +73,7 @@ void DialogManager::next() {
 
     // Si le texte est en train de défiler, on le termine instantanément
     if (!m_msgBox->isFinished()) {
+        if (m_dialogueStartedClock.getElapsedTime().asSeconds() < 0.2f) return;
         m_msgBox->finish();
         return;
     }

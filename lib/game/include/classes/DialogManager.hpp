@@ -6,6 +6,7 @@
 #include <queue>
 #include <functional>
 #include <vector>
+#include <SFML/System/Clock.hpp>
 #include <string>
 #include <memory>
 
@@ -63,6 +64,7 @@ private:
     WorldEntity* m_currentSpeaker = nullptr;
     std::queue<DialogueStep> m_queue;
     bool m_active = false;
+    sf::Clock m_dialogueStartedClock;
     std::function<void()> m_actionAfter = nullptr;
     GameChoiceBox m_choiceBox;
     std::vector<DialogueStep> wrapDialogueSteps(const std::vector<DialogueStep>& steps, std::size_t maxWidth);

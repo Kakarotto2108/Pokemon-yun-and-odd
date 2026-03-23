@@ -54,7 +54,7 @@ GameChoiceBox::GameChoiceBox() {
 
         std::string eventName = getEventForChoice(getChoiceName());
 
-        std::cout << "Event : " << eventName << std::endl;
+        // std::cout << "Event : " << eventName << std::endl;
 
         EventManager::getInstance().launchEvent(eventName, getParamChoice());
     });

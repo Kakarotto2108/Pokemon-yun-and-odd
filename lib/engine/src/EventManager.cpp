@@ -111,6 +111,7 @@ EventManager::EventManager() {
 
     GameEvents::OrderChoice.subscribe([](const std::string& choice) {
         if (TeamDisplay::getInstance().m_subChoiceBox.isVisible()) {
+            int savedIndex = TeamDisplay::getInstance().m_choiceBox.getChoiceIndex();
             TeamDisplay::getInstance().addSwitchChoice(TeamDisplay::getInstance().m_choiceBox.getChoiceName());
             TeamDisplay::getInstance().m_subChoiceBox.setVisible(false);
             TeamDisplay::getInstance().m_choiceBox.setFocus(true);
@@ -127,6 +128,7 @@ EventManager::EventManager() {
                 }
             }
             TeamDisplay::getInstance().m_choiceBox.init(choices);
+            TeamDisplay::getInstance().m_choiceBox.setChoiceIndex(savedIndex);
         } else {
             TeamDisplay::getInstance().addSwitchChoice(choice);
             if (TeamDisplay::getInstance().getSwitchChoice().size() > 1) {
@@ -405,7 +407,35 @@ EventManager::EventManager() {
             std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
             Item item = ItemDatabase::getInstance().getItem(selectedItem);
             std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
-            TeamDisplay::getInstance().heal(item.m_effects, selectedPkm);
+            std::string dialogue = "";
+            if (Player::getInstance().getInventory().getQuantity(item) > 0){
+                dialogue = TeamDisplay::getInstance().heal(item.m_effects, selectedPkm);
+                if (dialogue != "Cela n'aura aucune effet...") Player::getInstance().getInventory().removeItem(item, 1);
+                int savedIndex = TeamDisplay::getInstance().m_choiceBox.getChoiceIndex();
+                std::vector<Choice> choices;
+                for (const auto& pkm : TeamDisplay::getInstance().m_team) {
+                    choices.emplace_back(pkm.m_surname, "UseItem", std::monostate());
+                }
+                
+                size_t teamSize = TeamDisplay::getInstance().m_team.size();
+
+                if (teamSize <= 6) {
+                    for (size_t i = 0; i < 6 - teamSize; ++i) {
+                        choices.emplace_back("---", "EmptySlot", std::monostate());
+                    }
+                }
+                TeamDisplay::getInstance().m_choiceBox.init(choices);
+                TeamDisplay::getInstance().m_choiceBox.setChoiceIndex(savedIndex);
+                Bag::getInstance().updateDisplay();
+                if (Player::getInstance().getInventory().getQuantity(item) == 0) dialogue = "Vous n'avez plus de " + selectedItem + " .";
+                DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
+            }
+            else {
+                TeamDisplay::getInstance().m_choiceBox.setFocus(false);
+                TeamDisplay::getInstance().m_choiceBox.setVisible(false);
+                Bag::getInstance().open();
+                Bag::getInstance().getChoiceBox().setFocus(true);
+            }
             // TeamDisplay::getInstance().close();
             // Bag::getInstance().open()
         }
