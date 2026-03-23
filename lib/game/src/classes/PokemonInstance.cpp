@@ -46,6 +46,7 @@ PokemonInstance::PokemonInstance(const std::string& name, int level, std::string
     m_id = dist(gen);
     m_currentPV = m_stats[0];
     m_sexe = (rand() % 2 == 0) ? "♂" : "♀";
+    m_statut = "Brûlé";
 }
 
 int PokemonInstance::xpToLevel(int xp, const std::string& xpType) const {

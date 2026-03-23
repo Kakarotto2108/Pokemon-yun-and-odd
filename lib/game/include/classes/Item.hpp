@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <variant>
 
 enum class ItemPocket
 {
@@ -25,7 +26,8 @@ public:
         std::string name,
         ItemPocket pocket,
         std::string description,
-        bool consumable = false
+        bool consumable = false,
+        std::vector<std::pair<std::string, std::string>> effects = {}
     );
 
     const std::string& getName() const;
@@ -37,6 +39,8 @@ public:
     std::string m_description;
     ItemPocket  m_pocket;
     bool        m_consumable;
+    std::vector<std::pair<std::string, std::string>> m_effects;
+
 
     void debugPrint() const {
         std::cerr << "Item: " << m_name << "\n";
@@ -54,6 +58,9 @@ public:
             std::cerr << "Pocket: Unknown\n";
         std::cerr << "Description: " << m_description << "\n";
         std::cerr << "Consumable: " << (m_consumable ? "true" : "false") << "\n";
+        for (auto effect : m_effects) {
+            std::cerr << "Effets :" << effect.first << "\n";
+        }
     }
 };
 
@@ -93,9 +100,13 @@ public:
                 std::string consStr = trim(parts[3]);
                 data.m_consumable = (consStr == "true" || consStr == "1");
 
+                for (size_t i = 4; i < parts.size(); i += 2) {
+                    data.m_effects.push_back({trim(parts[i]), trim(parts[i+1])});
+                }
+
                 m_data.emplace(
                     data.m_name,
-                    Item(data.m_name, data.m_pocket, data.m_description, data.m_consumable)
+                    Item(data.m_name, data.m_pocket, data.m_description, data.m_consumable, data.m_effects)
                 );
 
             }
@@ -105,9 +116,9 @@ public:
     Item getItem(const std::string& name) {
         if (m_data.find(name) != m_data.end()) {
             const auto& d = m_data.at(name);
-            return Item(d.m_name, d.m_pocket, d.m_description, d.m_consumable);
+            return Item(d.m_name, d.m_pocket, d.m_description, d.m_consumable, d.m_effects);
         }
-        return Item(name, ItemPocket::Items, "Description manquante", false);
+        return Item(name, ItemPocket::Items, "Description manquante");
     }
 
 private:

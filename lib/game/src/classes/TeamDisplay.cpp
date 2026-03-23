@@ -130,7 +130,7 @@ void TeamDisplay::displayDescription(){
                 PokemonDataBase& db = PokemonDataBase::getInstance();
                 const Pokemon& basePkm = db.getPokemon(selectedPkm);
                 if (m_currentpocketIndex == 0) {
-                    description = "$[blue]" + pkm.m_nature + "$[black] de nature.                   " + pkm.m_surname + "    " + pkm.m_sexe + "\nRencontré au N. " + std::to_string(pkm.m_encounterLevel) + "                   N." + std::to_string(pkm.m_level) + "\nle 04 mars 2026.\nProvenance :\n$[blue]Renouet.$[black]\n" + pkm.m_description + "\nN° Pokédex : " + std::to_string(basePkm.m_pkdxnumber) + "\nNom : " + basePkm.m_name + "\nType : " + basePkm.m_type + "\nD.O. : $[blue]" + pkm.m_surname + "$[black]\nN° ID : " + std::to_string(pkm.m_id);
+                    description = "$[blue]" + pkm.m_nature + "$[black] de nature.                   " + pkm.m_surname + "    " + pkm.m_sexe + "\nRencontré au N. " + std::to_string(pkm.m_encounterLevel) + "                   N." + std::to_string(pkm.m_level)  + "\nle 04 mars 2026." + "                   " + ((pkm.m_statut == "None") ? "" : pkm.m_statut) + "\nProvenance :\n$[blue]Renouet.$[black]\n" + pkm.m_description + "\nN° Pokédex : " + std::to_string(basePkm.m_pkdxnumber) + "\nNom : " + basePkm.m_name + "\nType : " + basePkm.m_type + "\nD.O. : $[blue]" + pkm.m_surname + "$[black]\nN° ID : " + std::to_string(pkm.m_id);
                     description2 = "Points Exp. : " + std::to_string(pkm.m_xp) + "                      Objet : " + pkm.m_item + "\nNiveau suivant : " + std::to_string(pkm.toNextLevel(pkm.m_level, pkm.m_xpType));
                 }
                 else {
@@ -174,6 +174,9 @@ std::string TeamDisplay::highlightWithNature(const PokemonInstance& pkm) {
         if (i == 1) {
             result += "                   N." + std::to_string(pkm.m_level);
         }
+        else if (i == 2) {
+            result += + "                   " + ((pkm.m_statut == "None") ? "" : pkm.m_statut);
+        }
     }
     return result;
 }
@@ -216,6 +219,22 @@ void TeamDisplay::updateMove() {
     }
         m_moveChoiceBox.init(choices);
         m_pocketDialog.show();
+}
+
+void TeamDisplay::heal(std::vector<std::pair<std::string, std::string>> effects, std::string pkmName){
+    for (auto& pkm : m_team) {
+        if (pkm.m_surname == pkmName) {
+            for (const auto& effect : effects) {
+                if (effect.first == "PV") {
+                    std::cout << effect.first << std::endl;
+                    int val = std::stoi(effect.second);
+                    pkm.m_currentPV += val;
+                }
+            }
+        }
+    }
+    std::cout << "heal" << std::endl;
+    updateDisplay();
 }
 
 void TeamDisplay::addPokemon(const PokemonInstance& pkm)

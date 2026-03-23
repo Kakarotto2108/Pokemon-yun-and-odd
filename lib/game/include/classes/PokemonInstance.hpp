@@ -44,6 +44,7 @@ public:
     int m_currentPV;
     std::string m_sexe;
     int m_encounterLevel;
+    std::string m_statut;
     int toNextLevel(int currentLevel, const std::string& xpType) const;
 };
 

@@ -40,6 +40,7 @@ public:
     GameChoiceBox& getCurrentChoiceBox();
     void resetSubChoiceBox();
     void draw(sf::RenderWindow& window);
+    void heal(std::vector<std::pair<std::string, std::string>> effects, std::string pkmName);
     void addPokemon(const PokemonInstance& pkm);
     void changeEvent(GameChoiceBox choiceBox, std::string eventName);
     void addSwitchChoice(const std::string& choice) { m_switchChoice.push_back(choice); }

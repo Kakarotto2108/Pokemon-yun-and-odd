@@ -379,7 +379,35 @@ EventManager::EventManager() {
             Bag::getInstance().updateDisplay();
             Bag::getInstance().m_subChoiceBox2.setVisible(false);
             Bag::getInstance().getChoiceBox().setFocus(true);
+        }
+    });
 
+    GameEvents::UseItem.subscribe([]() {
+        if (Bag::getInstance().isOpen()) {
+            Bag::getInstance().close();
+            TeamDisplay::getInstance().open();
+            std::vector<Choice> choices;
+            for (const auto& pkm : TeamDisplay::getInstance().m_team) {
+                choices.emplace_back(pkm.m_surname, "UseItem", std::monostate());
+            }
+    
+            size_t teamSize = TeamDisplay::getInstance().m_team.size();
+
+            if (teamSize <= 6) {
+                for (size_t i = 0; i < 6 - teamSize; ++i) {
+                    choices.emplace_back("---", "EmptySlot", std::monostate());
+                }
+            }
+            TeamDisplay::getInstance().m_choiceBox.init(choices);
+            TeamDisplay::getInstance().m_choiceBox.setFocus(true);
+        }
+        else {
+            std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
+            Item item = ItemDatabase::getInstance().getItem(selectedItem);
+            std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
+            TeamDisplay::getInstance().heal(item.m_effects, selectedPkm);
+            // TeamDisplay::getInstance().close();
+            // Bag::getInstance().open()
         }
     });
 }

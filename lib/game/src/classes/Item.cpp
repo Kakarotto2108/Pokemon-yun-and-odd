@@ -4,12 +4,14 @@ Item::Item(
     std::string name,
     ItemPocket pocket,
     std::string description,
-    bool consumable
+    bool consumable,
+    std::vector<std::pair<std::string, std::string>> effects
 )
 : m_name(std::move(name))
 , m_description(std::move(description))
 , m_pocket(pocket)
 , m_consumable(consumable)
+, m_effects(effects)
 {}
 
 const std::string& Item::getName() const
