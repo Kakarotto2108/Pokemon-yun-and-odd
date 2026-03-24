@@ -384,13 +384,14 @@ EventManager::EventManager() {
         }
     });
 
-    GameEvents::UseItem.subscribe([]() {
+    GameEvents::UseItem.subscribe([](std::string selectedItem) {
         if (Bag::getInstance().isOpen()) {
+            std::string selectedItemTrad = selectedItem.substr(0, selectedItem.size() - 3);
             Bag::getInstance().close();
             TeamDisplay::getInstance().open();
             std::vector<Choice> choices;
             for (const auto& pkm : TeamDisplay::getInstance().m_team) {
-                choices.emplace_back(pkm.m_surname, "UseItem", std::monostate());
+                choices.emplace_back(pkm.m_surname, "UseItem", selectedItemTrad);
             }
     
             size_t teamSize = TeamDisplay::getInstance().m_team.size();
@@ -404,7 +405,6 @@ EventManager::EventManager() {
             TeamDisplay::getInstance().m_choiceBox.setFocus(true);
         }
         else {
-            std::string selectedItem = Bag::getInstance().getChoiceBox().getChoiceName().substr(0, Bag::getInstance().getChoiceBox().getChoiceName().size() - 3);
             Item item = ItemDatabase::getInstance().getItem(selectedItem);
             std::string selectedPkm = TeamDisplay::getInstance().m_choiceBox.getChoiceName();
             std::string dialogue = "";
@@ -414,7 +414,7 @@ EventManager::EventManager() {
                 int savedIndex = TeamDisplay::getInstance().m_choiceBox.getChoiceIndex();
                 std::vector<Choice> choices;
                 for (const auto& pkm : TeamDisplay::getInstance().m_team) {
-                    choices.emplace_back(pkm.m_surname, "UseItem", std::monostate());
+                    choices.emplace_back(pkm.m_surname, "UseItem", selectedItem);
                 }
                 
                 size_t teamSize = TeamDisplay::getInstance().m_team.size();
@@ -427,14 +427,23 @@ EventManager::EventManager() {
                 TeamDisplay::getInstance().m_choiceBox.init(choices);
                 TeamDisplay::getInstance().m_choiceBox.setChoiceIndex(savedIndex);
                 Bag::getInstance().updateDisplay();
-                if (Player::getInstance().getInventory().getQuantity(item) == 0) dialogue = "Vous n'avez plus de " + selectedItem + " .";
-                DialogManager::getInstance().startDialogue({{dialogue, BoxType::Classic}});
-            }
-            else {
-                TeamDisplay::getInstance().m_choiceBox.setFocus(false);
-                TeamDisplay::getInstance().m_choiceBox.setVisible(false);
-                Bag::getInstance().open();
-                Bag::getInstance().getChoiceBox().setFocus(true);
+                std::function<void()> actionAfter = nullptr;
+                DialogueStep step1;
+                step1.text = dialogue;
+                std::vector<DialogueStep> script = { step1 };
+                if (Player::getInstance().getInventory().getQuantity(item) == 0) {
+                    DialogueStep step2;
+                    step2.text = "Vous n'avez plus de " + selectedItem + ".";
+                    script = { step1, step2 };
+                    actionAfter = []() {
+                        TeamDisplay::getInstance().m_choiceBox.setFocus(false);
+                        TeamDisplay::getInstance().m_choiceBox.setVisible(false);
+                        TeamDisplay::getInstance().m_pocketDialog.hide();
+                        Bag::getInstance().open();
+                        Bag::getInstance().getChoiceBox().setFocus(true);
+                    };
+                }
+                DialogManager::getInstance().startDialogue(script, nullptr, actionAfter);
             }
             // TeamDisplay::getInstance().close();
             // Bag::getInstance().open()

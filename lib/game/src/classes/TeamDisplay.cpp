@@ -228,10 +228,20 @@ std::string TeamDisplay::heal(std::vector<std::pair<std::string, std::string>> e
     for (auto& pkm : m_team) {
         if (pkm.m_surname == pkmName) {
             for (const auto& effect : effects) {
+                if (effect.first == "ST") {
+                    std::string statutHeal = effect.second;
+                    if (pkm.m_statut == statutHeal) {
+                        pkm.m_statut = "None";
+                        dialogue = pkm.m_surname + " n'est plus " + statutHeal + " !\n";
+                    }
+                    else {
+                        dialogue = "Cela n'aura aucun effet...";
+                    }
+                }
                 if (effect.first == "PV") {
                     int val = std::stoi(effect.second);
                     if (pkm.m_currentPV == pkm.m_stats[0]){
-                        return "Cela n'aura aucune effet...";
+                        return "Cela n'aura aucun effet...";
                     }
                     if (pkm.m_currentPV + val > pkm.m_stats[0]){
                         val = pkm.m_stats[0] - pkm.m_currentPV;

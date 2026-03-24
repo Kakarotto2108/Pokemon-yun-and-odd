@@ -151,10 +151,10 @@ void Bag::resetSubChoiceBox() {
     std::vector<Choice> choices;
     switch (m_pockets[m_currentpocketIndex]) {
         case ItemPocket::Items:
-        case ItemPocket::Berries: choices = {{"Utiliser", "UseItem", std::monostate()}, {"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
+        case ItemPocket::Berries: choices = {{"Utiliser", "UseItem", m_choiceBox.getChoiceName()}, {"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
         case ItemPocket::Balls: choices = {{"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
-        case ItemPocket::KeyItems: choices = {{"Utiliser", "UseItem", std::monostate()}, {"Enregistrer", "SaveItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
-        case ItemPocket::TMsHMs: choices = {{"Utiliser", "UseItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
+        case ItemPocket::KeyItems: choices = {{"Utiliser", "UseItem", m_choiceBox.getChoiceName()}, {"Enregistrer", "SaveItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
+        case ItemPocket::TMsHMs: choices = {{"Utiliser", "UseItem", m_choiceBox.getChoiceName()}, {"Retour", "Cancel", std::monostate()}}; break;
         default: break;
     }
     m_subChoiceBox2.init(choices);

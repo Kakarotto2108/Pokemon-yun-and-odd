@@ -27,7 +27,7 @@ Event<> GameEvents::GiveItem;
 Event<> GameEvents::YesGiveItem;
 Event<> GameEvents::Cancel;
 Event<> GameEvents::ViewItem;
-Event<> GameEvents::UseItem;
+Event<std::string> GameEvents::UseItem;
 Event<int> GameEvents::DiscardItem;
 Event<> GameEvents::SelectDiscardItem;
 

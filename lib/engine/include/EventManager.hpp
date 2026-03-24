@@ -61,13 +61,13 @@ public:
         {"YesGiveItem", &GameEvents::YesGiveItem},
         {"Cancel", &GameEvents::Cancel},
         {"ViewItem", &GameEvents::ViewItem},
-        {"UseItem", &GameEvents::UseItem},
         {"SelectDiscardItem", &GameEvents::SelectDiscardItem},
     };
 
     std::unordered_map<std::string, Event<std::string>*> stringEvents {
         {"MoveOrder", &GameEvents::MoveOrder},
-        {"OrderChoice", &GameEvents::OrderChoice}
+        {"OrderChoice", &GameEvents::OrderChoice},
+        {"UseItem", &GameEvents::UseItem}
     };
 
     std::unordered_map<std::string, Event<int>*> intEvents {

@@ -64,7 +64,7 @@ struct GameEvents {
     static Event<> YesGiveItem;
     static Event<> Cancel;
     static Event<> ViewItem;
-    static Event<> UseItem;
+    static Event<std::string> UseItem;
     static Event<int> DiscardItem;
     static Event<> SelectDiscardItem;
 };
