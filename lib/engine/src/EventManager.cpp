@@ -371,7 +371,7 @@ EventManager::EventManager() {
             std::string newquantity = Bag::getInstance().m_subChoiceBox2.getChoiceName();  
             std::vector<Choice> choices;    
             choices = {{"Oui", "DiscardItem", std::stoi(newquantity)}, {"Non", "Cancel"}};
-            std::string dialogue = "Voulez-vous jeter " + newquantity + " " + selectedItem + " ? ";        
+            std::string dialogue = "Voulez-vous jeter " + newquantity + " " + selectedItem + " ?";        
             Bag::getInstance().m_subChoiceBox2.init(choices);
             Bag::getInstance().m_subChoiceBox2.setMaxVisibleChoices(6);
             Bag::getInstance().m_subChoiceBox2.hideCursor(false);
