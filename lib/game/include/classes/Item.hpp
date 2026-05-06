@@ -9,6 +9,7 @@
 
 enum class ItemPocket
 {
+    Heal,
     Items,
     Balls,
     KeyItems,
@@ -55,7 +56,7 @@ public:
         else if (m_pocket == ItemPocket::Berries)
             std::cerr << "Pocket: Berries\n";
         else
-            std::cerr << "Pocket: Unknown\n";
+            std::cerr << "Pocket: Heal\n";
         std::cerr << "Description: " << m_description << "\n";
         std::cerr << "Consumable: " << (m_consumable ? "true" : "false") << "\n";
         for (auto effect : m_effects) {
@@ -93,8 +94,9 @@ public:
                 else if (pocketStr == "KeyItems") data.m_pocket = ItemPocket::KeyItems;
                 else if (pocketStr == "TMsHMs") data.m_pocket = ItemPocket::TMsHMs;
                 else if (pocketStr == "Berries") data.m_pocket = ItemPocket::Berries;
+                else if (pocketStr == "Heal") data.m_pocket = ItemPocket::Heal;
                 else data.m_pocket = ItemPocket::Items;
-
+                
                 data.m_description = trim(parts[2]);
 
                 std::string consStr = trim(parts[3]);

@@ -22,8 +22,8 @@ Bag::Bag() {
         else m_currentpocketIndex--;
 
         // Gestion du bouclage (0 à 4 car il y a 5 poches)
-        if (m_currentpocketIndex < 0) m_currentpocketIndex = 4;
-        else if (m_currentpocketIndex > 4) m_currentpocketIndex = 0;
+        if (m_currentpocketIndex < 0) m_currentpocketIndex = 5;
+        else if (m_currentpocketIndex > 5) m_currentpocketIndex = 0;
 
         updateDisplay();
         m_choiceBox.reset();
@@ -98,7 +98,11 @@ void Bag::displayItemDescription(){
         return;
     }
 
-    selectedItem = selectedItem.substr(0, selectedItem.size() - 3);
+    // Utilisation de rfind pour couper proprement au dernier " x", peu importe la quantité (x1, x10, x99)
+    size_t separatorPos = selectedItem.rfind(" x");
+    if (separatorPos != std::string::npos)
+        selectedItem = selectedItem.substr(0, separatorPos);
+
     if (!selectedItem.empty()) {
         description = ItemDatabase::getInstance().getItem(selectedItem).getDescription();
         std::string texture = "assets/sprite/items/" + selectedItem + ".png";
@@ -115,7 +119,8 @@ void Bag::displayItemDescription(){
 void Bag::updateDisplay() {
     std::string pocketName;
     switch(m_pockets[m_currentpocketIndex]) {
-        case ItemPocket::Items: pocketName = "MÉDICAMENTS"; break;
+        case ItemPocket::Items: pocketName = "OBJETS"; break;
+        case ItemPocket::Heal: pocketName = "MÉDICAMENTS"; break;
         case ItemPocket::Balls: pocketName = "BALLS"; break;
         case ItemPocket::KeyItems: pocketName = "OBJETS RARES"; break;
         case ItemPocket::TMsHMs: pocketName = "CT & CS"; break;
@@ -151,6 +156,7 @@ void Bag::resetSubChoiceBox() {
     std::vector<Choice> choices;
     switch (m_pockets[m_currentpocketIndex]) {
         case ItemPocket::Items:
+        case ItemPocket::Heal:
         case ItemPocket::Berries: choices = {{"Utiliser", "UseItem", m_choiceBox.getChoiceName()}, {"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
         case ItemPocket::Balls: choices = {{"Donner", "GiveItem", std::monostate()}, {"Jeter", "SelectDiscardItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;
         case ItemPocket::KeyItems: choices = {{"Utiliser", "UseItem", m_choiceBox.getChoiceName()}, {"Enregistrer", "SaveItem", std::monostate()}, {"Retour", "Cancel", std::monostate()}}; break;

@@ -33,7 +33,7 @@ Game::Game(const GameConfig& config)
     Player::getInstance().getInventory().addItem(item, 8);
     Item item2 = ItemDatabase::getInstance().getItem("Super Ball");
     Player::getInstance().getInventory().addItem(item2, 1);
-    Item item3 = ItemDatabase::getInstance().getItem("Anti-Brûle");
+    Item item3 = ItemDatabase::getInstance().getItem("Burn Heal");
     Player::getInstance().getInventory().addItem(item3, 1);
     if (TeamDisplay::getInstance().m_team.empty()) {
         PokemonInstance pkm("Moustillon", 5);

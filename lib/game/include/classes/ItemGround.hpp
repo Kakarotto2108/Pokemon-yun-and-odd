@@ -12,11 +12,12 @@ public:
     {
         switch (pocket)
         {
-            case ItemPocket::Items:    return "MÉDICAMENTS";
+            case ItemPocket::Heal:    return "MÉDICAMENTS";
             case ItemPocket::Balls:    return "BALLS";
             case ItemPocket::KeyItems: return "OBJETS RARES";
             case ItemPocket::TMsHMs:   return "CT&CS";
             case ItemPocket::Berries:  return "BAIES";
+            case ItemPocket::Items:    return "OBJETS";
             default: return "Unknown";
         }
     }

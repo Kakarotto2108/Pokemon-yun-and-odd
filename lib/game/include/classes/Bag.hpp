@@ -12,6 +12,7 @@ class Bag {
 private:
     Bag();
     std::vector<ItemPocket> m_pockets = {ItemPocket::Items,
+        ItemPocket::Heal, 
         ItemPocket::Balls, 
         ItemPocket::KeyItems, 
         ItemPocket::TMsHMs, 

@@ -63,6 +63,7 @@ void Inventory::debugPrint() const {
     for (auto& [pocket, items] : m_pockets) {
         std::string pocketName;
         switch(pocket) {
+            case ItemPocket::Heal: pocketName = "Heal"; break;
             case ItemPocket::Items: pocketName = "Items"; break;
             case ItemPocket::Balls: pocketName = "Balls"; break;
             case ItemPocket::KeyItems: pocketName = "Key Items"; break;
