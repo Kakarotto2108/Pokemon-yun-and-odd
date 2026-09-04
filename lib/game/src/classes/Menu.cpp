@@ -2,15 +2,23 @@
 #include "Player.hpp"
 #include "Controller.hpp"
 #include "DialogManager.hpp"
+#include "TeamDisplay.hpp"   // <-- ajouté
 #include <iostream>
 
 Menu::Menu() {
     Controller::getInstance().onActionPressed("OpenMenu", [this]() {
+        // Priorité : fermer un sous-menu ouvert, où qu'il soit dans sa hiérarchie
+        if (TeamDisplay::getInstance().isOpen()) {
+            TeamDisplay::getInstance().close();
+            this->close();
+            return;
+        }
+
         if (!this->isVisible() && !DialogManager::getInstance().isActive()) {
             open();
-    } else if (m_open) {
-        close();
-    }
+        } else {
+            close();
+        }
     });    
 }
 

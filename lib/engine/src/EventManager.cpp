@@ -276,6 +276,8 @@ EventManager::EventManager() {
             Bag::getInstance().m_subChoiceBox2.setFocus(false);
             Bag::getInstance().getChoiceBox().setFocus(true);        
         }
+        Menu::getInstance().setVisible(false);
+        Menu::getInstance().setFocus(false);
     });
 
     GameEvents::SwitchItem.subscribe([]() {

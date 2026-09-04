@@ -93,16 +93,6 @@ TeamDisplay::TeamDisplay() {
     GameEvents::OpenPokemon.subscribe([this]() {
         open();
     });
-
-    Controller::getInstance().onActionPressed("OpenMenu", [this]() {
-        if (m_isOpen) {
-            m_isOpen = false;
-            DialogManager::getInstance().setActive(false);
-            m_choiceBox.setVisible(false);
-            m_choiceBox.reset();
-            Menu::getInstance().close();
-        }
-    });
 }
 
 void TeamDisplay::open() {
@@ -110,6 +100,28 @@ void TeamDisplay::open() {
     updateDisplay();
     m_choiceBox.setVisible(true);
     m_choiceBox.setChoiceIndex(0);
+}
+
+void TeamDisplay::close() {
+    m_isOpen = false;
+    summary = false;
+    m_currentpocketIndex = 0;
+
+    DialogManager::getInstance().setActive(false);
+
+    m_choiceBox.setVisible(false);
+    m_choiceBox.setFocus(true);
+    m_choiceBox.reset();
+
+    m_moveChoiceBox.setVisible(false);
+    m_moveChoiceBox.setFocus(false);
+    m_moveChoiceBox.hideCursor(true);
+
+    m_subChoiceBox.setVisible(false);
+    m_subChoiceBox.setFocus(false);
+    resetSubChoiceBox();
+
+    m_descriptionDialog.hide();
 }
 
 void TeamDisplay::displayDescription(){

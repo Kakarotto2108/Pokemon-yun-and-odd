@@ -2,4 +2,4 @@ Ch. de Sport|KeyItems|Des chaussures bon marché mais qui te permettent de couri
 Poké Ball|Balls|Un objet pareil à une capsule, qui capture les Pokémon sauvages. Il suffit pour cela de le jeter comme une balle|true
 Super Ball|Balls|Une Poké Ball très performante dont le taux de réussite est supérieur à celui de la Poké Ball.|true
 Potion|Heal|Un spray qui soigne les blessures. Restaure 20 PV d'un Pokémon.|true|PV|1
-Burn Heal|Berries|Un médicament sous forme de spray. Soigne les brûlures d'un Pokémon.|true|ST|Brûlé
+Burn Heal|Heal|Un médicament sous forme de spray. Soigne les brûlures d'un Pokémon.|true|ST|Brûlé
