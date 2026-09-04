@@ -33,6 +33,7 @@ public:
     GameChoiceBox m_subChoiceBox;
     GameChoiceBox m_moveChoiceBox;
     void open();
+    void close();
     bool isOpen() const { return m_isOpen; }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
     void displayDescription();

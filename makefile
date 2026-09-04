@@ -32,7 +32,7 @@ endif
 # =========================
 # Common flags
 # =========================
-CXXFLAGS = -Wall -std=c++17
+CXXFLAGS = -Wall -std=c++17 -Wno-deprecated-declarations
 CPPFLAGS = -I. $(addprefix -I, $(ALL_LIB_DIRS))
 LDFLAGS =
 LIBS = 
