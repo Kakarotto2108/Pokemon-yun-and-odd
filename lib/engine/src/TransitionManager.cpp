@@ -1,4 +1,5 @@
 #include "TransitionManager.hpp"
+#include <unistd.h>
 #include <iostream>
 #include <random>
 

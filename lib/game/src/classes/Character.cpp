@@ -41,6 +41,7 @@ Character::Character(const std::string& name, const std::string& spriteSheetName
     m_animations["ReceiveItem2"] = Animation(7,1, 0.2f, 32);
     m_animations["ReceiveItem3"] = Animation(8,1, 0.2f, 32);
 
+    m_sprite.setTextureRect(m_animations[m_currentAnim].getUVRect());
     m_sprite.setScale(2.f, 2.f);
     setLogicalPos(m_logicalPos);
 }
