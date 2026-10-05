@@ -8,6 +8,7 @@
 #include "Bag.hpp"
 #include "PokemonInstance.hpp"
 #include "TeamDisplay.hpp"
+#include "Pokedex.hpp"
 #include <SFML/OpenGL.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -196,6 +197,7 @@ void Game::render() {
     Menu::getInstance().draw(m_window);
     DialogManager::getInstance().getChoiceBox().draw(m_window);
     TeamDisplay::getInstance().draw(m_window);
+    Pokedex::getInstance().draw(m_window);
 
     m_window.popGLStates(); // Restaure les états pour le prochain tour
     m_window.display();

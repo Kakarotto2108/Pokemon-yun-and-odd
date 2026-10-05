@@ -9,6 +9,7 @@
 #include "PokemonInstance.hpp"
 #include "TeamDisplay.hpp"
 #include "Player.hpp"
+#include "Pokedex.hpp"
 
 namespace {
     enum class YesNoContext {
@@ -83,6 +84,14 @@ EventManager::EventManager() {
 
     GameEvents::OpenPokemon.subscribe([]() {
         TeamDisplay::getInstance().open();
+        Menu::getInstance().setFocus(false);
+        Menu::getInstance().close();
+    });
+
+    GameEvents::OpenPokedex.subscribe([]() {
+        Pokedex::getInstance().m_team = TeamDisplay::getInstance().m_team;
+        Pokedex::getInstance().setSummary(true);
+        Pokedex::getInstance().open();
         Menu::getInstance().setFocus(false);
         Menu::getInstance().close();
     });

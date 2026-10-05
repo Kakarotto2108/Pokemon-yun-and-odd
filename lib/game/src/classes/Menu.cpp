@@ -2,7 +2,7 @@
 #include "Player.hpp"
 #include "Controller.hpp"
 #include "DialogManager.hpp"
-#include "TeamDisplay.hpp"   // <-- ajouté
+#include "TeamDisplay.hpp"
 #include <iostream>
 
 Menu::Menu() {
