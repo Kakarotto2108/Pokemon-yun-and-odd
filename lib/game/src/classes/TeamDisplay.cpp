@@ -15,7 +15,7 @@ TeamDisplay::TeamDisplay() {
 
     Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
         // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
-        if (!m_isOpen || !summary) return;
+        if (!m_isOpen || !summary || m_moveChoiceBox.hasFocus()) return;
 
         // Cooldown pour éviter le défilement trop rapide
         if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;

@@ -47,7 +47,6 @@ EventManager::EventManager() {
             DialogManager::getInstance().startDialogue({{"Sauvegarde effectuée !", BoxType::Classic}});
             g_currentYesNoContext = YesNoContext::NONE;
         }
-        DialogManager::getInstance().setActive(false);
         DialogManager::getInstance().setChoiceBoxVisible(false);
     });
 
