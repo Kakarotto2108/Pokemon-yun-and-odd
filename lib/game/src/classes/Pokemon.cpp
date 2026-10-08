@@ -3,15 +3,16 @@
 Pokemon::Pokemon(
     int pkdxnumber,
     std::string name,
-    std::string type,
+    std::vector<std::string> type,
     std::string xptype,
     std::vector<std::string> abilities,
     std::string secret_ability,
     int evol_level,
     std::vector<int> base_stats,
-    std::string ev_gived,
+    std::vector<std::string> ev_gived,
     int catch_rate,
-    std::vector<std::pair<std::string, int>> moves
+    std::vector<std::pair<std::string, int>> moves,
+    std::string summary
 ) : m_pkdxnumber(pkdxnumber),
     m_name(name),
     m_type(type),

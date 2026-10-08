@@ -1,92 +1,19 @@
 #include "Pokedex.hpp"
-#include "Player.hpp"
 #include "Controller.hpp"
 #include "DialogManager.hpp"
-#include "EventManager.hpp"
 #include "Menu.hpp"
 #include "Pokemon.hpp"
-#include "Bag.hpp"
+#include "ResourceManager.hpp"
+
+#include <algorithm>
 
 Pokedex::Pokedex() {
-    std::vector<Choice> choices = {{"Résumé", "SummaryChoice", std::monostate()}, {"Ordre", "OrderChoice", std::string("init")}, {"Objet", "ItemsChoice", std::monostate()}, {"Retour", "Cancel", std::monostate()}};
-    m_subChoiceBox.init(choices);
-    m_subChoiceBox.setPosition({280.f, m_choiceBox.getPosition().y + m_subChoiceBox.getGlobalBounds().height + 10.f});
-
-
-    Controller::getInstance().onAxisChanged("MoveHorizontal", [this](float val) {
-        // On ne gère l'input que si la boîte de choix est visible (le sac est ouvert)
-        if (!m_isOpen || !summary || m_moveChoiceBox.hasFocus()) return;
-
-        // Cooldown pour éviter le défilement trop rapide
-        if (m_inputClock.getElapsedTime().asSeconds() < 0.2f) return;
-        if (std::abs(val) < 0.5f) return;
-
-        if (summary && val < 0 && m_currentpocketIndex > 0) m_currentpocketIndex--;
-        else if (summary && val > 0 && m_currentpocketIndex == 0) m_currentpocketIndex++;
-
-        m_moveChoiceBox.setChoiceIndex(0);
-        m_moveChoiceBox.hideCursor(true);
-
-        //updateDisplay();
-        m_inputClock.restart();
-    });
-    Controller::getInstance().onAxisChanged("MoveVertical", [this](float val) {
-        if (!m_isOpen) return;
-
-        if (summary && !m_moveChoiceBox.hasFocus() && m_currentpocketIndex == 1) {
-            return;
-        }
-    });
-    Controller::getInstance().onActionPressed("SelectMove", [this]() {
-        if (!m_isOpen) return;
-
-        if (DialogManager::getInstance().isActive()) return;
-
-        if (summary) {
-            m_moveChoiceBox.setFocus(true);
-            m_choiceBox.setFocus(false);
-            m_moveChoiceBox.hideCursor(false);
-        }
-    });
     Controller::getInstance().onActionPressed("Cancel", [this]() {
-        if (Bag::getInstance().lookingForItem) {
-            Bag::getInstance().lookingForItem = false;
-            m_choiceBox.setVisible(true);
-            m_choiceBox.setFocus(true);
-            m_pocketDialog.show();
-            Menu::getInstance().close();
-            return;
-        }
-        if (m_moveChoiceBox.hasFocus()) {
-            m_moveChoiceBox.setFocus(false);
-            m_moveChoiceBox.hideCursor(true);
-            m_choiceBox.setFocus(true);
-            Menu::getInstance().close();
-            return;
-        }
-        if (summary) {
-            summary = false;
-            m_currentpocketIndex = 0;
-            m_pocketDialog.setText("Pokémon", false);
-            m_choiceBox.setFocus(true);
-            DialogManager::getInstance().setActive(false);
-            Menu::getInstance().close();
-            return;
-        }
-        if (m_subChoiceBox.isVisible()) {
-            m_subChoiceBox.setVisible(false);
-            m_subChoiceBox.setFocus(false);
-            m_choiceBox.setFocus(true);
-            resetSubChoiceBox();
-            return;
-        }
-        m_isOpen = false;
-        DialogManager::getInstance().setActive(false);
-        m_choiceBox.setVisible(false);
-        m_choiceBox.reset();
+        if (!m_isOpen) return;
+
+        close();
         Menu::getInstance().open();
         Menu::getInstance().setFocus(true);
-        summary = false;
     });
 }
 
@@ -94,6 +21,7 @@ void Pokedex::open() {
     m_isOpen = true;
     updateDisplay();
     m_choiceBox.setVisible(true);
+    m_choiceBox.setFocus(true);
     m_choiceBox.setChoiceIndex(0);
 }
 
@@ -107,14 +35,6 @@ void Pokedex::close() {
     m_choiceBox.setVisible(false);
     m_choiceBox.setFocus(true);
     m_choiceBox.reset();
-
-    m_moveChoiceBox.setVisible(false);
-    m_moveChoiceBox.setFocus(false);
-    m_moveChoiceBox.hideCursor(true);
-
-    m_subChoiceBox.setVisible(false);
-    m_subChoiceBox.setFocus(false);
-    resetSubChoiceBox();
 
     m_descriptionDialog.hide();
 }
@@ -137,7 +57,7 @@ void Pokedex::displayDescription(){
                 PokemonDataBase& db = PokemonDataBase::getInstance();
                 const Pokemon& basePkm = db.getPokemon(selectedPkm);
                 if (m_currentpocketIndex == 0) {
-                    description = "$[blue]" + pkm.m_nature + "$[black] de nature.                   " + pkm.m_surname + "    " + pkm.m_sexe + "\nRencontré au N. " + std::to_string(pkm.m_encounterLevel) + "                   N." + std::to_string(pkm.m_level)  + "\nle 04 mars 2026." + "                   " + ((pkm.m_statut == "None") ? "" : pkm.m_statut) + "\nProvenance :\n$[blue]Renouet.$[black]\n" + pkm.m_description + "\nN° Pokédex : " + std::to_string(basePkm.m_pkdxnumber) + "\nNom : " + basePkm.m_name + "\nType : " + basePkm.m_type + "\nD.O. : $[blue]" + pkm.m_surname + "$[black]\nN° ID : " + std::to_string(pkm.m_id);
+                    description = "$[blue]" + pkm.m_nature + "$[black] de nature.                   " + pkm.m_surname + "    " + pkm.m_sexe + "\nRencontré au N. " + std::to_string(pkm.m_encounterLevel) + "                   N." + std::to_string(pkm.m_level)  + "\nle 04 mars 2026." + "                   " + ((pkm.m_statut == "None") ? "" : pkm.m_statut) + "\nProvenance :\n$[blue]Renouet.$[black]\n" + pkm.m_description + "\nN° Pokédex : " + std::to_string(basePkm.m_pkdxnumber) + "\nNom : " + basePkm.m_name + "\nType : " + basePkm.m_type[0] + (basePkm.m_type.size() > 1 ? " / " + basePkm.m_type[1] : "") + "\nD.O. : $[blue]" + pkm.m_surname + "$[black]\nN° ID : " + std::to_string(pkm.m_id);
                     description2 = "Points Exp. : " + std::to_string(pkm.m_xp) + "                      Objet : " + pkm.m_item + "\nNiveau suivant : " + std::to_string(pkm.toNextLevel(pkm.m_level, pkm.m_xpType));
                 }
                 else {
@@ -163,27 +83,24 @@ void Pokedex::displayDescription(){
     }
 }
 
-void Pokedex::resetSubChoiceBox() {
-    std::vector<Choice> choices = {{"Résumé", "SummaryChoice", std::monostate()}, {"Ordre", "OrderChoice", std::string("init")}, {"Objet", "ItemsChoice", std::monostate()}, {"Retour", "Cancel", std::monostate()}};
-    m_subChoiceBox.init(choices);
-    m_subChoiceBox.reset();
-}
-
 void Pokedex::updateDisplay() {
     int savedIndex = m_choiceBox.getChoiceIndex();
     std::vector<Choice> choices;
-    m_pocketDialog.setText("Pokémon", false);
+    m_pocketDialog.setText("Pokédex", false);
 
-    for (auto& pkm : m_team) {
-        choices.emplace_back(pkm.m_surname, "ViewPokemon", std::monostate());
-    }
-    size_t teamSize = m_team.size();
-
-    if (teamSize <= 6) {
-        for (size_t i = 0; i < 6 - teamSize; ++i) {
-            choices.emplace_back("---", "EmptySlot", std::monostate());
+    std::vector<Pokemon> list = PokemonDataBase::getInstance().getListPokemon();
+    std::sort(list.begin(), list.end(),
+              [](const Pokemon& a, const Pokemon& b) { return a.m_pkdxnumber < b.m_pkdxnumber; });
+    int j = 0;
+    for (int i = 0; i < 502; ++i) {
+        if (j < static_cast<int>(list.size()) && i == list[j].m_pkdxnumber - 1) {
+            choices.emplace_back(list[j].m_name, "ViewDescription", std::monostate());
+            j++;
+        } else {
+            choices.emplace_back("---", "Emptyslot", std::monostate());
         }
     }
+
     m_choiceBox.init(choices);
     m_choiceBox.setChoiceIndex(savedIndex);
     m_pocketDialog.show();
@@ -192,8 +109,7 @@ void Pokedex::updateDisplay() {
 void Pokedex::draw(sf::RenderWindow& window)
 {
     if (!m_isOpen) return;
-    
-    displayDescription();
+
     sf::FloatRect choiceBounds = m_choiceBox.getGlobalBounds();
     float height = 50.f;
     auto& dialog = DialogManager::getInstance();
@@ -203,33 +119,8 @@ void Pokedex::draw(sf::RenderWindow& window)
     m_pocketDialog.setPosition({choiceBounds.left, choiceBounds.top - height});
     m_choiceBox.setPosition({m_choiceBox.getPosition().x, dialog.getTop()});
 
-    if (m_currentpocketIndex == 0) {
-        m_choiceBox.draw(window);
-        m_moveChoiceBox.setFocus(false);
-        if (DialogManager::getInstance().isActive() && !summary) {
-            m_choiceBox.setFocus(false);
-        }
-        else {
-            m_choiceBox.setFocus(true);
-        }
-    }
-    else {
-        m_moveChoiceBox.setVisible(true);
-
-        m_moveChoiceBox.setPosition({
-            m_moveChoiceBox.getPosition().x,
-            dialog.getTop()
-        });
-        sf::FloatRect moveBounds = m_moveChoiceBox.getGlobalBounds();
-
-        m_pocketDialog.setPosition({moveBounds.left, moveBounds.top - height});
-        m_moveChoiceBox.draw(window);   
-    }
-    if (m_subChoiceBox.isVisible()) {
-        m_subChoiceBox.setFocus(true);
-        m_choiceBox.setFocus(false);
-        m_subChoiceBox.draw(window);
-    }
+    m_choiceBox.draw(window);
+    m_choiceBox.setFocus(!DialogManager::getInstance().isActive());
     m_pocketDialog.draw(window);
 
     if (summary){
@@ -243,14 +134,6 @@ void Pokedex::draw(sf::RenderWindow& window)
 
         m_descriptionDialog.draw(window);
         std::string selectedPkm = m_choiceBox.getChoiceName();
-        if (selectedPkm != "---") {
-            window.draw(m_bagSprite);
-        }
-        else {
-            m_choiceBox.setFocus(true);
-            m_moveChoiceBox.setFocus(false);
-            m_currentpocketIndex = 0;
-            m_pocketDialog.setText("Pokémon", false);
-        }
+        if (selectedPkm != "---") window.draw(m_bagSprite);
     }
 }

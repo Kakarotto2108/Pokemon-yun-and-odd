@@ -16,28 +16,30 @@ public:
     Pokemon(
         int pkdxnumber,
         std::string name,
-        std::string type,
+        std::vector<std::string> type,
         std::string xptype,
         std::vector<std::string> abilities,
         std::string secret_ability,
         int evol_level,
         std::vector<int> base_stats,
-        std::string ev_gived,
+        std::vector<std::string> ev_gived,
         int catch_rate,
-        std::vector<std::pair<std::string, int>> moves
+        std::vector<std::pair<std::string, int>> moves,
+        std::string summary
     );
 
     int m_pkdxnumber;
     std::string m_name;
-    std::string m_type;
+    std::vector<std::string> m_type;
     std::string m_xptype;
     std::vector<std::string> m_abilities;
     std::string m_secret_ability;
     int m_evol_level;
     std::vector<int> m_base_stats;
-    std::string m_ev_gived;
+    std::vector<std::string> m_ev_gived;
     int m_catch_rate;
     std::vector<std::pair<std::string, int>> m_moves;
+    std::string m_summary;
 };
 
 class PokemonDataBase {
@@ -94,15 +96,16 @@ public:
                 Pokemon data;
                 data.m_pkdxnumber = std::stoi(trim(parts[0]));
                 data.m_name = trim(parts[1]);
-                data.m_type = trim(parts[2]);
+                data.m_type = split(trim(parts[2]), ',');
                 data.m_xptype = trim(parts[3]);
                 data.m_abilities = split(trim(parts[4]), ';');
                 data.m_secret_ability = trim(parts[5]);
                 data.m_evol_level = std::stoi(trim(parts[6]));
                 data.m_base_stats = splitToInts(trim(parts[7]), ';');
-                data.m_ev_gived = trim(parts[8]);
+                data.m_ev_gived = split(trim(parts[8]), ',');
                 data.m_catch_rate = std::stoi(trim(parts[9]));
                 data.m_moves = splitToMoves(trim(parts[10]));
+                data.m_summary = trim(parts[11]);
 
                 m_pokemons.emplace(data.m_name, data);
             }
@@ -114,6 +117,14 @@ public:
             return m_pokemons.at(name);
         }
         return Pokemon();  // Return a default Pokemon if not found
+    }
+
+    std::vector<Pokemon> getListPokemon() {
+        std::vector<Pokemon> result;
+        for (const auto& pair : m_pokemons) {
+            result.push_back(pair.second);
+        }
+        return result;
     }
 
 private:

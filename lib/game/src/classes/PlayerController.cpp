@@ -7,6 +7,7 @@
 #include "Menu.hpp"
 #include "Bag.hpp"
 #include "TeamDisplay.hpp"
+#include "Pokedex.hpp"
 #include <iostream>
 
 PlayerController* PlayerController::s_instance = nullptr;
@@ -30,6 +31,7 @@ PlayerController::PlayerController(World& world, Player& player) : m_world(world
         return Menu::getInstance().isVisible() ||
                Bag::getInstance().getChoiceBox().isVisible() ||
                TeamDisplay::getInstance().getChoiceBox().isVisible() ||
+               Pokedex::getInstance().getChoiceBox().isVisible() ||
                DialogManager::getInstance().getChoiceBox().isVisible();
     };
 

@@ -1,2 +1,10 @@
-7|Moustillon|Eau|Parabole|Torrent|Coque Armure|17|55;55;45;63;45;45|Att. Spé.|45|Charge,-1;Mimi-Queue, 5;Pistolet à O, 7
-25|Pikachu|Électrik|Moyen|Statik|Paratonnerre|-1|35;55;40;50;50;90|Vit.|190|Éclair,-1;Rugissement,-1:Mimi-Queue,5;Cage-Éclair,10
+1|Bulbizarre|Plante, Poison|Parabole|Engrais|Chlorophylle|16|45;49;49;65;65;45;65|Att. Spé.|45|
+Charge, -1; Rugissement, 3; Vampigraine, 7; Fouet Lianes, 9|Au matin de sa vie, la graine sur son dos lui fournit les éléments dont il a besoin pour grandir.
+2|Herbizarre|Plante, Poison|Parabole|Engrais|Chlorophylle|32|60;62;63;80;80;60|Att. Spé., Déf. Spé.|45|Charge, -1; Rugissement, 3; Vampigraine, 7; Fouet Lianes, 9|Lorsque le bourgeon sur son dos éclot, il répand un doux parfum pour célébrer sa floraison.
+3|Florizarre|Plante, Poison|Parabole|Engrais|Chlorophylle|0|80;82;83;100;100;80|Att. Spé., Déf. Spé.|45|Charge, -1; Rugissement, 3; Vampigraine, 7; Fouet Lianes, 9|Le parfum de sa fleur se fait plus pénétrant les lendemains de pluie. Cela appâte les autres Pokémon.
+4|Salamèche|Feu|Parabole|Brasier|Force Soleil|16|39;52;43;60;50;65|Vit.|45|Griffe, -1;Rugissement, -1; Flammèche, 7; Brouillard, 10|La flamme de sa queue symbolise sa vitalité. Elle est intense quand il est en bonne santé.
+5|Reptincel|Feu|Parabole|Brasier|Force Soleil|36|58;64;58;80;65;80|Vit., Att. Spé.|45|Griffe, -1;Rugissement, -1; Flammèche, 7; Brouillard, 10|La nuit, la queue ardente du Reptincel brille comme une étoile dans son repaire montagneux.
+6|Dracaufeu|Feu, Vol|Parabole|Brasier|Force Soleil|0|78;84;78;109;85;100|Att. Spé.|45|Griffe, -1;Rugissement, -1; Flammèche, 7; Brouillard, 10|On raconte que la flamme du Dracaufeu s'intensifie après un combat difficile.
+7|Carapuce|Eau|Parabole|Torrent|Cuvette|16|44;48;65;50;64;43|Déf.|45|Charge, -1; Mimi-Queue, 4; Écume, 7; Repli, 10|Il se réfugie dans sa carapace et réplique en éclaboussant l'ennemi à la première occasion.
+25|Pikachu|Électrik|Moyen|Statik|Paratonnerre|-1|35;55;40;50;50;90|Vit.|190|Éclair,-1;Rugissement,-1:Mimi-Queue,5;Cage-Éclair,10 | Il lui arrive de remettre d'aplomb un Pikachu allié en lui envoyant une décharge électrique.
+501|Moustillon|Eau|Parabole|Torrent|Coque Armure|17|55;55;45;63;45;45|Att. Spé.|45|Charge,-1;Mimi-Queue, 5;Pistolet à O, 7 | Le coupillage sur son ventre lui sert non seulement à combattre, mais aussi à trancher les Baies très dures.
