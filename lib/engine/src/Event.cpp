@@ -30,4 +30,6 @@ Event<> GameEvents::ViewItem;
 Event<std::string> GameEvents::UseItem;
 Event<int> GameEvents::DiscardItem;
 Event<> GameEvents::SelectDiscardItem;
+Event<> GameEvents::ViewDescriptionPokedex;
+Event<> GameEvents::ShowDescriptionPokedex;
 

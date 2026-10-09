@@ -8,8 +8,26 @@
 #include <algorithm>
 
 Pokedex::Pokedex() {
+    std::vector<Choice> choices = {{"Info", "ShowDescriptionPokedex", std::monostate()}};
+    m_subChoiceBox.init(choices);
+    m_subChoiceBox.setPosition({280.f, m_choiceBox.getPosition().y + m_subChoiceBox.getGlobalBounds().height/2});
+
     Controller::getInstance().onActionPressed("Cancel", [this]() {
         if (!m_isOpen) return;
+
+        if (m_subChoiceBox.isVisible()) {
+            m_subChoiceBox.setVisible(false);
+            m_subChoiceBox.setFocus(false);
+            m_choiceBox.setFocus(true);
+            return;
+        }
+
+        if (summary) {
+            summary = false;
+            m_descriptionDialog.hide();
+            m_choiceBox.setFocus(true);
+            return;
+        }
 
         close();
         Menu::getInstance().open();
@@ -94,7 +112,7 @@ void Pokedex::updateDisplay() {
     int j = 0;
     for (int i = 0; i < 502; ++i) {
         if (j < static_cast<int>(list.size()) && i == list[j].m_pkdxnumber - 1) {
-            choices.emplace_back(list[j].m_name, "ViewDescription", std::monostate());
+            choices.emplace_back(list[j].m_name, "ViewDescriptionPokedex", std::monostate());
             j++;
         } else {
             choices.emplace_back("---", "Emptyslot", std::monostate());
@@ -120,7 +138,8 @@ void Pokedex::draw(sf::RenderWindow& window)
     m_choiceBox.setPosition({m_choiceBox.getPosition().x, dialog.getTop()});
 
     m_choiceBox.draw(window);
-    m_choiceBox.setFocus(!DialogManager::getInstance().isActive());
+    m_choiceBox.setFocus(!DialogManager::getInstance().isActive() && !m_subChoiceBox.isVisible());
+    m_subChoiceBox.draw(window);
     m_pocketDialog.draw(window);
 
     if (summary){

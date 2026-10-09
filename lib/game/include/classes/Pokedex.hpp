@@ -24,10 +24,12 @@ public:
     std::vector<PokemonInstance> m_team;
     GameChoiceBox m_choiceBox;
     GameDialog m_pocketDialog;
+    GameChoiceBox m_subChoiceBox;
     void open();
     void close();
     bool isOpen() const { return m_isOpen; }
     GameChoiceBox& getChoiceBox() { return m_choiceBox; }
+    GameChoiceBox& getSubChoiceBox() { return m_subChoiceBox; }
     void displayDescription();
     void updateDisplay();
     void draw(sf::RenderWindow& window);

@@ -62,6 +62,8 @@ public:
         {"Cancel", &GameEvents::Cancel},
         {"ViewItem", &GameEvents::ViewItem},
         {"SelectDiscardItem", &GameEvents::SelectDiscardItem},
+        {"ViewDescriptionPokedex", &GameEvents::ViewDescriptionPokedex},
+        {"ShowDescriptionPokedex", &GameEvents::ShowDescriptionPokedex}
     };
 
     std::unordered_map<std::string, Event<std::string>*> stringEvents {

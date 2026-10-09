@@ -90,7 +90,6 @@ EventManager::EventManager() {
 
     GameEvents::OpenPokedex.subscribe([]() {
         Pokedex::getInstance().m_team = TeamDisplay::getInstance().m_team;
-        Pokedex::getInstance().setSummary(true);
         Pokedex::getInstance().open();
         Menu::getInstance().setFocus(false);
         Menu::getInstance().close();
@@ -455,9 +454,18 @@ EventManager::EventManager() {
                 }
                 DialogManager::getInstance().startDialogue(script, nullptr, actionAfter);
             }
-            // TeamDisplay::getInstance().close();
-            // Bag::getInstance().open()
         }
+    });
+
+    GameEvents::ViewDescriptionPokedex.subscribe([]() {
+        Pokedex::getInstance().m_subChoiceBox.open();
+    });
+
+    GameEvents::ShowDescriptionPokedex.subscribe([]() {
+        Pokedex::getInstance().m_subChoiceBox.setVisible(false);
+        Pokedex::getInstance().m_choiceBox.setFocus(true);
+        Pokedex::getInstance().setSummary(true);
+        Pokedex::getInstance().displayDescription();
     });
 }
 

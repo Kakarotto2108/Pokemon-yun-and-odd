@@ -67,4 +67,6 @@ struct GameEvents {
     static Event<std::string> UseItem;
     static Event<int> DiscardItem;
     static Event<> SelectDiscardItem;
+    static Event<> ViewDescriptionPokedex;
+    static Event<> ShowDescriptionPokedex;
 };
